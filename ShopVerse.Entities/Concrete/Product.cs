@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopVerse.Entities.Concrete;
 
@@ -11,10 +12,11 @@ public class Product:BaseEntity
     public string Description { get; set; }
     [Required(ErrorMessage = "Lütfen ürün fiyatını giriniz.")]
     [Range(0, double.MaxValue, ErrorMessage = "Fiyat 0'dan küçük olamaz.")]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
     [Range(0, 100, ErrorMessage = "İndirim oranı 0 ile 100 arasında olmalıdır.")]
     public int DiscountRate { get; set; } = 0; // Varsayılan 0 (İndirim yok)
-
+    [Column(TypeName = "decimal(18,2)")]
     public decimal PriceWithDiscount { get; set; }
     [Required(ErrorMessage = "Lütfen stok adedini giriniz.")]
     [Range(0, int.MaxValue, ErrorMessage = "Stok adedi 0'dan küçük olamaz.")]

@@ -1,12 +1,14 @@
 ﻿using ShopVerse.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopVerse.Entities.Concrete;
 
 public class Order:BaseEntity
 {
     [StringLength(50)]
-    public string OrderNumber { get; set; } 
+    public string OrderNumber { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
     public decimal TotalPrice { get; set; } 
     public DateTime OrderDate { get; set; } = DateTime.Now;
     public OrderStatus OrderStatus { get; set; }

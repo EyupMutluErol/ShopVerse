@@ -24,6 +24,9 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
     {
         base.OnModelCreating(builder); 
 
+
+        // Varlıklar arası ilişkiler
+
         builder.Entity<Product>()
             .HasOne(p=>p.Category)
             .WithMany(c=>c.Products)
@@ -66,6 +69,5 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
             .HasForeignKey(f => f.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        
     }
 }
