@@ -5,11 +5,16 @@ using ShopVerse.DataAccess.Abstract;
 using ShopVerse.DataAccess.Concrete.Context;
 using ShopVerse.DataAccess.Concrete.EntityFramework;
 using ShopVerse.Entities.Concrete;
+using ShopVerse.WebUI.Extensions;
+using ShopVerse.WebUI.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.ConfigureTurkishValidationMessages();
+});
 
 builder.Services.AddDbContext<ShopVerseContext>(options =>
 {
@@ -25,7 +30,9 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     options.Password.RequiredLength = 8;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); 
     options.Lockout.MaxFailedAccessAttempts = 5;
-}).AddEntityFrameworkStores<ShopVerseContext>();
+})
+.AddEntityFrameworkStores<ShopVerseContext>()
+.AddErrorDescriber<TrIdentityErrorDescriber>();
 
 builder.Services.AddScoped<ICategoryRepository, EfCategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryManager>();
@@ -47,6 +54,8 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailManager>();
 
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddScoped<IFavoriteService, FavoriteManager>();
+
+builder.Services.AddScoped<ImageHelper>();
 
 
 var app = builder.Build();

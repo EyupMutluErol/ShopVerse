@@ -1,0 +1,43 @@
+﻿@model CategoryUpdateViewModel
+
+@{
+    ViewData["Title"] = "Kategori Güncelle";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Kategori Güncelle</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Update" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ExistingImageUrl" /> @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+            {
+                <div class="mb-3">
+                    <label>Mevcut Görsel:</label><br />
+                    <img src="@Model.ExistingImageUrl" width="100" class="img-thumbnail" />
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Yeni Görsel Seç (Opsiyonel)</label>
+                <input asp-for="ImageFile" type="file" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-warning">Güncelle</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>
