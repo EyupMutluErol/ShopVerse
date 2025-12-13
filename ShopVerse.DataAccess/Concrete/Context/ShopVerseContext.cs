@@ -40,9 +40,9 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Order>()
-            .HasOne<AppUser>()
+            .HasOne(o=>o.AppUser)
             .WithMany()
-            .HasForeignKey(o=>o.UserId)
+            .HasForeignKey(o=>o.AppUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<CartItem>()

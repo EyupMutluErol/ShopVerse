@@ -1,0 +1,132 @@
+﻿@using ShopVerse.WebUI.Extensions
+@using ShopVerse.WebUI.Models
+@model CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Ödeme ve Sipariş";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    var cart = Context.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+    decimal total = cart.Sum(x => x.TotalPrice);
+}
+
+<div class="container mt-5 mb-5">
+    <div class="py-5 text-center">
+        <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+        <h2>Ödeme Formu</h2>
+        <p class="lead text-muted">Lütfen teslimat ve ödeme bilgilerini eksiksiz doldurunuz.</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-md-5 col-lg-4 order-md-last">
+            <h4 class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-primary">Sepet Özeti</span>
+                <span class="badge bg-primary rounded-pill">@cart.Count</span>
+            </h4>
+
+            <ul class="list-group mb-3 shadow-sm">
+                @foreach (var item in cart)
+                {
+                    <li class="list-group-item d-flex justify-content-between lh-sm">
+                        <div>
+                            <h6 class="my-0">@item.Product.Name</h6>
+                            <small class="text-muted">Adet: @item.Quantity</small>
+                        </div>
+                        <span class="text-muted">@item.TotalPrice.ToString("C2")</span>
+                    </li>
+                }
+
+                <li class="list-group-item d-flex justify-content-between bg-light">
+                    <span class="fw-bold">Toplam Tutar</span>
+                    <strong class="text-primary fs-5">@total.ToString("C2")</strong>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-7 col-lg-8">
+            <h4 class="mb-3">Teslimat Adresi</h4>
+
+            <form asp-controller="Checkout" asp-action="Index" method="post" class="needs-validation">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="FullName" class="form-label">Ad Soyad</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Adınız Soyadınız">
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="PhoneNumber" class="form-label">Telefon Numarası</label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="05XX XXX XX XX">
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="AddressLine" class="form-label">Açık Adres</label>
+                        <textarea asp-for="AddressLine" class="form-control" rows="2" placeholder="Mahalle, Cadde, Sokak, Kapı No..."></textarea>
+                        <span asp-validation-for="AddressLine" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="City" class="form-label">Şehir</label>
+                        <input asp-for="City" class="form-control" placeholder="Örn: İstanbul">
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="District" class="form-label">İlçe</label>
+                        <input asp-for="District" class="form-control" placeholder="Örn: Kadıköy">
+                        <span asp-validation-for="District" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h4 class="mb-3">Kart Bilgileri</h4>
+
+                <div class="row gy-3">
+                    <div class="col-md-6">
+                        <label asp-for="CardName" class="form-label">Kart Üzerindeki İsim</label>
+                        <input asp-for="CardName" class="form-control" placeholder="AD SOYAD">
+                        <span asp-validation-for="CardName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="CardNumber" class="form-label">Kart Numarası</label>
+                        <input asp-for="CardNumber" class="form-control" placeholder="0000 0000 0000 0000">
+                        <span asp-validation-for="CardNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ExpirationMonth" class="form-label">Ay</label>
+                        <input asp-for="ExpirationMonth" class="form-control" placeholder="AA">
+                        <span asp-validation-for="ExpirationMonth" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ExpirationYear" class="form-label">Yıl</label>
+                        <input asp-for="ExpirationYear" class="form-control" placeholder="YY">
+                        <span asp-validation-for="ExpirationYear" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Cvv" class="form-label">CVV</label>
+                        <input asp-for="Cvv" class="form-control" placeholder="***">
+                        <span asp-validation-for="Cvv" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <button class="w-100 btn btn-success btn-lg py-3 shadow-sm" type="submit">
+                    <i class="fas fa-check-circle me-2"></i> @total.ToString("C2") - Ödemeyi Yap
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

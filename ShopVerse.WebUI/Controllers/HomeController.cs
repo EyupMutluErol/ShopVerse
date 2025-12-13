@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
 using ShopVerse.WebUI.Models;
@@ -5,6 +6,7 @@ using System.Diagnostics;
 
 namespace ShopVerse.WebUI.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

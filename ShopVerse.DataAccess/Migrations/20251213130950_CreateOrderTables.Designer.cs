@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopVerse.DataAccess.Concrete.Context;
 
@@ -11,9 +12,11 @@ using ShopVerse.DataAccess.Concrete.Context;
 namespace ShopVerse.DataAccess.Migrations
 {
     [DbContext(typeof(ShopVerseContext))]
-    partial class ShopVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20251213130950_CreateOrderTables")]
+    partial class CreateOrderTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,9 +433,15 @@ namespace ShopVerse.DataAccess.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AppUserId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -638,6 +647,12 @@ namespace ShopVerse.DataAccess.Migrations
                     b.HasOne("ShopVerse.Entities.Concrete.AppUser", "AppUser")
                         .WithMany()
                         .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShopVerse.Entities.Concrete.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

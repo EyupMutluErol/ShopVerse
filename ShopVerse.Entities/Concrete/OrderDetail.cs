@@ -9,9 +9,9 @@ public class OrderDetail:BaseEntity
     public Order Order { get; set; }
     public int ProductId { get; set; }
     public Product Product { get; set; }
-    [Range(0, double.MaxValue, ErrorMessage = "Satış fiyatı hatalı.")]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Price { get; set; }
+    public decimal Price { get; set; } // Satış anındaki birim fiyat
     [Range(1, int.MaxValue, ErrorMessage = "Sipariş adedi en az 1 olmalıdır.")]
     public int Quantity { get; set; }
+    public decimal TotalPrice => Price * Quantity;
 }

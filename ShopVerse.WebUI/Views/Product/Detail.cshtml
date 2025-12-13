@@ -1,0 +1,103 @@
+﻿@model ShopVerse.Entities.Concrete.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Anasayfa</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-dark">Tüm Ürünler</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <img src="@Model.ImageUrl" class="card-img-top img-fluid rounded" alt="@Model.Name" style="max-height: 500px; object-fit: contain;">
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h1 class="fw-bold">@Model.Name</h1>
+
+            <div class="mb-3">
+                <span class="h3 text-primary fw-bold">@Model.Price.ToString("C")</span>
+            </div>
+
+            <p class="lead text-muted">
+                @Model.Description
+            </p>
+
+            <div class="mb-4">
+                @if (Model.Stock > 0)
+                {
+                    <span class="badge bg-success p-2"><i class="fas fa-check-circle me-1"></i> Stokta Var (@Model.Stock adet)</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger p-2"><i class="fas fa-times-circle me-1"></i> Stokta Yok</span>
+                }
+            </div>
+
+            <hr />
+
+            <form method="post" asp-controller="Cart" asp-action="AddToCart">
+                <input type="hidden" name="productId" value="@Model.Id" />
+
+                <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                        <label class="col-form-label fw-bold">Adet:</label>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select" name="quantity" style="width: 80px;">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        @if (Model.Stock > 0)
+                        {
+                            <button type="submit" class="btn btn-dark w-100 btn-lg shadow-sm">
+                                <i class="fas fa-shopping-cart me-2"></i> Sepete Ekle
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-secondary w-100 btn-lg" disabled>
+                                Stok Tükendi
+                            </button>
+                        }
+                    </div>
+                </div>
+            </form>
+
+            <div class="mt-4">
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-truck text-primary me-3 fa-lg"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Hızlı Teslimat</h6>
+                                <small class="text-muted">24 saat içinde kargoda.</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-shield-alt text-primary me-3 fa-lg"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Güvenli Ödeme</h6>
+                                <small class="text-muted">256-bit SSL koruması.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
