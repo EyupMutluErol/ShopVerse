@@ -13,9 +13,25 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ShopVerse</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .navbar-nav .nav-link {
+            transition: color 0.3s;
+        }
+
+            .navbar-nav .nav-link:hover {
+                color: #0dcaf0 !important; 
+            }
+
         .product-card img {
             height: 250px;
             object-fit: cover;
@@ -33,60 +49,72 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 sticky-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">ShopVerse</a>
+            <a class="navbar-brand fw-bold fs-4" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-shopping-bag me-2 text-primary"></i>ShopVerse
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link active" asp-controller="Home" asp-action="Index">Anasayfa</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Products">Tüm Ürünler</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Anasayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Product" asp-action="Index">Tüm Ürünler</a></li>
                 </ul>
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     @{
                         int cartCount = 0;
-                        // Session'dan veriyi string olarak çekiyoruz
                         var sessionCart = HttpContextAccessor.HttpContext?.Session.GetString("Cart");
 
-                        // Eğer veri varsa deserialize edip sayısını alıyoruz
                         if (!string.IsNullOrEmpty(sessionCart))
                         {
                             var items = System.Text.Json.JsonSerializer.Deserialize<List<CartItemModel>>(sessionCart);
                             if (items != null)
                             {
-                                cartCount = items.Sum(x => x.Quantity); // Toplam ürün adedi
+                                cartCount = items.Sum(x => x.Quantity);
                             }
                         }
                     }
-                    <li class="nav-item me-2">
-                        <a asp-controller="Cart" asp-action="Index" class="nav-link position-relative">
+                    <li class="nav-item me-3">
+                        <a asp-controller="Cart" asp-action="Index" class="nav-link position-relative btn btn-outline-secondary border-0 text-white">
                             <i class="fas fa-shopping-cart fa-lg"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                @cartCount  
-                            </span>
+                            @if (cartCount > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                                    @cartCount
+                                </span>
+                            }
                         </a>
                     </li>
 
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <li class="nav-item border-start ms-2 ps-2 d-flex align-items-center">
-                            <span class="nav-link text-light me-2">
-                                <i class="fas fa-user-circle me-1"></i> @User.Identity.Name
-                            </span>
-                            <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-outline-danger text-light border-0">
-                                <i class="fas fa-sign-out-alt"></i> Çıkış
+                        var fullUserName = User.Identity.Name;
+                        var displayName = fullUserName.Contains("@") ? fullUserName.Split('@')[0] : fullUserName;
+
+                        <li class="nav-item dropdown border-start ms-2 ps-3">
+                            <a class="nav-link dropdown-toggle text-light d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle fa-lg me-2"></i> @displayName
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-cog me-2"></i>Hesabım</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     }
                     else
                     {
-                        <li class="nav-item border-start ms-2 ps-2 d-flex">
-                            <a asp-controller="Account" asp-action="Login" class="nav-link">
+                        <li class="nav-item border-start ms-2 ps-3 d-flex gap-2">
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-sm px-3 rounded-pill">
                                 <i class="fas fa-sign-in-alt me-1"></i> Giriş
                             </a>
-                            <a asp-controller="Account" asp-action="Register" class="nav-link">
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm px-3 rounded-pill">
                                 <i class="fas fa-user-plus me-1"></i> Kayıt
                             </a>
                         </li>
@@ -96,21 +124,28 @@
         </div>
     </nav>
 
+    @{
+        var containerClass = ViewData["Title"]?.ToString() == "Ana Sayfa" ? "container-fluid p-0" : "container mt-4";
+    }
+
     <main class="flex-shrink-0">
-        <div class="container mt-4">
+        <div class="@containerClass">
             @RenderBody()
         </div>
     </main>
 
-    <footer class="footer mt-auto py-3 bg-light border-top">
+    <footer class="footer mt-auto py-4 bg-dark text-light border-top border-secondary">
         <div class="container text-center">
-            <span class="text-muted">&copy; 2025 - ShopVerse E-Ticaret</span>
+            <div class="mb-3">
+                <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                <a href="#" class="text-light me-3"><i class="fab fa-twitter fa-lg"></i></a>
+            </div>
+            <span class="text-muted small">&copy; 2025 - <strong>ShopVerse</strong> E-Ticaret Platformu. Tüm hakları saklıdır.</span>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
@@ -118,12 +153,14 @@
         {
                 <text>
                 Swal.fire({
-                    position: 'bottom-end', // Sağ alt köşe
-                    icon: '@TempData["Icon"]', // success, error, warning
+                    position: 'bottom-end',
+                    icon: '@TempData["Icon"]',
                     title: '@TempData["Message"]',
                     showConfirmButton: false,
-                    timer: 3000, // 3 saniye sonra kaybolur
-                    toast: true // Toast modunu açar (küçük bildirim)
+                    timer: 3000,
+                    toast: true,
+                    background: '#fff',
+                    iconColor: '@(TempData["Icon"] == "success" ? "#198754" : "#dc3545")'
                 });
                 </text>
         }

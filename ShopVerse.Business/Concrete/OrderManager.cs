@@ -12,4 +12,9 @@ public class OrderManager:GenericManager<Order>,IOrderService
     {
         _orderRepository = orderRepository;
     }
+
+    public List<Order> GetOrdersByUserId(string userId)
+    {
+        return _orderRepository.GetOrdersByUserId(userId);
+    }
 }

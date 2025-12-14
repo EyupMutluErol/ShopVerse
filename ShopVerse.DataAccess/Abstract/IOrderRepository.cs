@@ -4,4 +4,5 @@ namespace ShopVerse.DataAccess.Abstract;
 
 public interface IOrderRepository:IGenericRepository<Order>
 {
+    List<Order> GetOrdersByUserId(string userId);
 }
