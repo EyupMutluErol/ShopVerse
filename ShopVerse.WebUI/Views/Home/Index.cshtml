@@ -2,157 +2,259 @@
 @{
     ViewData["Title"] = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var selectedCats = ViewData["SelectedCategories"] as List<int>;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    /* GENEL AYARLAR */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        --hover-gradient: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        --accent-color: #ff6b6b; 
+        --bg-color: #f4f7f6; 
+        --text-dark: #2d3436;
+    }
+
     body {
         font-family: 'Poppins', sans-serif;
-        background-color: #f5f7fa;
+        background-color: var(--bg-color);
+        color: var(--text-dark);
     }
 
-    /* 1. KONTROL PANELİ (ÜST BAR) */
-    .control-bar {
-        background: white;
-        padding: 12px 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        position: relative;
-        z-index: 100; /* Slider'ın üzerinde kalması için */
-    }
 
-    /* Sol: Kategori Butonu */
-    .category-dropdown-btn {
-        background-color: #2c3e50;
+    .top-announcement-strip {
+        background: var(--primary-gradient);
         color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.95rem;
-        width: 100%;
-        transition: background 0.3s;
-    }
-
-        .category-dropdown-btn:hover, .category-dropdown-btn[aria-expanded="true"] {
-            background-color: #34495e;
-            color: white;
-        }
-
-    .category-menu {
-        border: none;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border-radius: 12px;
-        padding: 10px;
-        width: 260px;
-        margin-top: 10px;
-    }
-
-    .category-item {
-        padding: 8px 15px;
-        border-radius: 6px;
-        color: #555;
+        height: 42px;
+        font-size: 0.9rem;
         font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-        .category-item:hover {
-            background-color: #f0f4f8;
-            color: #0d6efd;
-        }
-
-    /* Orta: Duyuru/Kampanya Slider */
-    .announcement-bar {
-        height: 45px;
-        background-color: #fff;
-        border-radius: 8px;
-        border: 1px solid #e0e0e0;
         overflow: hidden;
+        box-shadow: 0 2px 10px rgba(118, 75, 162, 0.3);
     }
 
     .announcement-text {
         width: 100%;
-        height: 100%; /* Yüksekliği doldur */
+        height: 100%;
         display: flex;
-        align-items: center; /* Dikey ortala */
-        justify-content: center; /* Yatay ortala */
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #444;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
     }
 
         .announcement-text i {
-            margin-right: 8px;
-            font-size: 1.1em;
+            color: #ffeaa7;
+            font-size: 1.2em;
         }
-
         .announcement-text strong {
-            margin-left: 4px;
-            color: #d63031;
+            color: #fff;
+            text-decoration: underline;
         }
 
-    /* Sağ: Arama Çubuğu */
-    .integrated-search {
-        position: relative;
-        width: 100%;
+    .smart-filter-bar {
+        background: white;
+        padding: 20px 0;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
-        .integrated-search input {
-            border: 2px solid #eee;
-            border-radius: 8px;
-            padding: 10px 15px;
-            padding-right: 50px;
-            font-size: 0.9rem;
-            background-color: #fff;
-            transition: all 0.3s;
-            width: 100%; /* Input genişliğini garantiye al */
-        }
-
-            .integrated-search input:focus {
-                border-color: #0d6efd;
-                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-                outline: none;
-            }
-
-        .integrated-search button {
-            position: absolute;
-            right: 4px;
-            top: 4px;
-            height: 38px;
-            width: 40px;
-            border-radius: 6px;
-            border: none;
-            background: #0d6efd;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-    /* 2. SLIDER AYARLARI */
-    .hero-slider-container {
-        margin-top: 20px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    .search-filter-wrapper {
         position: relative;
-        background: #000; /* Resim yüklenene kadar siyah zemin */
+        width: 100%;
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .main-search-input {
+        border: 2px solid #e1e1e1;
+        border-radius: 50px;
+        padding: 12px 25px;
+        padding-right: 160px;
+        height: 60px;
+        width: 100%;
+        font-size: 1rem;
+        background-color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+    }
+
+        .main-search-input:focus {
+            border-color: #764ba2; 
+            box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+            outline: none;
+        }
+
+    .search-actions {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-filter-toggle {
+        background: #f1f2f6;
+        color: #57606f;
+        border: none;
+        border-radius: 50px;
+        padding: 0 25px;
+        height: 100%;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .btn-filter-toggle:hover, .btn-filter-toggle[aria-expanded="true"] {
+            background: #dfe4ea;
+            color: #764ba2;
+        }
+
+    .btn-search-submit {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        width: 48px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+    }
+
+        .btn-search-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(118, 75, 162, 0.4);
+        }
+
+    .filter-dropdown-menu {
+        position: absolute;
+        top: 115%;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        border: 1px solid #f0f0f0;
+        display: none;
+        z-index: 1001;
+        overflow: hidden;
+        animation: slideDown 0.25s ease-out;
+    }
+
+        .filter-dropdown-menu.show {
+            display: block;
+        }
+
+    @@keyframes slideDown {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    }
+
+    .filter-section-header {
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #764ba2; 
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+    }
+
+        .filter-section-header::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: #f1f2f6;
+            margin-left: 10px;
+            border-radius: 2px;
+        }
+
+    .category-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .cat-checkbox-hidden {
+        display: none;
+    }
+
+    .cat-chip-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 18px;
+        background: #fff;
+        border: 1px solid #dfe4ea;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        color: #57606f;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+        .cat-chip-label:hover {
+            background: #f1f2f6;
+            transform: translateY(-1px);
+        }
+
+    .cat-checkbox-hidden:checked + .cat-chip-label {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+    }
+
+    .hero-slider-container {
+        margin-top: 30px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        height: 480px; 
+        position: relative;
     }
 
     .carousel-item {
-        height: 450px;
+        height: 480px;
+        position: relative;
     }
 
     .slider-bg-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
     }
 
     .slider-content {
@@ -161,56 +263,84 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 1;
-        background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 60%);
+        z-index: 10;
+        background: rgba(0,0,0,0.35); 
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding-left: 80px;
-        /* KRİTİK: Butonun tam genişlik olmasını engeller, sola yaslar */
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
         color: white;
+        padding: 0 20px;
+        backdrop-filter: blur(2px); 
     }
 
-    /* Slider Butonu */
+    .slider-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        margin-bottom: 1rem;
+    }
+
     .slider-cta-btn {
-        display: inline-block; /* Satır içi blok davranışı */
-        width: auto; /* İçerik kadar genişlik */
-        padding: 12px 40px;
-        font-weight: 600;
+        display: inline-block;
+        padding: 14px 45px;
+        font-weight: 700;
         border-radius: 50px;
         text-transform: uppercase;
         letter-spacing: 1px;
-        font-size: 0.9rem;
-        margin-top: 20px;
-        border: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        font-size: 1rem;
+        margin-top: 25px;
+        background: white;
+        color: #333;
         text-decoration: none;
-        text-align: center;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transition: all 0.3s;
     }
 
-    /* Slider Okları */
+        .slider-cta-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            color: #764ba2;
+        }
+
+        .slider-cta-btn.red-btn {
+            background: var(--accent-color);
+            color: white;
+        }
+
+            .slider-cta-btn.red-btn:hover {
+                background: #ff4757;
+                color: white;
+            }
+
     .custom-carousel-control {
-        width: 45px;
-        height: 45px;
-        background: rgba(255,255,255,0.25);
+        width: 55px;
+        height: 55px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
         border-radius: 50%;
+        position: absolute;
         top: 50%;
         transform: translateY(-50%);
         opacity: 1;
-        margin: 0 20px;
+        margin: 0 25px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
         border: 1px solid rgba(255,255,255,0.4);
         cursor: pointer;
-        z-index: 2;
+        z-index: 20;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s;
     }
 
         .custom-carousel-control:hover {
             background: white;
-            color: #000;
+            color: var(--text-dark);
+            transform: translateY(-50%) scale(1.1);
         }
 
     .carousel-control-prev {
@@ -221,224 +351,337 @@
         right: 0;
     }
 
+    .carousel-indicators {
+        bottom: 25px; 
+        z-index: 30; 
+    }
 
-    /* 3. ÜRÜN KARTLARI */
+        .carousel-indicators [data-bs-target] {
+            width: 40px; 
+            height: 6px; 
+            background-color: rgba(255,255,255,0.6);
+            border: none;
+            border-radius: 4px;
+            margin: 0 6px;
+            transition: all 0.3s;
+            cursor: pointer; 
+            background-clip: padding-box;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        .carousel-indicators .active {
+            background-color: #fff; 
+            width: 50px; 
+            opacity: 1;
+        }
+
     .product-card {
         background: white;
-        border-radius: 12px;
-        border: 1px solid #eee;
+        border-radius: 16px;
+        border: none;
         transition: all 0.3s;
         overflow: hidden;
         height: 100%;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
-            border-color: #0d6efd;
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         }
 
     .product-img-container {
-        height: 220px;
-        padding: 20px;
+        height: 240px;
+        padding: 25px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: #fff;
+        position: relative;
     }
+    .card-badge-new {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 0 10px 10px 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    }
+    .btn-action-light {
+        background: #f1f2f6;
+        color: #333;
+        border: none;
+        transition: 0.2s;
+    }
+
+        .btn-action-light:hover {
+            background: #dfe4ea;
+            color: #000;
+        }
+    .btn-action-primary {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        transition: 0.2s;
+    }
+
+        .btn-action-primary:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
 </style>
 
-<div class="control-bar sticky-top">
-    <div class="container-fluid px-lg-5">
-        <div class="row align-items-center g-2">
-
-            <div class="col-6 col-lg-3 col-xl-2">
-                <div class="dropdown">
-                    <button class="category-dropdown-btn dropdown-toggle" type="button" id="categoryMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-bars"></i>
-                        <span>Kategoriler</span>
-                    </button>
-                    <ul class="dropdown-menu category-menu" aria-labelledby="categoryMenuButton">
-                        <li>
-                            <a class="dropdown-item category-item" asp-controller="Product" asp-action="Index">
-                                <span><i class="fas fa-th-large me-2 text-muted"></i>Tüm Ürünler</span>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider opacity-25"></li>
-
-                        @if (Model.Categories != null)
-                        {
-                            @foreach (var cat in Model.Categories)
-                            {
-                                <li>
-                                    <a class="dropdown-item category-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id">
-                                        <span>
-                                            @if (cat.Name.Contains("Bilgisayar"))
-                                            {
-                                                <i class="fas fa-laptop me-2 text-muted"></i>
-                                            }
-                                            else if (cat.Name.Contains("Telefon"))
-                                            {
-
-                                                <i class="fas fa-mobile-alt me-2 text-muted"></i>
-                                            }
-                                            else
-                                            {
-
-                                                <i class="fas fa-tag me-2 text-muted"></i>
-                                            }
-                                            @cat.Name
-                                        </span>
-                                        <i class="fas fa-chevron-right small opacity-50"></i>
-                                    </a>
-                                </li>
-                            }
-                        }
-                    </ul>
+<div class="top-announcement-strip">
+    <div class="container h-100">
+        <div id="announcementCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+            <div class="carousel-inner h-100">
+                <div class="carousel-item active h-100">
+                    <div class="announcement-text">
+                        <i class="fas fa-truck"></i>
+                        <span>500 TL ve üzeri alışverişlerde <strong>KARGO BEDAVA!</strong></span>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-lg-5 col-xl-6 d-none d-lg-block">
-                <div id="announcementCarousel" class="carousel slide announcement-bar" data-bs-ride="carousel">
-                    <div class="carousel-inner h-100">
-                        <div class="carousel-item active h-100">
-                            <div class="announcement-text">
-                                <i class="fas fa-truck text-primary"></i> 500 TL ve üzeri alışverişlerde <strong>KARGO BEDAVA!</strong>
-                            </div>
-                        </div>
-                        <div class="carousel-item h-100">
-                            <div class="announcement-text">
-                                <i class="fas fa-stopwatch text-warning"></i> 14:00'a kadar sipariş ver <strong>AYNI GÜN KARGO</strong>
-                            </div>
-                        </div>
-                        <div class="carousel-item h-100">
-                            <div class="announcement-text">
-                                <i class="fas fa-percentage text-danger"></i> Yaz sezonuna özel seçili ürünlerde <strong>%50 İNDİRİM</strong>
-                            </div>
-                        </div>
+                <div class="carousel-item h-100">
+                    <div class="announcement-text">
+                        <i class="fas fa-stopwatch"></i>
+                        <span>14:00'a kadar sipariş ver <strong>AYNI GÜN KARGO</strong></span>
+                    </div>
+                </div>
+                <div class="carousel-item h-100">
+                    <div class="announcement-text">
+                        <i class="fas fa-gift"></i>
+                        <span>İlk siparişine özel <strong>%10 İNDİRİM KODU: MERHABA10</strong></span>
                     </div>
                 </div>
             </div>
-
-            <div class="col-6 col-lg-4 col-xl-4">
-                <form action="/Product/Index" method="get" class="integrated-search">
-                    <input type="text" name="search" class="form-control" placeholder="Marka, ürün veya kategori ara...">
-                    <button type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
-
         </div>
     </div>
 </div>
 
-<div class="container-fluid px-lg-5 pb-5">
+<div class="smart-filter-bar">
+    <div class="container">
+        <form action="/Home/Index" method="get" id="filterForm" class="search-filter-wrapper">
+
+            <input type="text" name="search" class="main-search-input" placeholder="Binlerce ürün arasında ara..." value="@ViewData["CurrentSearch"]" autocomplete="off">
+
+            <div class="search-actions">
+                <button type="button" class="btn-filter-toggle" id="filterDropdownBtn" onclick="toggleFilters()">
+                    <i class="fas fa-sliders-h"></i> Filtrele
+                </button>
+                <button type="submit" class="btn-search-submit" title="Ara">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div class="filter-dropdown-menu" id="filterMenu">
+                <div class="row g-0">
+
+                    <div class="col-md-7 p-4 border-end">
+                        <div class="filter-section-header">KATEGORİLER</div>
+                        <div class="category-grid custom-scrollbar">
+                            <div class="cat-item">
+                                <a href="/Home/Index" class="cat-chip-label text-decoration-none" style="border: 1px dashed #764ba2; color: #764ba2;">
+                                    <i class="fas fa-th-large me-2"></i>Tümü
+                                </a>
+                            </div>
+
+                            @if (Model.Categories != null)
+                            {
+                                @foreach (var cat in Model.Categories)
+                                {
+                                    var isChecked = selectedCats != null && selectedCats.Contains(cat.Id) ? "checked" : "";
+                                    <div class="cat-item">
+                                        <input type="checkbox" name="categoryIds" value="@cat.Id" id="cat-@cat.Id" class="cat-checkbox-hidden" @isChecked>
+                                        <label class="cat-chip-label" for="cat-@cat.Id">
+                                            @cat.Name
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 p-4 bg-light bg-opacity-50">
+
+                        <div class="mb-4">
+                            <div class="filter-section-header">FİYAT ARALIĞI (TL)</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" name="minPrice" class="form-control rounded-3 border-0 shadow-sm" placeholder="En Az" value="@ViewData["MinPrice"]">
+                                <span class="text-muted fw-bold">-</span>
+                                <input type="number" name="maxPrice" class="form-control rounded-3 border-0 shadow-sm" placeholder="En Çok" value="@ViewData["MaxPrice"]">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="filter-section-header">SIRALAMA</div>
+                            <select name="sortOrder" class="form-select rounded-3 border-0 shadow-sm">
+                                <option value="">Önerilen Sıralama</option>
+                                @{
+                                    var currentSort = ViewData["SortOrder"]?.ToString();
+                                }
+                                <!option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>En Düşük Fiyat</!option>
+                                <!option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>En Yüksek Fiyat</!option>
+                                <!option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>İsim (A-Z)</!option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-auto">
+                            <button type="submit" class="btn btn-primary rounded-pill fw-bold shadow border-0" style="background: var(--primary-gradient);">
+                                <i class="fas fa-check me-2"></i>Sonuçları Göster
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-white w-50 rounded-pill border bg-white" onclick="toggleFilters()">Kapat</button>
+                                <a href="/Home/Index" class="btn btn-outline-danger w-50 rounded-pill border">Temizle</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="container pb-5">
 
     <div class="hero-slider-container">
         <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active"></button>
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
             </div>
-            <div class="carousel-inner">
 
+            <div class="carousel-inner">
                 <div class="carousel-item active">
                     <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
                          class="slider-bg-img" alt="Teknoloji">
-
                     <div class="slider-content">
-                        <span class="badge bg-warning text-dark mb-3 px-3 py-2">YENİ SEZON</span>
-                        <h1 class="display-4 fw-bold mb-3">Teknoloji Dünyası</h1>
-                        <p class="lead mb-4 text-white-50">En son çıkan modeller şimdi stoklarda.</p>
-                        <a href="#" class="btn btn-light slider-cta-btn text-dark">Hemen Keşfet</a>
+                        <span class="badge bg-white text-dark mb-3 px-3 py-2 fw-bold shadow-sm rounded-pill">YENİ SEZON</span>
+                        <h1 class="slider-title">Teknoloji Dünyası</h1>
+                        <p class="lead mb-4 fs-5" style="opacity: 0.9;">En son çıkan modeller şimdi stoklarda.</p>
+                        <a href="#products-list" class="slider-cta-btn">Hemen Keşfet</a>
                     </div>
                 </div>
 
                 <div class="carousel-item">
                     <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
                          class="slider-bg-img" alt="İndirim">
-
                     <div class="slider-content">
-                        <span class="badge bg-danger mb-3 px-3 py-2">BÜYÜK FIRSAT</span>
-                        <h1 class="display-4 fw-bold mb-3">Yaz İndirimleri</h1>
-                        <p class="lead mb-4 text-white-50">Seçili ürünlerde dev indirimler başladı.</p>
-                        <a href="#" class="btn btn-danger slider-cta-btn text-white">Alışverişe Başla</a>
+                        <span class="badge bg-danger mb-3 px-3 py-2 fw-bold shadow-sm rounded-pill">BÜYÜK FIRSAT</span>
+                        <h1 class="slider-title">Yaz İndirimleri</h1>
+                        <p class="lead mb-4 fs-5" style="opacity: 0.9;">Seçili ürünlerde dev indirimler.</p>
+                        <a href="#products-list" class="slider-cta-btn red-btn">Alışverişe Başla</a>
                     </div>
                 </div>
-
             </div>
 
             <button class="carousel-control-prev custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="prev">
-                <i class="fas fa-chevron-left fa-lg text-dark"></i>
-                <span class="visually-hidden">Previous</span>
+                <i class="fas fa-chevron-left"></i>
             </button>
             <button class="carousel-control-next custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="next">
-                <i class="fas fa-chevron-right fa-lg text-dark"></i>
-                <span class="visually-hidden">Next</span>
+                <i class="fas fa-chevron-right"></i>
             </button>
         </div>
     </div>
 
+    <div id="products-list" class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h4 class="fw-bold m-0" style="color: #2d3436;"><i class="fas fa-fire text-danger me-2"></i>Tüm Ürünler</h4>
+            <span class="badge bg-light text-dark border rounded-pill px-3">@Model.FeaturedProducts.Count ürün</span>
+        </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-5 border-bottom pb-2">
-        <h4 class="fw-bold text-dark m-0"><i class="fas fa-fire text-danger me-2"></i>Öne Çıkan Ürünler</h4>
-        <a asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-            Tümünü Gör
-        </a>
-    </div>
-
-    <div class="row g-3">
-        @if (Model.FeaturedProducts != null)
+        @if (Model.FeaturedProducts.Count == 0)
         {
-            @foreach (var item in Model.FeaturedProducts.Take(12))
-            {
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="product-card d-flex flex-column h-100 position-relative">
+            <div class="text-center py-5">
+                <div class="bg-white rounded-circle d-inline-flex p-4 shadow-sm mb-3">
+                    <i class="fas fa-search fa-3x text-secondary opacity-25"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Aradığınız kriterlere uygun ürün bulunamadı.</h5>
+                <a href="/Home/Index" class="btn btn-outline-primary rounded-pill mt-3 px-4">Filtreleri Temizle</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var item in Model.FeaturedProducts)
+                {
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <div class="product-card d-flex flex-column h-100 position-relative">
 
-                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none">
-                            <div class="product-img-container">
-                                @if (string.IsNullOrEmpty(item.ImageUrl))
-                                {
-                                    <i class="fas fa-box-open fa-3x text-secondary opacity-25"></i>
-                                }
-                                else
-                                {
-                                    <img src="@item.ImageUrl" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                                }
-                            </div>
-                        </a>
-
-                        <div class="p-3 d-flex flex-column flex-grow-1 border-top border-light">
-                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">@item.Category?.Name</small>
-                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none text-dark">
-                                <h6 class="fw-bold mt-1 mb-2 text-truncate">@item.Name</h6>
+                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none">
+                                <div class="product-img-container">
+                                    @if (string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <i class="fas fa-box-open fa-3x text-secondary opacity-25"></i>
+                                    }
+                                    else
+                                    {
+                                        <img src="@item.ImageUrl" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                    }
+                                    <span class="badge card-badge-new position-absolute top-0 start-0 m-3">YENİ</span>
+                                </div>
                             </a>
 
-                            <div class="mt-auto d-flex align-items-end justify-content-between">
-                                <span class="fw-bold text-primary fs-5">@item.Price.ToString("C2")</span>
+                            <div class="p-3 d-flex flex-column flex-grow-1 border-top border-light">
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">@item.Category?.Name</small>
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                                    <h6 class="fw-bold mt-1 mb-2 text-truncate">@item.Name</h6>
+                                </a>
 
-                                <div class="d-flex gap-2">
-                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-light border rounded-3 px-2" title="İncele">
-                                        <i class="fas fa-eye text-secondary"></i>
-                                    </a>
-
-                                    <form asp-controller="Cart" asp-action="AddToCart" method="post">
-                                        <input type="hidden" name="productId" value="@item.Id" />
-                                        <button type="submit" class="btn btn-sm btn-primary rounded-3 px-2 shadow-sm">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </form>
+                                <div class="mt-auto d-flex align-items-end justify-content-between">
+                                    <span class="fw-bold fs-5" style="color: #764ba2;">@item.Price.ToString("C2")</span>
+                                    <div class="d-flex gap-2">
+                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-action-light rounded-3 px-2" title="İncele">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                            <input type="hidden" name="productId" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-action-primary rounded-3 px-2 shadow-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <span class="badge bg-danger position-absolute top-0 start-0 m-2 shadow-sm" style="font-size: 0.65rem;">YENİ</span>
                     </div>
-                </div>
-            }
+                }
+            </div>
         }
     </div>
-
 </div>
+
+@section Scripts {
+    <script>
+        function toggleFilters() {
+            var menu = document.getElementById('filterMenu');
+            var btn = document.getElementById('filterDropdownBtn');
+
+            if (menu.classList.contains('show')) {
+                menu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.style.background = '#f1f2f6';
+                btn.style.color = '#57606f';
+            } else {
+                menu.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+                btn.style.background = '#dfe4ea';
+                btn.style.color = '#764ba2';
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            var menu = document.getElementById('filterMenu');
+            var btn = document.getElementById('filterDropdownBtn');
+            var isClickInside = menu.contains(event.target) || btn.contains(event.target);
+
+            if (!isClickInside && menu.classList.contains('show')) {
+                toggleFilters();
+            }
+        });
+    </script>
+}

@@ -90,15 +90,32 @@
 
                     @if (SignInManager.IsSignedIn(User))
                     {
+                        var currentUser = await UserManager.FindByNameAsync(User.Identity.Name);
+
                         var fullUserName = User.Identity.Name;
                         var displayName = fullUserName.Contains("@") ? fullUserName.Split('@')[0] : fullUserName;
 
                         <li class="nav-item dropdown border-start ms-2 ps-3">
                             <a class="nav-link dropdown-toggle text-light d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle fa-lg me-2"></i> @displayName
+
+                                @if (currentUser != null && !string.IsNullOrEmpty(currentUser.ImageUrl))
+                                {
+                                    <img src="/userimages/@currentUser.ImageUrl" class="rounded-circle me-2"
+                                         style="width: 32px; height: 32px; object-fit: cover; border: 1px solid white;">
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user-circle fa-lg me-2"></i>
+                                }
+
+                                @displayName
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-cog me-2"></i>Hesabım</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                        <i class="fas fa-user-cog me-2 text-secondary"></i>Hesabım
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">

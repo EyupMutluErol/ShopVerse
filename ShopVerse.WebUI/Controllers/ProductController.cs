@@ -1,43 +1,46 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
+using ShopVerse.Entities.Dtos;
 
 namespace ShopVerse.WebUI.Controllers
 {
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ICategoryService categoryService)
         {
             _productService = productService;
+            _categoryService = categoryService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? categoryId,string search)
+        public async Task<IActionResult> Index(List<int>? categoryIds,decimal? minPrice,decimal? maxPrice,string search,string sortOrder)
         {
-            ViewData["Title"] = "Tüm Ürünler";
-            List<Product> products;
+            ViewBag.Categories = await _categoryService.GetAllAsync();
 
-            if(categoryId.HasValue)
+            var filterDto = new ProductFilterDto
             {
-                products = await _productService.GetAllAsync(x=>x.CategoryId == categoryId.Value);
-                ViewBag.Title = "Kategori Ürünleri";
-            }
-            else if(!string.IsNullOrEmpty(search))
-            {
-                products = await _productService.GetAllAsync(x=>x.Name.Contains(search));
-                ViewBag.Title = $"'{search}' için arama sonuçları";
-            }
-            else
-            {
-                products = await _productService.GetAllAsync();
-            }
+                CategoryIds = categoryIds,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                Search = search,
+                SortOrder = sortOrder
+            };
+
+            var products = await _productService.GetFilteredProductsAsync(filterDto);
+
+            ViewData["CurrentSearch"] = search;
+            ViewData["MinPrice"] = minPrice;
+            ViewData["MaxPrice"] = maxPrice;
+            ViewData["SelectedCategories"] = categoryIds;
+            ViewData["SortOrder"] = sortOrder;
+
             return View(products);
+
         }
-
-
-
 
 
         [HttpGet]
