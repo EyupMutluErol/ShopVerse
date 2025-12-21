@@ -74,7 +74,7 @@ namespace ShopVerse.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model , string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -86,9 +86,10 @@ namespace ShopVerse.WebUI.Controllers
                     if (result.Succeeded)
                     {
                         var roles = await _userManager.GetRolesAsync(user);
+
                         if (roles.Contains("Admin"))
                         {
-                            return RedirectToAction("Dashboard", "Admin", new { area = "Admin" });
+                            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                         }
 
                         return !string.IsNullOrEmpty(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Home");

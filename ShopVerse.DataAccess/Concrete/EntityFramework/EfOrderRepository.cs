@@ -22,4 +22,12 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
             .OrderByDescending(x=>x.OrderDate)
             .ToList();
     }
+
+    public Order GetOrderWithDetails(int orderId)
+    {
+        return _context.Orders
+            .Include(x => x.OrderDetails)
+            .ThenInclude(y => y.Product)
+            .FirstOrDefault(x => x.Id == orderId);
+    }
 }

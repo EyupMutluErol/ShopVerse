@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Areas.Admin.Models;
@@ -7,6 +8,8 @@ using ShopVerse.WebUI.Utils;
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
+
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;

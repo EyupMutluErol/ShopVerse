@@ -1,0 +1,156 @@
+﻿@using ShopVerse.Entities.Enums
+@model List<ShopVerse.Entities.Concrete.Order>
+
+@{
+    ViewData["Title"] = "Sipariş Yönetimi";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* Admin Panelindeki Kart Tasarımı */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 20px;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    /* Tablo Düzenlemeleri */
+    .table thead th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #6c757d;
+        border-bottom: 2px solid #f0f0f0;
+        text-transform: uppercase;
+        padding: 15px;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        padding: 15px;
+        color: #333;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    /* Durum Rozetleri */
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-approved {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .badge-shipped {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .badge-delivered {
+        background: #d1e7dd;
+        color: #198754;
+    }
+
+    .badge-canceled {
+        background: #f8d7da;
+        color: #842029;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark m-0">Sipariş Yönetimi</h3>
+        <span class="badge bg-primary rounded-pill px-3 py-2 fs-6">
+            <i class="fas fa-shopping-bag me-2"></i>@Model.Count Toplam Sipariş
+        </span>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold text-primary">Sipariş Listesi</h5>
+            <button class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-filter me-1"></i> Filtrele
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sipariş No</th>
+                            <th>Tarih</th>
+                            <th>Müşteri ID</th>
+                            <th>Tutar</th>
+                            <th>Durum</th>
+                            <th class="text-end" style="min-width: 150px;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="fw-bold text-primary">#@item.OrderNumber</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-dark">@item.OrderDate.ToString("dd.MM.yyyy")</span>
+                                        <small class="text-muted">@item.OrderDate.ToString("HH:mm")</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:30px; height:30px;">
+                                            <i class="fas fa-user text-muted small"></i>
+                                        </div>
+                                        <span class="small">@item.AppUserId</span>
+                                    </div>
+                                </td>
+                                <td class="fw-bold text-dark">@item.TotalPrice.ToString("C2")</td>
+                                <td>
+                                    @{
+                                        string badgeClass = "badge-pending";
+                                        string statusText = "Beklemede";
+
+                                        switch (item.OrderStatus)
+                                        {
+                                            case OrderStatus.Pending: badgeClass = "badge-pending"; statusText = "Beklemede"; break;
+                                            case OrderStatus.Approved: badgeClass = "badge-approved"; statusText = "Onaylandı"; break;
+                                            case OrderStatus.Shipped: badgeClass = "badge-shipped"; statusText = "Kargoda"; break;
+                                            case OrderStatus.Delivered: badgeClass = "badge-delivered"; statusText = "Teslim"; break;
+                                            case OrderStatus.Canceled: badgeClass = "badge-canceled"; statusText = "İptal"; break;
+                                            case OrderStatus.Refunded: badgeClass = "badge-canceled"; statusText = "İade"; break;
+                                        }
+                                    }
+                                    <span class="badge-status @badgeClass">@statusText</span>
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Detail" asp-controller="Order" asp-area="Admin" asp-route-id="@item.Id" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="fas fa-edit me-1"></i> Yönet
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

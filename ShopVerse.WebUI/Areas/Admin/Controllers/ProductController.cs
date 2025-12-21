@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
@@ -8,6 +9,8 @@ using ShopVerse.WebUI.Utils;
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
+
     public class ProductController : Controller
     {
         private readonly IProductService _productService;

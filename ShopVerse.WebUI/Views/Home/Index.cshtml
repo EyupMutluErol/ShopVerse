@@ -2,36 +2,34 @@
 @{
     ViewData["Title"] = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-        --hover-gradient: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        --accent-color: #ff6b6b; 
-        --bg-color: #f4f7f6; 
-        --text-dark: #2d3436;
-    }
-
+    /* 1. GENEL AYARLAR */
     body {
         font-family: 'Poppins', sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-dark);
+        background-color: #ffffff;
+    }
+    /* Tam Beyaz Zemin */
+
+    /* Mavi Tema Değişkenleri (Yerel) */
+    :root {
+        --blue-primary: #0072ff;
+        --blue-light: #e3f2fd;
+        --blue-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     }
 
-
+    /* 2. SARI DUYURU ŞERİDİ */
     .top-announcement-strip {
-        background: var(--primary-gradient);
-        color: white;
-        height: 42px;
-        font-size: 0.9rem;
-        font-weight: 500;
+        background-color: #f9ca24; /* Canlı Sarı */
+        color: #2d3436; /* Koyu Yazı (Okunabilirlik için) */
+        height: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(118, 75, 162, 0.3);
     }
 
     .announcement-text {
@@ -44,100 +42,98 @@
     }
 
         .announcement-text i {
-            color: #ffeaa7;
-            font-size: 1.2em;
-        }
-        .announcement-text strong {
-            color: #fff;
-            text-decoration: underline;
+            color: #2d3436;
+            font-size: 1.1em;
         }
 
+    /* 3. AKILLI ARAMA VE FİLTRE BARI */
     .smart-filter-bar {
         background: white;
         padding: 20px 0;
-        box-shadow: 0 4px 25px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         position: sticky;
         top: 0;
         z-index: 1000;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid #f0f0f0;
     }
 
     .search-filter-wrapper {
         position: relative;
         width: 100%;
-        max-width: 850px;
+        max-width: 800px;
         margin: 0 auto;
     }
 
     .main-search-input {
-        border: 2px solid #e1e1e1;
+        border: 2px solid #f0f0f0;
         border-radius: 50px;
         padding: 12px 25px;
-        padding-right: 160px;
-        height: 60px;
+        padding-right: 150px;
+        height: 55px;
         width: 100%;
         font-size: 1rem;
-        background-color: #fff;
+        background-color: #fcfcfc;
         transition: all 0.3s;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.02);
     }
-
+        /* Mavi Odaklanma Efekti */
         .main-search-input:focus {
-            border-color: #764ba2; 
-            box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+            border-color: var(--blue-primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 114, 255, 0.1);
             outline: none;
         }
 
     .search-actions {
         position: absolute;
-        right: 6px;
-        top: 6px;
-        height: 48px;
+        right: 5px;
+        top: 5px;
+        height: 45px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 5px;
     }
 
     .btn-filter-toggle {
         background: #f1f2f6;
-        color: #57606f;
+        color: #2d3436;
         border: none;
         border-radius: 50px;
-        padding: 0 25px;
+        padding: 0 20px;
         height: 100%;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         display: flex;
         align-items: center;
         gap: 8px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.2s;
     }
 
         .btn-filter-toggle:hover, .btn-filter-toggle[aria-expanded="true"] {
-            background: #dfe4ea;
-            color: #764ba2;
+            background: var(--blue-light);
+            color: var(--blue-primary);
         }
 
+    /* Arama Butonu - Mavi Gradyan */
     .btn-search-submit {
-        background: var(--primary-gradient);
+        background: var(--blue-gradient);
         color: white;
         border: none;
         border-radius: 50px;
-        width: 48px;
+        width: 45px;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
-        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+        transition: all 0.2s;
     }
 
         .btn-search-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(118, 75, 162, 0.4);
+            background: #0069d9;
+            transform: scale(1.05);
         }
 
+    /* FİLTRE MENÜSÜ */
     .filter-dropdown-menu {
         position: absolute;
         top: 115%;
@@ -145,7 +141,7 @@
         width: 100%;
         background: white;
         border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.12);
         border: 1px solid #f0f0f0;
         display: none;
         z-index: 1001;
@@ -156,47 +152,26 @@
         .filter-dropdown-menu.show {
             display: block;
         }
-
     @@keyframes slideDown {
         from
 
     {
         opacity: 0;
-        transform: translateY(-10px) scale(0.98);
+        transform: translateY(-10px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 
     }
-
-    .filter-section-header {
-        font-size: 0.85rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: #764ba2; 
-        letter-spacing: 0.5px;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-    }
-
-        .filter-section-header::after {
-            content: '';
-            flex: 1;
-            height: 2px;
-            background: #f1f2f6;
-            margin-left: 10px;
-            border-radius: 2px;
-        }
 
     .category-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        max-height: 250px;
+        gap: 8px;
+        max-height: 220px;
         overflow-y: auto;
         padding-right: 5px;
     }
@@ -208,42 +183,41 @@
     .cat-chip-label {
         display: inline-flex;
         align-items: center;
-        padding: 8px 18px;
-        background: #fff;
-        border: 1px solid #dfe4ea;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
         border-radius: 50px;
         font-size: 0.9rem;
-        color: #57606f;
+        color: #555;
         cursor: pointer;
         transition: all 0.2s;
         user-select: none;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
 
         .cat-chip-label:hover {
-            background: #f1f2f6;
-            transform: translateY(-1px);
+            background: #e9ecef;
         }
 
+    /* Seçili Kategori - Mavi */
     .cat-checkbox-hidden:checked + .cat-chip-label {
-        background: var(--primary-gradient);
-        border-color: transparent;
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+        background: var(--blue-light);
+        border-color: var(--blue-primary);
+        color: var(--blue-primary);
+        font-weight: 600;
     }
 
+    /* 4. SLIDER */
     .hero-slider-container {
         margin-top: 30px;
-        border-radius: 24px;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        height: 480px; 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+        height: 450px;
         position: relative;
     }
 
     .carousel-item {
-        height: 480px;
+        height: 450px;
         position: relative;
     }
 
@@ -264,7 +238,7 @@
         width: 100%;
         height: 100%;
         z-index: 10;
-        background: rgba(0,0,0,0.35); 
+        background: rgba(0,0,0,0.4);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -272,166 +246,83 @@
         text-align: center;
         color: white;
         padding: 0 20px;
-        backdrop-filter: blur(2px); 
-    }
-
-    .slider-title {
-        font-size: 3.5rem;
-        font-weight: 800;
-        text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        margin-bottom: 1rem;
     }
 
     .slider-cta-btn {
         display: inline-block;
-        padding: 14px 45px;
-        font-weight: 700;
+        padding: 12px 40px;
+        font-weight: 600;
         border-radius: 50px;
         text-transform: uppercase;
         letter-spacing: 1px;
-        font-size: 1rem;
-        margin-top: 25px;
+        font-size: 0.9rem;
+        margin-top: 20px;
         background: white;
         color: #333;
         text-decoration: none;
         border: none;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
     }
 
         .slider-cta-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-            color: #764ba2;
+            transform: scale(1.05);
+            color: #000;
         }
 
         .slider-cta-btn.red-btn {
-            background: var(--accent-color);
+            background: #e74c3c;
             color: white;
         }
-
+            /* İndirim butonu kırmızı kalabilir */
             .slider-cta-btn.red-btn:hover {
-                background: #ff4757;
-                color: white;
+                background: #c0392b;
             }
 
     .custom-carousel-control {
-        width: 55px;
-        height: 55px;
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(5px);
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.3);
         border-radius: 50%;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
         opacity: 1;
-        margin: 0 25px;
+        margin: 0 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255,255,255,0.4);
+        border: 1px solid rgba(255,255,255,0.5);
         cursor: pointer;
         z-index: 20;
         color: white;
-        text-decoration: none;
-        transition: all 0.3s;
     }
 
-        .custom-carousel-control:hover {
-            background: white;
-            color: var(--text-dark);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-    .carousel-control-prev {
-        left: 0;
-    }
-
-    .carousel-control-next {
-        right: 0;
-    }
-
-    .carousel-indicators {
-        bottom: 25px; 
-        z-index: 30; 
-    }
-
-        .carousel-indicators [data-bs-target] {
-            width: 40px; 
-            height: 6px; 
-            background-color: rgba(255,255,255,0.6);
-            border: none;
-            border-radius: 4px;
-            margin: 0 6px;
-            transition: all 0.3s;
-            cursor: pointer; 
-            background-clip: padding-box;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-        }
-
-        .carousel-indicators .active {
-            background-color: #fff; 
-            width: 50px; 
-            opacity: 1;
-        }
-
+    /* 5. ÜRÜN KARTLARI */
     .product-card {
         background: white;
-        border-radius: 16px;
-        border: none;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
         transition: all 0.3s;
         overflow: hidden;
         height: 100%;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
     }
 
         .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 114, 255, 0.15); /* Mavi Gölge */
+            border-color: var(--blue-primary); /* Mavi Kenarlık */
         }
 
     .product-img-container {
-        height: 240px;
-        padding: 25px;
+        height: 220px;
+        padding: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #fff;
-        position: relative;
+        background: #fdfdfd;
     }
-    .card-badge-new {
-        background: var(--primary-gradient);
-        color: white;
-        padding: 5px 12px;
-        border-radius: 0 10px 10px 0;
-        font-size: 0.7rem;
-        font-weight: 700;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-    }
-    .btn-action-light {
-        background: #f1f2f6;
-        color: #333;
-        border: none;
-        transition: 0.2s;
-    }
-
-        .btn-action-light:hover {
-            background: #dfe4ea;
-            color: #000;
-        }
-    .btn-action-primary {
-        background: var(--primary-gradient);
-        color: white;
-        border: none;
-        transition: 0.2s;
-    }
-
-        .btn-action-primary:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-
 </style>
 
 <div class="top-announcement-strip">
@@ -465,7 +356,7 @@
     <div class="container">
         <form action="/Home/Index" method="get" id="filterForm" class="search-filter-wrapper">
 
-            <input type="text" name="search" class="main-search-input" placeholder="Binlerce ürün arasında ara..." value="@ViewData["CurrentSearch"]" autocomplete="off">
+            <input type="text" name="search" class="main-search-input" placeholder="Ne aramıştınız?" value="@ViewData["CurrentSearch"]" autocomplete="off">
 
             <div class="search-actions">
                 <button type="button" class="btn-filter-toggle" id="filterDropdownBtn" onclick="toggleFilters()">
@@ -478,16 +369,12 @@
 
             <div class="filter-dropdown-menu" id="filterMenu">
                 <div class="row g-0">
-
                     <div class="col-md-7 p-4 border-end">
-                        <div class="filter-section-header">KATEGORİLER</div>
+                        <h6 class="fw-bold mb-3 small text-muted">KATEGORİLER</h6>
                         <div class="category-grid custom-scrollbar">
                             <div class="cat-item">
-                                <a href="/Home/Index" class="cat-chip-label text-decoration-none" style="border: 1px dashed #764ba2; color: #764ba2;">
-                                    <i class="fas fa-th-large me-2"></i>Tümü
-                                </a>
+                                <a href="/Home/Index" class="cat-chip-label text-decoration-none" style="border-style: dashed;">Tümü</a>
                             </div>
-
                             @if (Model.Categories != null)
                             {
                                 @foreach (var cat in Model.Categories)
@@ -495,49 +382,29 @@
                                     var isChecked = selectedCats != null && selectedCats.Contains(cat.Id) ? "checked" : "";
                                     <div class="cat-item">
                                         <input type="checkbox" name="categoryIds" value="@cat.Id" id="cat-@cat.Id" class="cat-checkbox-hidden" @isChecked>
-                                        <label class="cat-chip-label" for="cat-@cat.Id">
-                                            @cat.Name
-                                        </label>
+                                        <label class="cat-chip-label" for="cat-@cat.Id">@cat.Name</label>
                                     </div>
                                 }
                             }
                         </div>
                     </div>
-
-                    <div class="col-md-5 p-4 bg-light bg-opacity-50">
-
-                        <div class="mb-4">
-                            <div class="filter-section-header">FİYAT ARALIĞI (TL)</div>
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="number" name="minPrice" class="form-control rounded-3 border-0 shadow-sm" placeholder="En Az" value="@ViewData["MinPrice"]">
-                                <span class="text-muted fw-bold">-</span>
-                                <input type="number" name="maxPrice" class="form-control rounded-3 border-0 shadow-sm" placeholder="En Çok" value="@ViewData["MaxPrice"]">
-                            </div>
+                    <div class="col-md-5 p-4 bg-light">
+                        <h6 class="fw-bold mb-3 small text-muted">FİYAT & SIRALAMA</h6>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <input type="number" name="minPrice" class="form-control rounded-3" placeholder="En Az" value="@ViewData["MinPrice"]">
+                            <span>-</span>
+                            <input type="number" name="maxPrice" class="form-control rounded-3" placeholder="En Çok" value="@ViewData["MaxPrice"]">
                         </div>
-
-                        <div class="mb-4">
-                            <div class="filter-section-header">SIRALAMA</div>
-                            <select name="sortOrder" class="form-select rounded-3 border-0 shadow-sm">
-                                <option value="">Önerilen Sıralama</option>
-                                @{
-                                    var currentSort = ViewData["SortOrder"]?.ToString();
-                                }
-                                <!option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>En Düşük Fiyat</!option>
-                                <!option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>En Yüksek Fiyat</!option>
-                                <!option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>İsim (A-Z)</!option>
-                            </select>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-auto">
-                            <button type="submit" class="btn btn-primary rounded-pill fw-bold shadow border-0" style="background: var(--primary-gradient);">
-                                <i class="fas fa-check me-2"></i>Sonuçları Göster
-                            </button>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-white w-50 rounded-pill border bg-white" onclick="toggleFilters()">Kapat</button>
-                                <a href="/Home/Index" class="btn btn-outline-danger w-50 rounded-pill border">Temizle</a>
-                            </div>
-                        </div>
-
+                        <select name="sortOrder" class="form-select rounded-3 mb-4">
+                            <option value="">Önerilen</option>
+                            @{
+                                var currentSort = ViewData["SortOrder"]?.ToString();
+                            }
+                            <!option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>En Düşük Fiyat</!option>
+                            <!option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>En Yüksek Fiyat</!option>
+                            <!option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>İsim (A-Z)</!option>
+                        </select>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill" style="background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); border:none;">Sonuçları Göster</button>
                     </div>
                 </div>
             </div>
@@ -550,40 +417,31 @@
     <div class="hero-slider-container">
         <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1"></button>
             </div>
-
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
-                         class="slider-bg-img" alt="Teknoloji">
+                    <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" class="slider-bg-img" alt="Teknoloji">
                     <div class="slider-content">
-                        <span class="badge bg-white text-dark mb-3 px-3 py-2 fw-bold shadow-sm rounded-pill">YENİ SEZON</span>
-                        <h1 class="slider-title">Teknoloji Dünyası</h1>
-                        <p class="lead mb-4 fs-5" style="opacity: 0.9;">En son çıkan modeller şimdi stoklarda.</p>
+                        <span class="badge bg-warning text-dark mb-3 px-3 py-2">YENİ SEZON</span>
+                        <h1 class="display-4 fw-bold mb-3">Teknoloji Dünyası</h1>
+                        <p class="lead mb-4">En son çıkan modeller şimdi stoklarda.</p>
                         <a href="#products-list" class="slider-cta-btn">Hemen Keşfet</a>
                     </div>
                 </div>
-
                 <div class="carousel-item">
-                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
-                         class="slider-bg-img" alt="İndirim">
+                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" class="slider-bg-img" alt="İndirim">
                     <div class="slider-content">
-                        <span class="badge bg-danger mb-3 px-3 py-2 fw-bold shadow-sm rounded-pill">BÜYÜK FIRSAT</span>
-                        <h1 class="slider-title">Yaz İndirimleri</h1>
-                        <p class="lead mb-4 fs-5" style="opacity: 0.9;">Seçili ürünlerde dev indirimler.</p>
+                        <span class="badge bg-danger mb-3 px-3 py-2">BÜYÜK FIRSAT</span>
+                        <h1 class="display-4 fw-bold mb-3">Yaz İndirimleri</h1>
+                        <p class="lead mb-4">Seçili ürünlerde dev indirimler.</p>
                         <a href="#products-list" class="slider-cta-btn red-btn">Alışverişe Başla</a>
                     </div>
                 </div>
             </div>
-
-            <button class="carousel-control-prev custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="prev">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="carousel-control-next custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="next">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+            <button class="carousel-control-prev custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-control-next custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="next"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 
@@ -596,11 +454,9 @@
         @if (Model.FeaturedProducts.Count == 0)
         {
             <div class="text-center py-5">
-                <div class="bg-white rounded-circle d-inline-flex p-4 shadow-sm mb-3">
-                    <i class="fas fa-search fa-3x text-secondary opacity-25"></i>
-                </div>
-                <h5 class="fw-bold text-dark">Aradığınız kriterlere uygun ürün bulunamadı.</h5>
-                <a href="/Home/Index" class="btn btn-outline-primary rounded-pill mt-3 px-4">Filtreleri Temizle</a>
+                <div class="bg-light rounded-circle d-inline-flex p-4 mb-3"><i class="fas fa-search fa-3x text-secondary opacity-25"></i></div>
+                <h5 class="fw-bold">Ürün Bulunamadı</h5>
+                <a href="/Home/Index" class="btn btn-outline-primary rounded-pill mt-2">Temizle</a>
             </div>
         }
         else
@@ -610,7 +466,6 @@
                 {
                     <div class="col-sm-6 col-lg-4 col-xl-3">
                         <div class="product-card d-flex flex-column h-100 position-relative">
-
                             <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none">
                                 <div class="product-img-container">
                                     @if (string.IsNullOrEmpty(item.ImageUrl))
@@ -621,7 +476,6 @@
                                     {
                                         <img src="@item.ImageUrl" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                                     }
-                                    <span class="badge card-badge-new position-absolute top-0 start-0 m-3">YENİ</span>
                                 </div>
                             </a>
 
@@ -632,21 +486,18 @@
                                 </a>
 
                                 <div class="mt-auto d-flex align-items-end justify-content-between">
-                                    <span class="fw-bold fs-5" style="color: #764ba2;">@item.Price.ToString("C2")</span>
+                                    <span class="fw-bold fs-5" style="color: #0072ff;">@item.Price.ToString("C2")</span>
+
                                     <div class="d-flex gap-2">
-                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-action-light rounded-3 px-2" title="İncele">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="btn btn-sm btn-light border rounded-3 px-2" title="İncele"><i class="fas fa-eye"></i></a>
                                         <form asp-controller="Cart" asp-action="AddToCart" method="post">
                                             <input type="hidden" name="productId" value="@item.Id" />
-                                            <button type="submit" class="btn btn-sm btn-action-primary rounded-3 px-2 shadow-sm">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
+                                            <button type="submit" class="btn btn-sm text-white rounded-3 px-2 shadow-sm" style="background: #0072ff;"><i class="fas fa-plus"></i></button>
                                         </form>
                                     </div>
                                 </div>
                             </div>
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-2 shadow-sm" style="font-size: 0.65rem;">YENİ</span>
                         </div>
                     </div>
                 }
@@ -660,17 +511,15 @@
         function toggleFilters() {
             var menu = document.getElementById('filterMenu');
             var btn = document.getElementById('filterDropdownBtn');
-
             if (menu.classList.contains('show')) {
                 menu.classList.remove('show');
                 btn.setAttribute('aria-expanded', 'false');
-                btn.style.background = '#f1f2f6';
-                btn.style.color = '#57606f';
+                btn.style.background = '#f1f2f6'; btn.style.color = '#2d3436';
             } else {
                 menu.classList.add('show');
                 btn.setAttribute('aria-expanded', 'true');
-                btn.style.background = '#dfe4ea';
-                btn.style.color = '#764ba2';
+                // Hover Aktif: Açık Mavi Zemin, Mavi Yazı
+                btn.style.background = '#e3f2fd'; btn.style.color = '#0072ff';
             }
         }
 
@@ -678,10 +527,7 @@
             var menu = document.getElementById('filterMenu');
             var btn = document.getElementById('filterDropdownBtn');
             var isClickInside = menu.contains(event.target) || btn.contains(event.target);
-
-            if (!isClickInside && menu.classList.contains('show')) {
-                toggleFilters();
-            }
+            if (!isClickInside && menu.classList.contains('show')) { toggleFilters(); }
         });
     </script>
 }

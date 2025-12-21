@@ -1,0 +1,187 @@
+﻿@using ShopVerse.Entities.Enums
+@model ShopVerse.Entities.Concrete.Order
+
+@{
+    ViewData["Title"] = "Sipariş Detayı #" + Model.OrderNumber;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0">Sipariş Detayı</h3>
+            <p class="text-muted small m-0">Sipariş No: <span class="fw-bold text-primary">#@Model.OrderNumber</span></p>
+        </div>
+        <a href="/Admin/Order" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Listeye Dön
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold m-0 text-primary"><i class="fas fa-shopping-basket me-2"></i>Sipariş İçeriği</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="bg-light text-secondary small text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Ürün</th>
+                                    <th class="text-center">Adet</th>
+                                    <th class="text-end">Birim Fiyat</th>
+                                    <th class="text-end pe-4">Toplam</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+                                {
+                                    @foreach (var item in Model.OrderDetails)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3" style="width: 60px; height: 60px; flex-shrink: 0;">
+                                                        @if (item.Product != null && !string.IsNullOrEmpty(item.Product.ImageUrl))
+                                                        {
+                                                            <img src="@item.Product.ImageUrl" class="rounded border" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-light rounded border d-flex align-items-center justify-content-center h-100 text-muted">
+                                                                <i class="fas fa-image"></i>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="m-0 fw-bold text-dark">@(item.Product?.Name ?? "Silinmiş Ürün")</h6>
+                                                        <small class="text-muted">Kod: #@item.ProductId</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark border px-3 py-2">x @item.Quantity</span>
+                                            </td>
+                                            <td class="text-end text-muted">@item.Price.ToString("C2")</td>
+                                            <td class="text-end pe-4 fw-bold text-dark">@((item.Price * item.Quantity).ToString("C2"))</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5">
+                                            <i class="fas fa-box-open fa-3x text-muted opacity-25 mb-3"></i>
+                                            <p class="text-muted fw-bold">Ürün detaylarına ulaşılamadı.</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold py-3 text-secondary">GENEL TOPLAM:</td>
+                                    <td class="text-end fw-bold fs-4 text-primary pe-4 py-3">@Model.TotalPrice.ToString("C2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h5 class="fw-bold m-0"><i class="fas fa-tasks me-2"></i>Sipariş Durumu</h5>
+                </div>
+                <div class="card-body p-4 text-center">
+
+                    <div class="mb-4">
+                        @if (Model.OrderStatus == OrderStatus.Pending)
+                        {
+                            <div class="badge bg-warning text-dark p-3 rounded-circle mb-2"><i class="fas fa-clock fa-2x"></i></div>
+                            <h4 class="fw-bold text-warning">Beklemede</h4>
+ }
+                        else if (Model.OrderStatus == OrderStatus.Approved)
+                        {
+                            <div class="badge bg-success p-3 rounded-circle mb-2"><i class="fas fa-check fa-2x"></i></div>
+                            <h4 class="fw-bold text-success">Onaylandı</h4>
+ }
+                        else if (Model.OrderStatus == OrderStatus.Shipped)
+                        {
+                            <div class="badge bg-primary p-3 rounded-circle mb-2"><i class="fas fa-shipping-fast fa-2x"></i></div>
+                            <h4 class="fw-bold text-primary">Kargoda</h4>
+ }
+                        else if (Model.OrderStatus == OrderStatus.Delivered)
+                        {
+                            <div class="badge bg-success p-3 rounded-circle mb-2"><i class="fas fa-box-open fa-2x"></i></div>
+                            <h4 class="fw-bold text-success">Teslim Edildi</h4>
+ }
+                        else
+                        {
+                            <div class="badge bg-danger p-3 rounded-circle mb-2"><i class="fas fa-times fa-2x"></i></div>
+                            <h4 class="fw-bold text-danger">İptal Edildi</h4>
+ }
+
+                        <small class="text-muted">Son Güncelleme: @DateTime.Now.ToString("dd.MM.yyyy")</small>
+                    </div>
+
+                    <form asp-action="ChangeStatus" method="post">
+                        <input type="hidden" name="orderId" value="@Model.Id" />
+
+                        <div class="form-floating mb-3 text-start">
+                            <select name="orderStatus" class="form-select border-2 shadow-sm" id="statusSelect">
+                                <!option value="@OrderStatus.Pending" @(Model.OrderStatus == OrderStatus.Pending ? "selected" : "")>Beklemede</!option>
+                                <!option value="@OrderStatus.Approved" @(Model.OrderStatus == OrderStatus.Approved ? "selected" : "")>Onaylandı</!option>
+                                <!option value="@OrderStatus.Shipped" @(Model.OrderStatus == OrderStatus.Shipped ? "selected" : "")>Kargoya Verildi</!option>
+                                <!option value="@OrderStatus.Delivered" @(Model.OrderStatus == OrderStatus.Delivered ? "selected" : "")>Teslim Edildi</!option>
+                                <!option value="@OrderStatus.Canceled" @(Model.OrderStatus == OrderStatus.Canceled ? "selected" : "")>İptal Edildi</!option>
+                            </select>
+                            <label for="statusSelect">Yeni Durum Seçin</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm transition-btn">
+                            <i class="fas fa-save me-2"></i>Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold m-0 text-secondary"><i class="fas fa-user-circle me-2"></i>Müşteri Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-light rounded-circle p-3 me-3 text-primary border">
+                            <i class="fas fa-user fa-lg"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Müşteri ID</small>
+                            <span class="fw-bold text-dark text-break">@Model.AppUserId</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;"><i class="far fa-calendar-alt me-1"></i> Sipariş Tarihi</small>
+                        <span class="fw-bold text-dark">@Model.OrderDate.ToString("dd MMMM yyyy")</span>
+                        <span class="text-muted small">(@Model.OrderDate.ToString("HH:mm"))</span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border border-dashed">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem;"><i class="fas fa-map-marker-alt me-1"></i> Teslimat Adresi</small>
+                        <p class="mb-0 small text-dark fw-medium">
+                            Örnek Mahallesi, Teknoloji Caddesi, No: 123
+                            <br /> Kadıköy / İSTANBUL
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

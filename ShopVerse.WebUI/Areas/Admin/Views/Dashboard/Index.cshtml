@@ -1,0 +1,109 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; 
+}
+
+<div class="container-fluid">
+    <h3 class="mt-4 mb-4">Genel Bakış</h3>
+
+    <div class="row g-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">Toplam Sipariş</h5>
+                        <h2 class="mt-2 fw-bold">@ViewBag.OrderCount</h2>
+                        <small>@ViewBag.PendingOrders Bekleyen</small>
+                    </div>
+                    <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-primary bg-gradient">
+                    <a href="/Admin/Order" class="text-white text-decoration-none small stretched-link">Detaylara Git</a>
+                    <i class="fas fa-angle-right small text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">Ürün Sayısı</h5>
+                        <h2 class="mt-2 fw-bold">@ViewBag.ProductCount</h2>
+                    </div>
+                    <i class="fas fa-box fa-3x opacity-50"></i>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-success bg-gradient">
+                    <a href="/Admin/Product" class="text-white text-decoration-none small stretched-link">Yönet</a>
+                    <i class="fas fa-angle-right small text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-dark h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">Kategoriler</h5>
+                        <h2 class="mt-2 fw-bold">@ViewBag.CategoryCount</h2>
+                    </div>
+                    <i class="fas fa-list fa-3x opacity-50"></i>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-warning bg-gradient">
+                    <a href="/Admin/Category" class="text-dark text-decoration-none small stretched-link">İncele</a>
+                    <i class="fas fa-angle-right small text-dark"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">Kullanıcılar</h5>
+                        <h2 class="mt-2 fw-bold">@ViewBag.UserCount</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-danger bg-gradient">
+                    <a href="/Admin/User" class="text-white text-decoration-none small stretched-link">Listele</a>
+                    <i class="fas fa-angle-right small text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-bolt text-warning me-2"></i>Hızlı İşlemler
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/Admin/Product/Create" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-plus-circle me-2"></i> Yeni Ürün Ekle
+                        </a>
+                        <a href="/Admin/Category/Create" class="btn btn-outline-secondary text-start">
+                            <i class="fas fa-tags me-2"></i> Yeni Kategori Oluştur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-info-circle text-info me-2"></i>Sistem Bilgisi
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Admin:</strong> @User.Identity.Name</p>
+                    <p class="mb-1"><strong>Tarih:</strong> @DateTime.Now.ToString("dd MMMM yyyy")</p>
+                    <p class="mb-0"><strong>Durum:</strong> Sistem Aktif</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

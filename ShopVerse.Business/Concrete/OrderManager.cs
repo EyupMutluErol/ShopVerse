@@ -17,4 +17,9 @@ public class OrderManager:GenericManager<Order>,IOrderService
     {
         return _orderRepository.GetOrdersByUserId(userId);
     }
+
+    public Order GetOrderWithDetails(int orderId)
+    {
+        return _orderRepository.GetOrderWithDetails(orderId);
+    }
 }
