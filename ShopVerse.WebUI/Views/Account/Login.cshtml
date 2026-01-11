@@ -1,42 +1,220 @@
-﻿@model LoginViewModel
-
+﻿@model ShopVerse.WebUI.Models.LoginViewModel
 @{
     ViewData["Title"] = "Giriş Yap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white text-center">
-                <h4><i class="fas fa-sign-in-alt"></i> Giriş Yap</h4>
+<style>
+    /* --- SARI TEMA RENK PALETİ --- */
+    :root {
+        --gold-primary: #ffc107; /* Ana Sarı */
+        --gold-dark: #ff9800; /* Koyu Sarı/Turuncu (Gradient için) */
+        --gold-light: #fff8e1; /* Çok açık sarı zemin */
+        --text-dark: #212529; /* Koyu metin rengi (Sarı üzerinde okunabilirlik için) */
+    }
+
+    body {
+        /* Arka Plan: Sıcak Sarı/Krem Degrade */
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        min-height: 100vh;
+    }
+
+    .login-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(184, 134, 11, 0.15); /* Gölgeyi de sarımtırak yaptık */
+        overflow: hidden;
+    }
+
+    .login-image-side {
+        /* Görseli değiştirdik: Daha sıcak tonlu bir alışveriş görseli */
+        background: url('https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=2070&auto=format&fit=crop') center center no-repeat;
+        background-size: cover;
+        position: relative;
+        min-height: 550px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Resim üzerindeki kaplama: Sıcak Altın/Turuncu */
+        background: linear-gradient(to bottom, rgba(255, 193, 7, 0.7), rgba(255, 152, 0, 0.7));
+    }
+
+    .image-content {
+        position: relative;
+        z-index: 2;
+        color: var(--text-dark); /* Metin rengi koyu yapıldı */
+        text-align: center;
+        padding: 40px;
+    }
+
+        .image-content h2, .image-content p {
+            text-shadow: 0 1px 3px rgba(255,255,255,0.3); /* Hafif beyaz gölge ile okunabilirlik */
+            color: #4e342e; /* Koyu kahve tonu */
+        }
+
+    .login-form-side {
+        padding: 50px 40px;
+        background: #fffdf8; /* Çok hafif krem rengi zemin */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .form-group-custom {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .form-control-custom {
+        height: 60px;
+        padding-left: 20px;
+        padding-right: 55px;
+        border-radius: 12px;
+        border: 1px solid #ede0c9; /* Hafif sarımsı sınır */
+        background: #ffffff;
+        font-size: 1rem;
+        color: #333;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        transition: all 0.3s ease;
+    }
+
+        .form-control-custom:focus {
+            background: #ffffff;
+            border-color: var(--gold-primary);
+            /* Focus olunca SARI ışıldama */
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
+            transform: translateY(-2px);
+        }
+
+    /* --- İKON ORTALAMA DÜZELTMESİ --- */
+    .input-icon {
+        position: absolute;
+        right: 20px;
+        /* Dikey Ortalama İçin Kesin Çözüm: */
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gold-dark); /* İkon rengi koyu sarı/turuncu */
+        font-size: 1.2rem;
+        opacity: 0.8;
+        transition: all 0.3s;
+        z-index: 5;
+        line-height: 1; /* Satır yüksekliği sıfırlandı */
+        margin: 0; /* Dış boşluk sıfırlandı */
+    }
+
+    .form-control-custom:focus + .input-icon,
+    .form-control-custom:focus ~ .input-icon {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+        color: var(--gold-primary);
+    }
+
+    .btn-login {
+        height: 60px;
+        /* Buton: Sarıdan Turuncuya Gradient */
+        background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+        color: var(--text-dark); /* Sarı buton üstüne koyu yazı daha iyi okunur */
+        box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+        transition: all 0.3s;
+    }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 193, 7, 0.4);
+            color: var(--text-dark);
+        }
+
+    .auth-link, .forgot-link {
+        color: var(--gold-dark); /* Linkler koyu sarı */
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+        .auth-link:hover, .forgot-link:hover {
+            color: #e65100;
+            text-decoration: underline;
+        }
+</style>
+
+<div class="container d-flex align-items-center justify-content-center py-5" style="min-height: 90vh;">
+    <div class="card login-card col-12 col-xl-10">
+        <div class="row g-0">
+
+            <div class="col-md-6 d-none d-md-block login-image-side">
+                <div class="image-overlay"></div>
+                <div class="image-content">
+                    <h2 class="display-4 fw-bold mb-3">Tekrar Hoş Geldiniz!</h2>
+                    <p class="lead fw-medium">Alışverişin en keyifli ve sıcak adresine giriş yapın.</p>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <form asp-action="Login" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" placeholder="ornek@email.com" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+            <div class="col-md-6 login-form-side">
+
+                <div class="mb-5 text-center">
+                    <h2 class="fw-bold text-dark mb-2">Giriş Yap</h2>
+                    <p class="text-muted">Hesap bilgilerinizi girerek devam edin.</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-warning border-0 shadow-sm mb-4 rounded-3 text-center text-dark fw-bold" style="background-color: #fff3cd;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <div asp-validation-summary="All" class="d-inline-block small m-0"></div>
+                    </div>
+                }
+
+                <form asp-controller="Account" asp-action="Login" method="post">
+                    <input type="hidden" name="ReturnUrl" value="@Context.Request.Query["returnUrl"]" />
+
+                    <div class="form-group-custom">
+                        <label asp-for="Email" class="form-label-custom ms-1 fw-bold text-muted">E-Posta Adresi</label>
+                        <input asp-for="Email" class="form-control form-control-custom" autocomplete="off">
+                        <i class="fas fa-envelope input-icon"></i>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" placeholder="******" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="form-group-custom">
+                        <label asp-for="Password" class="form-label-custom ms-1 fw-bold text-muted">Şifre</label>
+                        <input asp-for="Password" type="password" class="form-control form-control-custom">
+                        <i class="fas fa-lock input-icon"></i>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label class="form-check-label" asp-for="RememberMe">Beni Hatırla</label>
+                    <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" style="cursor: pointer; border-color: var(--gold-primary); background-color: transparent;">
+                            <label asp-for="RememberMe" class="form-check-label small text-muted user-select-none fw-bold" style="cursor: pointer;">
+                                Beni Hatırla
+                            </label>
+                        </div>
+                        <a href="#" class="small forgot-link fw-bold">Şifremi Unuttum?</a>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Giriş Yap</button>
-                        <a href="/Account/Register" class="btn btn-outline-secondary">Hesabın yok mu? Kayıt Ol</a>
+                    <button type="submit" class="btn btn-login w-100 mb-4">
+                        Giriş Yap <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <p class="text-muted small mb-0 fw-bold">
+                            Henüz bir hesabınız yok mu?
+                            <a asp-action="Register" class="auth-link ms-1">Hemen Kayıt Ol</a>
+                        </p>
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
 </div>

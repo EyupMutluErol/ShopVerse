@@ -13,21 +13,16 @@
     <title>@ViewData["Title"] - ShopVerse</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <style>
         /* --- GENEL AYARLAR --- */
         :root {
-            /* YENİ ANA RENK: Electric Blue Gradient */
             --primary-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-            /* Navbar Arka Planı */
             --navbar-bg: var(--primary-gradient);
-            /* Duyuru Şeridi (Sarı) */
-            --announcement-bg: #f9ca24;
-            /* Body Arka Planı (Tam Beyaz) */
             --body-bg: #ffffff;
             --text-light: #ffffff;
         }
@@ -40,17 +35,15 @@
             flex-direction: column;
         }
 
-        /* --- NAVBAR TASARIMI (MAVİ TEMA) --- */
+        /* --- NAVBAR TASARIMI --- */
         .navbar-custom {
             background: var(--navbar-bg);
             padding: 12px 0;
-            /* Mavi tonlu hafif gölge */
             box-shadow: 0 4px 15px rgba(0, 114, 255, 0.25);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
         }
 
-        /* Logo Alanı */
         .navbar-brand {
             font-weight: 800;
             font-size: 1.5rem;
@@ -61,10 +54,9 @@
             gap: 12px;
         }
 
-        /* Logo İkonu (Beyaz Kutu, İçi Mavi) */
         .brand-icon {
             background: white;
-            color: #0072ff; /* İkon rengi mavi */
+            color: #0072ff;
             width: 38px;
             height: 38px;
             display: flex;
@@ -80,7 +72,6 @@
             transform: rotate(-10deg) scale(1.05);
         }
 
-        /* Linkler (Beyaz) */
         .nav-link {
             color: rgba(255,255,255,0.9) !important;
             font-weight: 500;
@@ -92,12 +83,11 @@
         }
 
             .nav-link:hover, .nav-link.active {
-                background: rgba(255,255,255,0.2); /* Hoverda belirgin beyazlık */
+                background: rgba(255,255,255,0.2);
                 color: white !important;
                 transform: translateY(-2px);
             }
 
-        /* İkon Butonları (Sepet vb.) */
         .nav-icon-btn {
             position: relative;
             display: flex;
@@ -115,12 +105,11 @@
 
             .nav-icon-btn:hover {
                 background: white;
-                color: #0072ff !important; /* Maviye döner */
+                color: #0072ff !important;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }
 
-        /* Profil Resmi */
         .nav-profile-img {
             width: 40px;
             height: 40px;
@@ -141,10 +130,9 @@
                 transform: scale(1.05);
             }
 
-        /* Dropdown Menü (Beyaz) */
         .dropdown-menu {
             border: none;
-            box-shadow: 0 10px 40px rgba(0, 114, 255, 0.15); /* Mavi gölge */
+            box-shadow: 0 10px 40px rgba(0, 114, 255, 0.15);
             border-radius: 16px;
             margin-top: 15px;
             padding: 8px;
@@ -159,7 +147,7 @@
         }
 
             .dropdown-item:hover {
-                background-color: #e3f2fd; /* Hoverda çok açık mavi */
+                background-color: #e3f2fd;
                 color: #0072ff;
             }
 
@@ -168,7 +156,6 @@
             opacity: 0.1;
         }
 
-        /* Mobil Menü Toggler (Beyaz İkon) */
         .navbar-toggler {
             border: none;
             padding: 0;
@@ -183,7 +170,7 @@
         }
 
         footer {
-            background: white; /* Footer beyaz */
+            background: white;
             border-top: 1px solid #eee;
             padding: 25px 0;
             margin-top: auto;
@@ -219,15 +206,15 @@
 
                 <ul class="navbar-nav ms-auto align-items-center gap-3">
 
-                    <li class="nav-item">
+                    <li class="nav-item position-relative">
                         <a class="nav-icon-btn" asp-controller="Cart" asp-action="Index" title="Sepetim">
                             <i class="fas fa-shopping-cart"></i>
+                            @await Component.InvokeAsync("CartCount")
                         </a>
                     </li>
 
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        // 1. DURUM: EĞER KULLANICI ADMİN İSE
                         if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
@@ -236,7 +223,6 @@
                                 </a>
                             </li>
                         }
-                        // 2. DURUM: NORMAL ÜYE İSE (Profil Menüsü Görünsün)
                         else
                         {
                             var currentUser = await UserManager.FindByNameAsync(User.Identity.Name);
@@ -264,22 +250,9 @@
                                             <span class="fw-bold text-dark">@displayName</span>
                                         </div>
                                     </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
-                                            <i class="fas fa-user-cog me-2 text-secondary"></i>Profilim
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#">
-                                            <i class="fas fa-box-open me-2 text-secondary"></i>Siparişlerim
-                                        </a>
-                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-cog me-2 text-secondary"></i>Profilim</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
-                                        </a>
-                                    </li>
+                                    <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
                                 </ul>
                             </li>
                         }
@@ -287,12 +260,8 @@
                     else
                     {
                         <li class="nav-item d-flex align-items-center gap-2">
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-sm fw-bold rounded-pill px-4 text-white" style="border: 1px solid rgba(255,255,255,0.4);">
-                                Giriş
-                            </a>
-                            <a asp-controller="Account" asp-action="Register" class="btn btn-sm fw-bold rounded-pill px-4 shadow-sm bg-white border-0" style="color: #0072ff;">
-                                Kayıt
-                            </a>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-sm fw-bold rounded-pill px-4 text-white" style="border: 1px solid rgba(255,255,255,0.4);">Giriş</a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-sm fw-bold rounded-pill px-4 shadow-sm bg-white border-0" style="color: #0072ff;">Kayıt</a>
                         </li>
                     }
                 </ul>
@@ -312,6 +281,52 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function addToCart(productId, quantity = 1) {
+            $.ajax({
+                url: '/Cart/AddToCart',
+                type: 'POST',
+                data: { productId: productId, quantity: quantity }, 
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sepete Eklendi',
+                            text: 'Ürün sepetinize başarıyla eklendi.',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            toast: true,
+                            position: 'top-end',
+                            background: '#fff',
+                            color: '#333'
+                        });
+
+                        var badge = $("#cart-badge-count");
+                        badge.text(response.cartCount);
+                        badge.removeClass("d-none");
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata',
+                            text: response.message
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata',
+                        text: 'Bir sorun oluştu.'
+                    });
+                }
+            });
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

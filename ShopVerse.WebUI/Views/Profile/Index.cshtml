@@ -9,30 +9,92 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        font-family: 'Poppins', sans-serif !important;
-        background-color: #f8f9fa;
+    :root {
+        --blue-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+        --blue-primary: #0072ff;
     }
+
+    .profile-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        background: white;
+    }
+
+    .profile-header-bg {
+        height: 120px;
+        background: var(--blue-gradient);
+        position: relative;
+    }
+
+    .profile-img-container {
+        width: 110px;
+        height: 110px;
+        margin: -55px auto 15px;
+        position: relative;
+        padding: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .profile-img-lg {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #f8f9fa;
+    }
+
+
+    .custom-nav-pills {
+        background: #e9ecef; 
+        padding: 6px;
+        border-radius: 50px;
+        display: inline-flex;
+        gap: 5px;
+    }
+
+        .custom-nav-pills .nav-link {
+            color: #495057 !important; 
+            background: transparent !important;
+            border-radius: 40px;
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+            .custom-nav-pills .nav-link:hover {
+                background: #dee2e6 !important;
+                color: #000000 !important; 
+            }
+
+            .custom-nav-pills .nav-link.active {
+                background: var(--blue-primary) !important;
+                color: #ffffff !important; 
+                box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+            }
+
+    .btn-outline-blue {
+        color: var(--blue-primary);
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+        .btn-outline-blue:hover {
+            border-color: var(--blue-primary);
+            background: #e3f2fd;
+            color: var(--blue-primary);
+        }
 
     .transition-hover:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
-        border-color: #0d6efd !important;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
         transition: all 0.3s ease;
-    }
-
-    .nav-pills .nav-link.active {
-        background-color: #0d6efd;
-        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.3);
-    }
-
-    .nav-pills .nav-link {
-        color: #495057;
-        font-weight: 600;
-    }
-
-    .last-no-border:last-child {
-        border-bottom: 0 !important;
     }
 </style>
 
@@ -97,14 +159,14 @@
                 <div class="card border-0 shadow-sm rounded-4 bg-white">
 
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                        <ul class="nav nav-pills card-header-pills bg-light p-1 rounded-pill d-inline-flex" id="profileTabs" role="tablist">
+                        <ul class="nav nav-pills custom-nav-pills card-header-pills" id="profileTabs" role="tablist">
                             <li class="nav-item">
-                                <button class="nav-link active rounded-pill px-4" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
+                                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
                                     <i class="fas fa-box-open me-2"></i>Siparişlerim
                                 </button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link rounded-pill px-4" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
                                     <i class="fas fa-cog me-2"></i>Ayarlar
                                 </button>
                             </li>
@@ -190,7 +252,6 @@
 
                                                 <div class="collapse" id="orderDetails-@order.Id">
                                                     <div class="bg-light border-top p-4">
-
                                                         <div class="row g-3">
                                                             <div class="col-md-6">
                                                                 <div class="bg-white p-3 rounded-3 shadow-sm h-100 border-start border-4 border-primary">

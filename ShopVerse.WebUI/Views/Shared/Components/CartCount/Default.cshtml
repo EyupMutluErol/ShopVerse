@@ -1,0 +1,14 @@
+﻿@model int
+
+@if (Model > 0)
+{
+    <span id="cart-badge-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+        @Model
+    </span>
+}
+else
+{
+    <span id="cart-badge-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem;">
+        0
+    </span>
+}

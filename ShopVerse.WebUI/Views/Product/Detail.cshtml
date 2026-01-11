@@ -45,38 +45,36 @@
 
             <hr />
 
-            <form method="post" asp-controller="Cart" asp-action="AddToCart">
-                <input type="hidden" name="productId" value="@Model.Id" />
-
-                <div class="row align-items-center mb-4">
-                    <div class="col-auto">
-                        <label class="col-form-label fw-bold">Adet:</label>
-                    </div>
-                    <div class="col-auto">
-                        <select class="form-select" name="quantity" style="width: 80px;">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        @if (Model.Stock > 0)
-                        {
-                            <button type="submit" class="btn btn-dark w-100 btn-lg shadow-sm">
-                                <i class="fas fa-shopping-cart me-2"></i> Sepete Ekle
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-secondary w-100 btn-lg" disabled>
-                                Stok Tükendi
-                            </button>
-                        }
-                    </div>
+            <div class="row align-items-center mb-4">
+                <div class="col-auto">
+                    <label class="col-form-label fw-bold">Adet:</label>
                 </div>
-            </form>
+                <div class="col-auto">
+                    <select class="form-select" id="quantity-select" style="width: 80px;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="col">
+                    @if (Model.Stock > 0)
+                    {
+                        <button type="button"
+                                onclick="addToCart(@Model.Id, document.getElementById('quantity-select').value)"
+                                class="btn btn-dark w-100 btn-lg shadow-sm">
+                            <i class="fas fa-shopping-cart me-2"></i> Sepete Ekle
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-secondary w-100 btn-lg" disabled>
+                            Stok Tükendi
+                        </button>
+                    }
+                </div>
+            </div>
 
             <div class="mt-4">
                 <div class="card bg-light border-0">

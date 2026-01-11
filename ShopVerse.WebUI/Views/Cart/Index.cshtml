@@ -14,49 +14,66 @@
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-0">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th scope="col" class="ps-4">Ürün</th>
-                                    <th scope="col" class="text-center">Fiyat</th>
-                                    <th scope="col" class="text-center">Adet</th>
-                                    <th scope="col" class="text-center">Toplam</th>
-                                    <th scope="col"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.CartItems)
-                                {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="bg-light">
                                     <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center">
-                                                <img src="@item.Product.ImageUrl" alt="@item.Product.Name"
-                                                     class="img-fluid rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                <div>
-                                                    <h6 class="mb-0">
-                                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Product.Id" class="text-decoration-none text-dark">
-                                                            @item.Product.Name
-                                                        </a>
-                                                    </h6>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">@item.Product.Price.ToString("C2")</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-light text-dark border px-3 py-2">@item.Quantity</span>
-                                        </td>
-                                        <td class="text-center fw-bold text-primary">@item.TotalPrice.ToString("C2")</td>
-                                        <td class="text-end pe-4">
-                                            <a href="javascript:void(0);"
-                                               onclick="deleteFromCart(@item.Product.Id)"
-                                               class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
+                                        <th scope="col" class="ps-4">Ürün</th>
+                                        <th scope="col" class="text-center">Fiyat</th>
+                                        <th scope="col" class="text-center">Adet</th>
+                                        <th scope="col" class="text-center">Toplam</th>
+                                        <th scope="col"></th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.CartItems)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@item.Product.ImageUrl" alt="@item.Product.Name"
+                                                         class="img-fluid rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                                    <div>
+                                                        <h6 class="mb-0">
+                                                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Product.Id" class="text-decoration-none text-dark">
+                                                                @item.Product.Name
+                                                            </a>
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">@item.Product.Price.ToString("C2")</td>
+
+                                            <td class="text-center">
+                                                <div class="btn-group border rounded-pill" role="group">
+                                                    <button type="button"
+                                                            onclick="checkDecrease(@item.Product.Id, @item.Quantity)"
+                                                            class="btn btn-sm btn-light rounded-start-pill px-3">
+                                                        <i class="fas fa-minus small"></i>
+                                                    </button>
+
+                                                    <span class="btn btn-sm btn-light disabled fw-bold text-dark px-3" style="opacity: 1; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6;">
+                                                        @item.Quantity
+                                                    </span>
+
+                                                    <a asp-controller="Cart" asp-action="Increase" asp-route-productId="@item.Product.Id"
+                                                       class="btn btn-sm btn-light rounded-end-pill px-3">
+                                                        <i class="fas fa-plus small"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+
+                                            <td class="text-center fw-bold text-primary">@item.TotalPrice.ToString("C2")</td>
+                                            <td class="text-end pe-4">
+                                                <button onclick="deleteFromCart(@item.Product.Id)" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -119,16 +136,39 @@
                 text: "Bu ürünü sepetten kaldırmak istediğinize emin misiniz?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Evet, Sil!',
                 cancelButtonText: 'Vazgeç'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Kullanıcı Evet derse, silme linkine yönlendiriyoruz
                     window.location.href = "/Cart/RemoveFromCart?productId=" + id;
                 }
             })
         }
+
+        function checkDecrease(id, quantity) {
+            if (quantity > 1) {
+                window.location.href = "/Cart/Decrease?productId=" + id;
+            } else {
+                deleteFromCart(id);
+            }
+        }
     </script>
+
+    @if (TempData["Message"] != null)
+    {
+        var rawMessage = Html.Raw(TempData["Message"]);
+        var iconType = TempData["Icon"];
+
+        <script>
+            Swal.fire({
+                icon: '@iconType',
+                title: 'Bilgi',
+                text: '@rawMessage',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </script>
+    }
 }
