@@ -26,11 +26,11 @@ namespace ShopVerse.WebUI.Controllers
         {
             var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            if(cart.Count == 0)
+            if (cart.Count == 0)
             {
                 TempData["Icon"] = "error";
                 TempData["Message"] = "Sepetiniz boş, sipariş veremezsiniz";
-                return RedirectToAction("Index","Cart");
+                return RedirectToAction("Index", "Cart");
             }
             return View();
         }
@@ -40,7 +40,7 @@ namespace ShopVerse.WebUI.Controllers
         {
             var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            if(cart.Count == 0)
+            if (cart.Count == 0)
             {
                 return RedirectToAction("Index", "Cart");
             }
@@ -63,7 +63,7 @@ namespace ShopVerse.WebUI.Controllers
                     District = model.District,
                     PhoneNumber = model.PhoneNumber,
 
-                    // Sepet toplamı
+                    // Sepet toplamı (Model içindeki hesaplanmış indirimli toplamı alır)
                     TotalPrice = cart.Sum(x => x.TotalPrice),
 
                     // Detaylar listesi
@@ -75,20 +75,36 @@ namespace ShopVerse.WebUI.Controllers
                     order.OrderDetails.Add(new OrderDetail
                     {
                         ProductId = item.Product.Id,
-                        Price = item.Product.Price,
+                        // ÖNEMLİ GÜNCELLEME 1: İndirimli fiyatı veritabanına kaydediyoruz
+                        Price = item.Product.PriceWithDiscount,
                         Quantity = item.Quantity
                     });
                 }
 
-                await _orderService.AddAsync(order);
+                // ÖNEMLİ GÜNCELLEME 2: Stok hatasını yakalamak için Try-Catch bloğu
+                try
+                {
+                    // OrderManager içindeki stok düşme mantığı burada çalışacak
+                    await _orderService.AddAsync(order);
 
-                HttpContext.Session.Remove("Cart"); // Sepeti temizle
+                    HttpContext.Session.Remove("Cart"); // Sepeti temizle
 
-                TempData["Icon"] = "success";
-                TempData["Message"] = "Siparişiniz başarıyla alındı!";
+                    TempData["Icon"] = "success";
+                    TempData["OrderSuccess"] = "Siparişiniz başarıyla oluşturuldu!";
 
-                return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Profile");
+                }
+                catch (Exception ex)
+                {
+                    // Eğer OrderManager "Stok yetersiz" hatası fırlatırsa buraya düşer
+                    TempData["Icon"] = "error";
+                    TempData["Message"] = ex.Message; // "X ürünü için stok yetersiz" mesajını gösterir
+
+                    // Kullanıcıyı sayfada tutuyoruz ki hatayı görsün
+                    return View(model);
+                }
             }
+
             return View(model);
         }
     }

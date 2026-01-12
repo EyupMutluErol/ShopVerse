@@ -279,51 +279,63 @@
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // 1. SEPETE EKLEME (Standart Toast)
         function addToCart(productId, quantity = 1) {
             $.ajax({
                 url: '/Cart/AddToCart',
                 type: 'POST',
-                data: { productId: productId, quantity: quantity }, 
+                data: { productId: productId, quantity: quantity },
                 success: function (response) {
                     if (response.success) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Sepete Eklendi',
-                            text: 'Ürün sepetinize başarıyla eklendi.',
+                            text: 'Ürün sepetinize eklendi.',
+                            toast: true,
+                            position: 'top-end',
                             showConfirmButton: false,
                             timer: 3000,
                             timerProgressBar: true,
-                            toast: true,
-                            position: 'top-end',
                             background: '#fff',
                             color: '#333'
                         });
 
                         var badge = $("#cart-badge-count");
-                        badge.text(response.cartCount);
-                        badge.removeClass("d-none");
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Hata',
-                            text: response.message
-                        });
+                        if (badge.length) {
+                            badge.text(response.cartCount);
+                            badge.removeClass("d-none");
+                        }
                     }
-                },
-                error: function () {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Hata',
-                        text: 'Bir sorun oluştu.'
-                    });
                 }
             });
+        }
+
+        
+        @if (TempData["OrderSuccess"] != null)
+        {
+                <text>
+                    $(document).ready(function() {
+                        Swal.fire({
+                            title: '@Html.Raw(TempData["OrderSuccess"])',
+                            icon: 'success',
+                            toast: true,               // Artık Popup değil Toast (Sağ üst)
+                            position: 'top-end',       // Sağ üst köşe
+                            showConfirmButton: false,  // Buton yok
+                            timer: 4000,               // 4 saniye görünsün
+                            timerProgressBar: true,    // Süre çubuğu olsun
+                            background: '#fff',        // Beyaz arka plan
+                            color: '#333'              // Siyah yazı
+                        });
+                    });
+                </text>
         }
     </script>
 

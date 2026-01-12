@@ -6,7 +6,7 @@ namespace ShopVerse.WebUI.Models
     {
         public Product Product { get; set; }
         public int Quantity { get; set; }
-        public decimal TotalPrice => Product.Price * Quantity; // Toplam tutarı hesaplıyoruz
+        public decimal TotalPrice => Product.PriceWithDiscount * Quantity; 
 
     }
 }

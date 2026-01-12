@@ -5,12 +5,26 @@
 @{
     ViewData["Title"] = "Ödeme ve Sipariş";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
+    
 
     var cart = Context.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
     decimal total = cart.Sum(x => x.TotalPrice);
 }
-
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger m-3">
+        <h4>Hata Oluştu! Lütfen aşağıdaki alanları kontrol edin:</h4>
+        <ul>
+            @foreach (var key in ViewData.ModelState.Keys)
+            {
+                foreach (var error in ViewData.ModelState[key].Errors)
+                {
+                    <li><strong>@key:</strong> @error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
 <div class="container mt-5 mb-5">
     <div class="py-5 text-center">
         <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
@@ -48,6 +62,7 @@
             <h4 class="mb-3">Teslimat Adresi</h4>
 
             <form asp-controller="Checkout" asp-action="Index" method="post" class="needs-validation">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                 <div class="row g-3">
                     <div class="col-12">
@@ -56,63 +71,76 @@
                         <span asp-validation-for="FullName" class="text-danger"></span>
                     </div>
 
-                    <div class="col-12">
-                        <label asp-for="PhoneNumber" class="form-label">Telefon Numarası</label>
-                        <input asp-for="PhoneNumber" class="form-control" placeholder="05XX XXX XX XX">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Telefon Numarası</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">+90</span>
+                            <input type="text" asp-for="PhoneNumber" id="phoneInput" class="form-control" placeholder="555 444 33 22" maxlength="13" required />
+                        </div>
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
 
-                    <div class="col-12">
-                        <label asp-for="AddressLine" class="form-label">Açık Adres</label>
-                        <textarea asp-for="AddressLine" class="form-control" rows="2" placeholder="Mahalle, Cadde, Sokak, Kapı No..."></textarea>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Şehir</label>
+                            <select asp-for="City" id="citySelect" class="form-select" required>
+                                <option value="">İl Seçiniz</option>
+                            </select>
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">İlçe</label>
+                            <select asp-for="District" id="districtSelect" class="form-select" disabled required>
+                                <option value="">Önce İl Seçiniz</option>
+                            </select>
+                            <span asp-validation-for="District" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Açık Adres</label>
+                        <textarea asp-for="AddressLine" class="form-control" rows="3" placeholder="Mahalle, Sokak, Kapı No vb."></textarea>
                         <span asp-validation-for="AddressLine" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="City" class="form-label">Şehir</label>
-                        <input asp-for="City" class="form-control" placeholder="Örn: İstanbul">
-                        <span asp-validation-for="City" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="District" class="form-label">İlçe</label>
-                        <input asp-for="District" class="form-control" placeholder="Örn: Kadıköy">
-                        <span asp-validation-for="District" class="text-danger"></span>
                     </div>
                 </div>
 
                 <hr class="my-4">
 
-                <h4 class="mb-3">Kart Bilgileri</h4>
-
-                <div class="row gy-3">
+                <h4 class="mb-3 mt-4">Ödeme Bilgileri</h4>
+                <div class="row g-3">
                     <div class="col-md-6">
-                        <label asp-for="CardName" class="form-label">Kart Üzerindeki İsim</label>
-                        <input asp-for="CardName" class="form-control" placeholder="AD SOYAD">
+                        <label class="form-label">Kart Üzerindeki İsim</label>
+                        <input type="text" asp-for="CardName" class="form-control" placeholder="Ad Soyad" required>
                         <span asp-validation-for="CardName" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
-                        <label asp-for="CardNumber" class="form-label">Kart Numarası</label>
-                        <input asp-for="CardNumber" class="form-control" placeholder="0000 0000 0000 0000">
+                        <label class="form-label">Kart Numarası</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                            <input type="text" asp-for="CardNumber" id="cardNumber" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                        </div>
                         <span asp-validation-for="CardNumber" class="text-danger"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="ExpirationMonth" class="form-label">Ay</label>
-                        <input asp-for="ExpirationMonth" class="form-control" placeholder="AA">
+                    <div class="col-md-3">
+                        <label class="form-label">Ay</label>
+                        <input type="text" asp-for="ExpirationMonth" id="expMonth" class="form-control text-center" placeholder="AA" maxlength="2" required>
                         <span asp-validation-for="ExpirationMonth" class="text-danger"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="ExpirationYear" class="form-label">Yıl</label>
-                        <input asp-for="ExpirationYear" class="form-control" placeholder="YY">
+                    <div class="col-md-3">
+                        <label class="form-label">Yıl</label>
+                        <input type="text" asp-for="ExpirationYear" id="expYear" class="form-control text-center" placeholder="YYYY" maxlength="4" required>
                         <span asp-validation-for="ExpirationYear" class="text-danger"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="Cvv" class="form-label">CVV</label>
-                        <input asp-for="Cvv" class="form-control" placeholder="***">
+                    <div class="col-md-3">
+                        <label class="form-label">CVV</label>
+                        <div class="input-group">
+                            <input type="text" asp-for="Cvv" id="cvv" class="form-control text-center" placeholder="000" maxlength="3" required>
+                            <span class="input-group-text" data-bs-toggle="tooltip" title="Kartın arkasındaki 3 haneli kod"><i class="fas fa-question-circle"></i></span>
+                        </div>
                         <span asp-validation-for="Cvv" class="text-danger"></span>
                     </div>
                 </div>
@@ -128,5 +156,112 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // İL-İLÇE DATASI (Kısaltıldı, sendeki uzun hali kalabilir)
+        const turkeyData = {
+            "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Beşiktaş", "Esenler", "Kadıköy", "Şişli", "Üsküdar"],
+            "Ankara": ["Altındağ", "Çankaya", "Keçiören", "Mamak", "Yenimahalle"],
+            "İzmir": ["Bornova", "Buca", "Karşıyaka", "Konak"],
+            "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım"],
+            "Antalya": ["Alanya", "Kepez", "Muratpaşa"]
+        };
+
+        $(document).ready(function () {
+            // --- 1. İL ve İLÇE MANTIĞI ---
+            var citySelect = $('#citySelect');
+            var districtSelect = $('#districtSelect');
+            var selectedDistrict = '@(Model?.District ?? "")';
+
+            // İlleri doldur (Sendeki uzun listeyi buraya koyabilirsin)
+            $.each(turkeyData, function(city, districts) {
+                citySelect.append($('<option>', { value: city, text: city }));
+            });
+
+            if(citySelect.val()) {
+                populateDistricts(citySelect.val());
+                if(selectedDistrict) districtSelect.val(selectedDistrict);
+            }
+
+            citySelect.change(function() {
+                populateDistricts($(this).val());
+            });
+
+            function populateDistricts(city) {
+                districtSelect.empty().append('<option value="">İlçe Seçiniz</option>');
+                if (city && turkeyData[city]) {
+                    districtSelect.prop('disabled', false);
+                    $.each(turkeyData[city], function(i, district) {
+                        districtSelect.append($('<option>', { value: district, text: district }));
+                    });
+                } else {
+                    districtSelect.prop('disabled', true);
+                }
+            }
+
+            // --- 2. FORMATLAMA VE YEŞİL ÇERÇEVE (VALIDATION) ---
+
+            // Yardımcı Fonksiyon: Doğruysa Yeşil, Yanlışsa Normal
+            function validateInput(element, isValid) {
+                if (isValid) {
+                    $(element).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(element).removeClass('is-valid');
+                }
+            }
+
+            // Kart Numarası (16 hane + boşluklar = 19 karakter)
+            $('#cardNumber').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '').substring(0, 16);
+                var formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+                $(this).val(formatted);
+
+                // Yeşil Çerçeve Kontrolü
+                validateInput(this, val.length === 16);
+            });
+
+            // Telefon (10 hane)
+            $('#phoneInput').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '').substring(0, 10);
+                var formatted = val;
+                if (val.length > 3) formatted = val.slice(0, 3) + " " + val.slice(3);
+                if (val.length > 6) formatted = formatted.slice(0, 7) + " " + val.slice(6);
+                if (val.length > 8) formatted = formatted.slice(0, 10) + " " + val.slice(8);
+                $(this).val(formatted);
+
+                // Yeşil Çerçeve Kontrolü
+                validateInput(this, val.length === 10);
+            });
+
+            // Ay (2 hane, 01-12 arası)
+            $('#expMonth').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '').substring(0, 2);
+                $(this).val(val);
+                validateInput(this, val.length === 2 && parseInt(val) <= 12 && parseInt(val) > 0);
+            });
+
+            // Yıl (4 hane, şimdiki yıldan büyük)
+            $('#expYear').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '').substring(0, 4);
+                $(this).val(val);
+                var currentYear = new Date().getFullYear();
+                validateInput(this, val.length === 4 && parseInt(val) >= currentYear);
+            });
+
+            // CVV (3 hane)
+            $('#cvv').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '').substring(0, 3);
+                $(this).val(val);
+                validateInput(this, val.length === 3);
+            });
+
+            // FORM GÖNDERİLİRKEN TEMİZLİK
+            $('#checkoutForm').on('submit', function() {
+                var phoneInput = $('#phoneInput');
+                phoneInput.val(phoneInput.val().replace(/\s/g, '')); // Telefon boşluklarını sil
+                districtSelect.prop('disabled', false); // İlçe disable ise kaldır
+                return true;
+            });
+        });
+    </script>
 }

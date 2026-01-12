@@ -5,13 +5,37 @@ using ShopVerse.Entities.Dtos;
 
 namespace ShopVerse.Business.Concrete;
 
-public class ProductManager:GenericManager<Product>,IProductService
+public class ProductManager : GenericManager<Product>, IProductService
 {
     private readonly IProductRepository _productRepository;
 
     public ProductManager(IProductRepository productRepository) : base(productRepository)
     {
         _productRepository = productRepository;
+    }
+
+    public override async Task AddAsync(Product product)
+    {
+        CalculateDiscountedPrice(product);
+        await _productRepository.AddAsync(product);
+    }
+
+    public override async Task UpdateAsync(Product product)
+    {
+        CalculateDiscountedPrice(product);
+        await _productRepository.UpdateAsync(product);
+    }
+
+    private void CalculateDiscountedPrice(Product product)
+    {
+        if (product.DiscountRate > 0)
+        {
+            product.PriceWithDiscount = product.Price - (product.Price * product.DiscountRate / 100m);
+        }
+        else
+        {
+            product.PriceWithDiscount = product.Price;
+        }
     }
 
     public async Task<List<Product>> GetFilteredProductsAsync(ProductFilterDto filter)
@@ -30,21 +54,21 @@ public class ProductManager:GenericManager<Product>,IProductService
 
         if (filter.MinPrice.HasValue)
         {
-            products = products.Where(x => x.Price >= filter.MinPrice.Value).ToList();
+            products = products.Where(x => x.PriceWithDiscount >= filter.MinPrice.Value).ToList();
         }
 
         if (filter.MaxPrice.HasValue)
         {
-            products = products.Where(x => x.Price <= filter.MaxPrice.Value).ToList();
+            products = products.Where(x => x.PriceWithDiscount <= filter.MaxPrice.Value).ToList();
         }
 
         switch (filter.SortOrder)
         {
             case "price_asc":
-                products = products.OrderBy(x => x.Price).ToList();
+                products = products.OrderBy(x => x.PriceWithDiscount).ToList();
                 break;
             case "price_desc":
-                products = products.OrderByDescending(x => x.Price).ToList();
+                products = products.OrderByDescending(x => x.PriceWithDiscount).ToList();
                 break;
             case "name_asc":
                 products = products.OrderBy(x => x.Name).ToList();

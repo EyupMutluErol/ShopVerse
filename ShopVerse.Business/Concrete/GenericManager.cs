@@ -14,7 +14,7 @@ public class GenericManager<T> : IGenericService<T> where T : class, IEntity, ne
         _repository = repository;
     }
 
-    public async Task AddAsync(T entity)
+    public virtual async Task AddAsync(T entity)
     {
         await _repository.AddAsync(entity);
     }
@@ -34,7 +34,7 @@ public class GenericManager<T> : IGenericService<T> where T : class, IEntity, ne
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task UpdateAsync(T entity)
+    public virtual async Task UpdateAsync(T entity)
     {
         await _repository.UpdateAsync(entity);
     }
