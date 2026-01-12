@@ -12,7 +12,7 @@
             <div class="card bg-primary text-white h-100 shadow-sm border-0">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
-                        <h5 class="card-title mb-0">Toplam Sipariş</h5>
+                        <h5 class="card-title mb-0">Siparişler</h5>
                         <h2 class="mt-2 fw-bold">@ViewBag.OrderCount</h2>
                         <small>@ViewBag.PendingOrders Bekleyen</small>
                     </div>
@@ -29,7 +29,7 @@
             <div class="card bg-success text-white h-100 shadow-sm border-0">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
-                        <h5 class="card-title mb-0">Ürün Sayısı</h5>
+                        <h5 class="card-title mb-0">Ürünler</h5>
                         <h2 class="mt-2 fw-bold">@ViewBag.ProductCount</h2>
                     </div>
                     <i class="fas fa-box fa-3x opacity-50"></i>
@@ -67,7 +67,7 @@
                     <i class="fas fa-users fa-3x opacity-50"></i>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-danger bg-gradient">
-                    <a href="/Admin/User" class="text-white text-decoration-none small stretched-link">Listele</a>
+                    <a href="/Admin/User/Members" class="text-white text-decoration-none small stretched-link">Listele</a>
                     <i class="fas fa-angle-right small text-white"></i>
                 </div>
             </div>
@@ -82,10 +82,10 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="/Admin/Product/Create" class="btn btn-outline-primary text-start">
+                        <a href="/Admin/Product/Add" class="btn btn-outline-primary text-start">
                             <i class="fas fa-plus-circle me-2"></i> Yeni Ürün Ekle
                         </a>
-                        <a href="/Admin/Category/Create" class="btn btn-outline-secondary text-start">
+                        <a href="/Admin/Category/Add" class="btn btn-outline-secondary text-start">
                             <i class="fas fa-tags me-2"></i> Yeni Kategori Oluştur
                         </a>
                     </div>

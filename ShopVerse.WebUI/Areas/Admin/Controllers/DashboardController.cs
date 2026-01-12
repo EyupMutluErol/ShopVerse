@@ -34,6 +34,17 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             ViewBag.CategoryCount = categories.Count;
             ViewBag.UserCount = _userManager.Users.Count();
             ViewBag.PendingOrders = orders.Count(x => x.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Pending);
+
+            var members = await _userManager.GetUsersInRoleAsync("Member");
+            int realMemberCount = 0;
+            foreach (var member in members)
+            {
+                if (!await _userManager.IsInRoleAsync(member, "Admin"))
+                {
+                    realMemberCount++;
+                }
+            }
+            ViewBag.UserCount = realMemberCount;
             return View();
         }
     }

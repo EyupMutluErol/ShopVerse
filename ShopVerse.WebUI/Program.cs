@@ -33,7 +33,8 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     options.Lockout.MaxFailedAccessAttempts = 5;
 })
 .AddEntityFrameworkStores<ShopVerseContext>()
-.AddErrorDescriber<TrIdentityErrorDescriber>();
+.AddErrorDescriber<TrIdentityErrorDescriber>()
+.AddDefaultTokenProviders();
 
 builder.Services.AddScoped<ICategoryRepository, EfCategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryManager>();

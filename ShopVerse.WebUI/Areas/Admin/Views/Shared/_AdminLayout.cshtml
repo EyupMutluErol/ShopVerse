@@ -54,10 +54,9 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* --- SIDEBAR TASARIMI --- */
         .wrapper {
             display: flex;
-            min-height: calc(100vh - 70px); /* Navbar yüksekliğini çıkar */
+            min-height: calc(100vh - 70px); 
         }
 
         .sidebar {
@@ -100,7 +99,6 @@
                 transition: transform 0.2s;
             }
 
-            /* Hover ve Active Durumları */
             .sidebar-link:hover {
                 background-color: #f8f9fa;
                 color: #0072ff;
@@ -117,14 +115,12 @@
                     color: white;
                 }
 
-        /* --- İÇERİK ALANI --- */
         .content {
             flex: 1;
             padding: 30px;
             width: 100%;
         }
 
-        /* Butonlar */
         .btn-glass {
             background: rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.3);
@@ -171,7 +167,6 @@
             <div class="sidebar-header">Genel</div>
 
             @{
-                // Aktif sayfayı bulmak için URL kontrolü
                 string path = Context.Request.Path;
             }
 
@@ -200,12 +195,16 @@
 
                 <div class="sidebar-header mt-3">Kullanıcılar</div>
 
-                <a href="/Admin/User" class="sidebar-link @(path.StartsWith("/Admin/User") ? "active" : "")">
-                    <i class="fas fa-users"></i> Kullanıcılar
+                <a href="/Admin/User/Admins" class="sidebar-link @(path.StartsWith("/Admin/User/Admins") ? "active" : "")">
+                    <i class="fas fa-user-shield text-primary"></i> Yöneticiler
+                </a>
+
+                <a href="/Admin/User/Members" class="sidebar-link @(path.StartsWith("/Admin/User/Members") ? "active" : "")">
+                    <i class="fas fa-users text-success"></i> Üyeler
                 </a>
 
                 <a href="/Admin/Role" class="sidebar-link @(path.StartsWith("/Admin/Role") ? "active" : "")">
-                    <i class="fas fa-user-tag"></i> Roller
+                    <i class="fas fa-user-tag text-warning"></i> Roller
                 </a>
             </div>
         </nav>

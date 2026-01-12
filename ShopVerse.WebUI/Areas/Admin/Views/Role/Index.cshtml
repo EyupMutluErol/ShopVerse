@@ -1,0 +1,173 @@
+﻿@using ShopVerse.Entities.Concrete
+@model List<AppRole>
+
+@{
+    ViewData["Title"] = "Rol Yönetimi";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h3 class="fw-bold mb-4">Rol Yönetimi</h3>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title m-0 text-primary"><i class="fas fa-plus-circle me-2"></i>Yeni Rol Ekle</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label">Rol Adı</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-tag text-muted"></i></span>
+                        <input type="text" name="roleName" class="form-control" required placeholder="Örn: Editor" />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Açıklama</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-align-left text-muted"></i></span>
+                        <input type="text" name="description" class="form-control" placeholder="Örn: İçerik düzenleyebilir" />
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                        <i class="fas fa-save me-2"></i>Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4" style="width: 20%;">Rol Adı</th>
+                        <th style="width: 50%;">Açıklama</th>
+                        <th class="text-end pe-4" style="width: 30%;">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model)
+                    {
+                        string roleNameLower = role.Name?.ToLower().Trim() ?? "";
+                        string badgeClass = roleNameLower switch
+                        {
+                            "admin" => "bg-primary",
+                            "member" => "bg-secondary",
+                            "editor" => "bg-info text-dark",
+                            "manager" => "bg-warning text-dark",
+                            _ => "bg-success"
+                        };
+
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge @badgeClass rounded-pill px-3 py-2 shadow-sm" style="font-size: 0.9rem;">
+                                    @role.Name
+                                </span>
+                            </td>
+
+                            <td class="text-muted small">
+                                @if (!string.IsNullOrEmpty(role.Description))
+                                {
+                                    <i class="fas fa-info-circle me-1 opacity-50"></i>
+                                    @role.Description
+                                }
+                                else
+                                {
+                                    <span class="opacity-25">-</span>
+                                }
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <button type="button"
+                                        class="btn btn-sm btn-warning text-dark me-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editRoleModal"
+                                        data-id="@role.Id"
+                                        data-name="@role.Name"
+                                        data-description="@role.Description"
+                                        onclick="loadRoleData(this)">
+                                    <i class="fas fa-edit"></i> Düzenle
+                                </button>
+
+                                <a asp-action="Delete" asp-route-id="@role.Id" class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Bu rolü silmek istediğinize emin misiniz?');"
+                                   data-bs-toggle="tooltip" title="Rolü Sil">
+                                    <i class="fas fa-trash-alt"></i> Sil
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editRoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Rol Açıklamasını Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form asp-action="Update" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editRoleId" name="roleId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Rol Adı (Değiştirilemez)</label>
+                        <input type="text" id="editRoleName" class="form-control bg-light" disabled readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Açıklama</label>
+                        <textarea name="description" id="editRoleDescription" class="form-control" rows="3" placeholder="Yeni açıklama giriniz..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning fw-bold text-dark shadow-sm">
+                        <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function loadRoleData(button) {
+            var id = button.getAttribute("data-id");
+            var name = button.getAttribute("data-name");
+            var description = button.getAttribute("data-description");
+
+            document.getElementById("editRoleId").value = id;
+            document.getElementById("editRoleName").value = name;
+            document.getElementById("editRoleDescription").value = description ? description : "";
+        }
+    </script>
+}
