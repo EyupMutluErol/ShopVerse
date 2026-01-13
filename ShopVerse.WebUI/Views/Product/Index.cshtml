@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var categories = ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>;
+    var activeCampaigns = ViewBag.ActiveCampaigns as List<ShopVerse.Entities.Concrete.Campaign>;
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
 }
 
@@ -17,13 +18,11 @@
                 </div>
                 <div class="card-body p-4">
                     <form action="/Product/Index" method="get" id="filterForm">
-
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-uppercase text-muted">Arama</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" name="search" class="form-control bg-light border-start-0"
-                                       placeholder="Ürün adı..." value="@ViewData["CurrentSearch"]">
+                                <input type="text" name="search" class="form-control bg-light border-start-0" placeholder="Ürün adı..." value="@ViewData["CurrentSearch"]">
                             </div>
                         </div>
 
@@ -36,11 +35,8 @@
                                     {
                                         var isChecked = selectedCats != null && selectedCats.Contains(cat.Id) ? "checked" : "";
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="categoryIds"
-                                                   value="@cat.Id" id="cat-@cat.Id" @isChecked>
-                                            <label class="form-check-label" for="cat-@cat.Id">
-                                                @cat.Name
-                                            </label>
+                                            <input class="form-check-input" type="checkbox" name="categoryIds" value="@cat.Id" id="cat-@cat.Id" @isChecked>
+                                            <label class="form-check-label" for="cat-@cat.Id">@cat.Name</label>
                                         </div>
                                     }
                                 }
@@ -51,23 +47,17 @@
                             <label class="form-label fw-bold small text-uppercase text-muted">Fiyat Aralığı</label>
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <input type="number" name="minPrice" class="form-control form-control-sm"
-                                           placeholder="Min TL" value="@ViewData["MinPrice"]">
+                                    <input type="number" name="minPrice" class="form-control form-control-sm" placeholder="Min TL" value="@ViewData["MinPrice"]">
                                 </div>
                                 <div class="col-6">
-                                    <input type="number" name="maxPrice" class="form-control form-control-sm"
-                                           placeholder="Max TL" value="@ViewData["MaxPrice"]">
+                                    <input type="number" name="maxPrice" class="form-control form-control-sm" placeholder="Max TL" value="@ViewData["MaxPrice"]">
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary rounded-3">
-                                <i class="fas fa-check me-2"></i>Uygula
-                            </button>
-                            <a href="/Product/Index" class="btn btn-outline-secondary rounded-3 btn-sm">
-                                Temizle
-                            </a>
+                            <button type="submit" class="btn btn-primary rounded-3"><i class="fas fa-check me-2"></i>Uygula</button>
+                            <a href="/Product/Index" class="btn btn-outline-secondary rounded-3 btn-sm">Temizle</a>
                         </div>
                     </form>
                 </div>
@@ -115,17 +105,86 @@
                 <div class="row g-4">
                     @foreach (var item in Model)
                     {
+                        // -----------------------------------------------------------
+                        // GÜNCELLENEN MANTIK: EN İYİ FİYAT (BEST PRICE)
+                        // -----------------------------------------------------------
+
+                        // 1. Kampanya Fiyatını Hesapla
+                        ShopVerse.Entities.Concrete.Campaign? campaign = null;
+                        decimal campaignPrice = item.Price; // Başlangıçta normal fiyat
+
+                        if (activeCampaigns != null)
+                        {
+                            campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null);
+                            if (campaign != null)
+                            {
+                                campaignPrice = item.Price - (item.Price * campaign.DiscountPercentage / 100);
+                            }
+                        }
+
+                        // 2. Ürünün Kendi İndirimli Fiyatını Hesapla
+                        decimal productDiscountPrice = item.Price;
+                        if (item.DiscountRate > 0)
+                        {
+                            // PriceWithDiscount entity'de hesaplanıyorsa direkt onu kullanabilirsin
+                            // Yoksa manuel hesap: item.Price - (item.Price * item.DiscountRate / 100);
+                            productDiscountPrice = item.PriceWithDiscount;
+                        }
+
+                        // 3. Karşılaştır: Hangisi daha ucuz?
+                        decimal finalPrice = item.Price;
+                        bool showCampaignLabel = false;
+                        bool showProductDiscountLabel = false;
+
+                        // Eğer hem kampanya hem ürün indirimi varsa -> En ucuzunu seç
+                        if (campaign != null && item.DiscountRate > 0)
+                        {
+                            if (campaignPrice < productDiscountPrice)
+                            {
+                                finalPrice = campaignPrice;
+                                showCampaignLabel = true;
+                            }
+                            else
+                            {
+                                finalPrice = productDiscountPrice;
+                                showProductDiscountLabel = true;
+                            }
+                        }
+                        // Sadece Kampanya varsa
+                        else if (campaign != null)
+                        {
+                            finalPrice = campaignPrice;
+                            showCampaignLabel = true;
+                        }
+                        // Sadece Ürün İndirimi varsa
+                        else if (item.DiscountRate > 0)
+                        {
+                            finalPrice = productDiscountPrice;
+                            showProductDiscountLabel = true;
+                        }
+                        // Hiçbiri yoksa finalPrice = item.Price kalır.
+                        // -----------------------------------------------------------
+
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 border-0 shadow-sm position-relative product-card-hover">
 
                                 <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1" style="z-index: 10;">
-                                    <span class="badge bg-success shadow-sm" style="font-size: 0.7rem;">YENİ</span>
 
-                                    @if (item.DiscountRate > 0)
+                                    @if (showCampaignLabel)
                                     {
-                                        <span class="badge bg-danger shadow-sm" style="font-size: 0.7rem;">
-                                            <i class="fas fa-arrow-down me-1"></i>%@item.DiscountRate
+                                        <span class="badge bg-danger shadow-sm" style="font-size: 0.75rem;">
+                                            <i class="fas fa-fire me-1"></i>%@campaign.DiscountPercentage Kampanya
                                         </span>
+                                    }
+                                    else if (showProductDiscountLabel)
+                                    {
+                                        <span class="badge bg-warning text-dark shadow-sm" style="font-size: 0.75rem;">
+                                            <i class="fas fa-arrow-down me-1"></i>%@item.DiscountRate İndirim
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success shadow-sm" style="font-size: 0.7rem;">YENİ</span>
                                     }
                                 </div>
 
@@ -138,7 +197,9 @@
                                     }
                                     else
                                     {
-                                        <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid h-100 w-auto" style="object-fit: contain; transition: transform 0.3s ease;">
+                                        <img src="@item.ImageUrl" alt="@item.Name"
+                                             class="img-fluid h-100 w-auto"
+                                             style="object-fit: contain; transition: transform 0.3s ease;">
                                     }
                                 </a>
 
@@ -154,14 +215,14 @@
                                     <div class="mt-auto pt-3 d-flex align-items-end justify-content-between">
 
                                         <div class="price-wrapper">
-                                            @if (item.DiscountRate > 0)
+                                            @if (showCampaignLabel || showProductDiscountLabel)
                                             {
                                                 <div class="d-flex flex-column">
                                                     <small class="text-decoration-line-through text-muted" style="font-size: 0.85rem;">
                                                         @item.Price.ToString("C0")
                                                     </small>
                                                     <span class="fw-bold text-danger fs-5">
-                                                        @item.PriceWithDiscount.ToString("C0")
+                                                        @finalPrice.ToString("C0")
                                                     </span>
                                                 </div>
                                             }

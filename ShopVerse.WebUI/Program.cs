@@ -57,6 +57,9 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailManager>();
 builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
 builder.Services.AddScoped<IFavoriteService, FavoriteManager>();
 
+builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
+builder.Services.AddScoped<ICampaignService, CampaignManager>();
+
 builder.Services.AddScoped<ImageHelper>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>

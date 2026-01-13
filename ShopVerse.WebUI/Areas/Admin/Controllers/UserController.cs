@@ -103,7 +103,16 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     await _userManager.RemoveFromRoleAsync(user, item.RoleName);
                 }
             }
-            return RedirectToAction("Index");
+            
+            bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return RedirectToAction("Admins");
+            }
+            else
+            {
+                return RedirectToAction("Members");
+            }
         }
 
         public async Task<IActionResult> Delete(string id)

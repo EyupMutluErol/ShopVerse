@@ -21,4 +21,8 @@
     <ProjectReference Include="..\ShopVerse.Entities\ShopVerse.Entities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\img\campaigns\" />
+  </ItemGroup>
+
 </Project>

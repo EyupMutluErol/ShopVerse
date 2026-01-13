@@ -8,24 +8,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    /* 1. GENEL AYARLAR */
+    /* ... (CSS Kodları Aynen Kalıyor) ... */
+    /* Yer kaplamaması için CSS kısmını özet geçiyorum, senin kodunda zaten var */
+
     body {
         font-family: 'Poppins', sans-serif;
         background-color: #ffffff;
     }
-    /* Tam Beyaz Zemin */
 
-    /* Mavi Tema Değişkenleri (Yerel) */
     :root {
         --blue-primary: #0072ff;
         --blue-light: #e3f2fd;
         --blue-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     }
 
-    /* 2. SARI DUYURU ŞERİDİ */
     .top-announcement-strip {
-        background-color: #f9ca24; /* Canlı Sarı */
-        color: #2d3436; /* Koyu Yazı (Okunabilirlik için) */
+        background-color: #f9ca24;
+        color: #2d3436;
         height: 40px;
         font-size: 0.85rem;
         font-weight: 600;
@@ -46,7 +45,6 @@
             font-size: 1.1em;
         }
 
-    /* 3. AKILLI ARAMA VE FİLTRE BARI */
     .smart-filter-bar {
         background: white;
         padding: 20px 0;
@@ -75,7 +73,7 @@
         background-color: #fcfcfc;
         transition: all 0.3s;
     }
-        /* Mavi Odaklanma Efekti */
+
         .main-search-input:focus {
             border-color: var(--blue-primary);
             background-color: #fff;
@@ -114,7 +112,6 @@
             color: var(--blue-primary);
         }
 
-    /* Arama Butonu - Mavi Gradyan */
     .btn-search-submit {
         background: var(--blue-gradient);
         color: white;
@@ -133,7 +130,6 @@
             transform: scale(1.05);
         }
 
-    /* FİLTRE MENÜSÜ */
     .filter-dropdown-menu {
         position: absolute;
         top: 115%;
@@ -198,7 +194,6 @@
             background: #e9ecef;
         }
 
-    /* Seçili Kategori - Mavi */
     .cat-checkbox-hidden:checked + .cat-chip-label {
         background: var(--blue-light);
         border-color: var(--blue-primary);
@@ -206,7 +201,6 @@
         font-weight: 600;
     }
 
-    /* 4. SLIDER */
     .hero-slider-container {
         margin-top: 30px;
         border-radius: 20px;
@@ -270,15 +264,6 @@
             color: #000;
         }
 
-        .slider-cta-btn.red-btn {
-            background: #e74c3c;
-            color: white;
-        }
-            /* İndirim butonu kırmızı kalabilir */
-            .slider-cta-btn.red-btn:hover {
-                background: #c0392b;
-            }
-
     .custom-carousel-control {
         width: 50px;
         height: 50px;
@@ -298,7 +283,6 @@
         color: white;
     }
 
-    /* 5. ÜRÜN KARTLARI */
     .product-card {
         background: white;
         border-radius: 12px;
@@ -311,8 +295,8 @@
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 114, 255, 0.15); /* Mavi Gölge */
-            border-color: var(--blue-primary); /* Mavi Kenarlık */
+            box-shadow: 0 15px 30px rgba(0, 114, 255, 0.15);
+            border-color: var(--blue-primary);
         }
 
     .product-img-container {
@@ -322,6 +306,7 @@
         align-items: center;
         justify-content: center;
         background: #fdfdfd;
+        position: relative;
     }
 </style>
 
@@ -355,9 +340,7 @@
 <div class="smart-filter-bar">
     <div class="container">
         <form action="/Home/Index" method="get" id="filterForm" class="search-filter-wrapper">
-
             <input type="text" name="search" class="main-search-input" placeholder="Ne aramıştınız?" value="@ViewData["CurrentSearch"]" autocomplete="off">
-
             <div class="search-actions">
                 <button type="button" class="btn-filter-toggle" id="filterDropdownBtn" onclick="toggleFilters()">
                     <i class="fas fa-sliders-h"></i> Filtrele
@@ -417,34 +400,60 @@
     <div class="hero-slider-container">
         <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active"></button>
-                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1"></button>
+                @if (Model.ActiveCampaigns != null && Model.ActiveCampaigns.Count > 0)
+                {
+                    for (int i = 0; i < Model.ActiveCampaigns.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+                    }
+                }
+                else
+                {
+                    <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active"></button>
+                }
             </div>
+
             <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" class="slider-bg-img" alt="Teknoloji">
-                    <div class="slider-content">
-                        <span class="badge bg-warning text-dark mb-3 px-3 py-2">YENİ SEZON</span>
-                        <h1 class="display-4 fw-bold mb-3">Teknoloji Dünyası</h1>
-                        <p class="lead mb-4">En son çıkan modeller şimdi stoklarda.</p>
-                        <a href="#products-list" class="slider-cta-btn">Hemen Keşfet</a>
+                @if (Model.ActiveCampaigns != null && Model.ActiveCampaigns.Count > 0)
+                {
+                    @for (int i = 0; i < Model.ActiveCampaigns.Count; i++)
+                    {
+                        var camp = Model.ActiveCampaigns[i];
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+
+                            <img src="@camp.ImageUrl" class="slider-bg-img" alt="@camp.Title">
+
+                            <div class="slider-content">
+                                @if (!string.IsNullOrEmpty(camp.Description))
+                                {
+                                    <span class="badge bg-danger mb-3 px-3 py-2">FIRSAT</span>
+                                    <p class="lead mb-2 fw-bold text-uppercase">@camp.Description</p>
+                                }
+                                <h1 class="display-4 fw-bold mb-3">@camp.Title</h1>
+
+                                <a href="#products-list" class="slider-cta-btn">İncele</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="carousel-item active">
+                        <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" class="slider-bg-img" alt="Varsayılan">
+                        <div class="slider-content">
+                            <span class="badge bg-warning text-dark mb-3 px-3 py-2">HOŞ GELDİNİZ</span>
+                            <h1 class="display-4 fw-bold mb-3">ShopVerse Dünyası</h1>
+                            <p class="lead mb-4">Aradığınız tüm ürünler en uygun fiyatlarla burada.</p>
+                            <a href="#products-list" class="slider-cta-btn">Alışverişe Başla</a>
+                        </div>
                     </div>
-                </div>
-                <div class="carousel-item">
-                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" class="slider-bg-img" alt="İndirim">
-                    <div class="slider-content">
-                        <span class="badge bg-danger mb-3 px-3 py-2">BÜYÜK FIRSAT</span>
-                        <h1 class="display-4 fw-bold mb-3">Yaz İndirimleri</h1>
-                        <p class="lead mb-4">Seçili ürünlerde dev indirimler.</p>
-                        <a href="#products-list" class="slider-cta-btn red-btn">Alışverişe Başla</a>
-                    </div>
-                </div>
+                }
             </div>
+
             <button class="carousel-control-prev custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="prev"><i class="fas fa-chevron-left"></i></button>
             <button class="carousel-control-next custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="next"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
-
     <div id="products-list" class="mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <h4 class="fw-bold m-0" style="color: #2d3436;"><i class="fas fa-fire text-danger me-2"></i>Tüm Ürünler</h4>
@@ -464,68 +473,114 @@
             <div class="row g-4">
                 @foreach (var item in Model.FeaturedProducts)
                 {
-                    <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <div class="product-card d-flex flex-column h-100 position-relative">
+                    // -----------------------------------------------------------
+                    // EN İYİ FİYAT MANTIĞI (Home/Index)
+                    // -----------------------------------------------------------
 
-                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none">
-                                <div class="product-img-container">
-                                    @if (string.IsNullOrEmpty(item.ImageUrl))
-                                    {
-                                        <i class="fas fa-box-open fa-3x text-secondary opacity-25"></i>
-                                    }
-                                    else
-                                    {
-                                        <img src="@item.ImageUrl" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                                    }
-                                </div>
-                            </a>
+                    // 1. Kampanya Fiyatı
+                    ShopVerse.Entities.Concrete.Campaign? campaign = null;
+                    decimal campaignPrice = item.Price;
 
-                            <div class="p-3 d-flex flex-column flex-grow-1 border-top border-light">
-                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">@item.Category?.Name</small>
+                    if (Model.ActiveCampaigns != null)
+                    {
+                        campaign = Model.ActiveCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null);
+                        if (campaign != null)
+                        {
+                            campaignPrice = item.Price - (item.Price * campaign.DiscountPercentage / 100);
+                        }
+                    }
 
-                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none text-dark">
-                                    <h6 class="fw-bold mt-1 mb-2 text-truncate" title="@item.Name">@item.Name</h6>
-                                </a>
+                    // 2. Ürün İndirimi Fiyatı
+                    decimal productDiscountPrice = item.Price;
+                    if (item.DiscountRate > 0)
+                    {
+                        // PriceWithDiscount entity'de yoksa manuel hesapla: item.Price * (100 - item.DiscountRate) / 100
+                        productDiscountPrice = item.PriceWithDiscount;
+                    }
 
-                                <div class="mt-auto d-flex align-items-end justify-content-between">
+                    // 3. Karşılaştırma
+                    decimal finalPrice = item.Price;
+                    bool showCampaignLabel = false;
+                    bool showProductDiscountLabel = false;
 
-                                    <div class="price-info">
-                                        @if (item.DiscountRate > 0)
+                    // İkisi de varsa en ucuzu seç
+                    if (campaign != null && item.DiscountRate > 0)
+                    {
+                        if (campaignPrice < productDiscountPrice)
+                        {
+                            finalPrice = campaignPrice;
+                            showCampaignLabel = true;
+                        }
+                        else
+                        {
+                            finalPrice = productDiscountPrice;
+                            showProductDiscountLabel = true;
+                        }
+                    }
+                    else if (campaign != null) // Sadece Kampanya
+                    {
+                        finalPrice = campaignPrice;
+                        showCampaignLabel = true;
+                    }
+                    else if (item.DiscountRate > 0) // Sadece Ürün İndirimi
+                    {
+                        finalPrice = productDiscountPrice;
+                        showProductDiscountLabel = true;
+                    }
+                    // -----------------------------------------------------------
+
+                    <div class="col-lg-3 col-md-6 col-sm-12">
+                        <div class="card product-card h-100 position-relative">
+
+                            <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1" style="z-index: 10;">
+                                @if (showCampaignLabel)
+                                {
+                                    <span class="badge bg-danger shadow-sm">
+                                        <i class="fas fa-fire me-1"></i>%@campaign.DiscountPercentage Kampanya
+                                    </span>
+                                }
+                                else if (showProductDiscountLabel)
+                                {
+                                    <span class="badge bg-warning text-dark shadow-sm">
+                                        <i class="fas fa-arrow-down me-1"></i>%@item.DiscountRate İndirim
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success shadow-sm">YENİ</span>
+                                }
+                            </div>
+
+                            <div class="product-img-container">
+                                <img src="@item.ImageUrl" class="img-fluid" alt="@item.Name" style="max-height: 100%; max-width: 100%;">
+                            </div>
+
+                            <div class="card-body text-center d-flex flex-column">
+                                <h5 class="card-title text-truncate fw-bold text-dark">@item.Name</h5>
+
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-center align-items-center gap-2 mt-3 mb-3">
+                                        @if (showCampaignLabel || showProductDiscountLabel)
                                         {
-                                            <div class="d-flex flex-column">
-                                                <small class="text-decoration-line-through text-muted" style="font-size: 0.8rem;">
-                                                    @item.Price.ToString("C2")
-                                                </small>
-                                                <span class="fw-bold fs-5 text-danger">
-                                                    @item.PriceWithDiscount.ToString("C2")
-                                                </span>
-                                            </div>
+                                            <span class="text-muted text-decoration-line-through small">
+                                                @item.Price.ToString("C0")
+                                            </span>
+                                            <span class="text-danger fw-bold fs-5">
+                                                @finalPrice.ToString("C0")
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="fw-bold fs-5" style="color: #0072ff;">
-                                                @item.Price.ToString("C2")
+                                            <span class="text-primary fw-bold fs-5">
+                                                @item.Price.ToString("C0")
                                             </span>
                                         }
                                     </div>
 
-                                    <div class="d-flex gap-2">
-                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="btn btn-sm btn-light border rounded-3 px-2" title="İncele"><i class="fas fa-eye"></i></a>
-
-                                        <button onclick="addToCart(@item.Id)" class="btn btn-primary rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Sepete Ekle">
-                                            <i class="fas fa-plus text-white"></i>
-                                        </button>
-                                    </div>
+                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="btn btn-outline-primary w-100 rounded-pill">
+                                        İncele
+                                    </a>
                                 </div>
-                            </div>
-
-                            <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
-                                <span class="badge bg-success shadow-sm" style="font-size: 0.65rem;">YENİ</span>
-
-                                @if (item.DiscountRate > 0)
-                                {
-                                    <span class="badge bg-danger shadow-sm" style="font-size: 0.65rem;">%@item.DiscountRate İNDİRİM</span>
-                                }
                             </div>
                         </div>
                     </div>
@@ -547,7 +602,6 @@
             } else {
                 menu.classList.add('show');
                 btn.setAttribute('aria-expanded', 'true');
-                // Hover Aktif: Açık Mavi Zemin, Mavi Yazı
                 btn.style.background = '#e3f2fd'; btn.style.color = '#0072ff';
             }
         }

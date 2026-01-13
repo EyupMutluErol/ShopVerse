@@ -1,0 +1,164 @@
+﻿@model ShopVerse.Entities.Concrete.Campaign
+
+@{
+    ViewData["Title"] = "Kampanyayı Düzenle";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_orange.css">
+
+<style>
+    /* Varsayılan sayı oklarını gizle */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+<div class="container mt-4">
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+    }
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="m-0"><i class="fas fa-edit me-2"></i>Kampanyayı Düzenle: @Model.Title</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ImageUrl" />
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kampanya Başlığı</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Açıklama</label>
+                            <input asp-for="Description" class="form-control" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Başlangıç</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-warning"></i></span>
+
+                                    <input asp-for="StartDate" type="text"
+                                           class="form-control date-picker"
+                                           value="@Model.StartDate.ToString("yyyy-MM-dd HH:mm")" />
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Bitiş</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-check text-warning"></i></span>
+
+                                    <input asp-for="EndDate" type="text"
+                                           class="form-control date-picker"
+                                           value="@Model.EndDate.ToString("yyyy-MM-dd HH:mm")" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 bg-light p-3 rounded">
+
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-bold d-block">Mevcut Görsel</label>
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
+                                <img src="@Model.ImageUrl" class="img-thumbnail shadow-sm" style="max-height: 150px; object-fit: cover;" alt="Kampanya Görseli" />
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary py-2 small">Görsel Yok</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Yeni Görsel Yükle (Opsiyonel)</label>
+                            <input type="file" name="file" class="form-control" />
+                            <small class="text-muted">Değiştirmek istemiyorsanız boş bırakın.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">İndirim Oranı (%)</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                <input asp-for="DiscountPercentage" type="number" id="discountInput"
+                                       class="form-control text-center fw-bold text-danger fs-5"
+                                       min="1" max="100" />
+
+                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hedef Kategori</label>
+                            <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">Tüm Site (Genel)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label class="form-check-label fw-bold">Aktif</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-warning fw-bold"><i class="fas fa-save me-2"></i>Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+
+    <script>
+        // 1. Tarih Seçici Ayarları
+        flatpickr(".date-picker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i", // JS tarafındaki format
+            locale: "tr",
+            time_24hr: true
+        });
+
+        // 2. İndirim Buton Mantığı
+        function updateDiscount(amount) {
+            var input = document.getElementById("discountInput");
+            var currentVal = parseInt(input.value) || 0;
+            var newVal = currentVal + amount;
+
+            if (newVal >= 1 && newVal <= 100) {
+                input.value = newVal;
+            }
+        }
+    </script>
+}

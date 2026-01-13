@@ -39,10 +39,30 @@
                                                                 @item.Product.Name
                                                             </a>
                                                         </h6>
+                                                        <small class="text-muted">@item.Product.Category?.Name</small>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="text-center">@item.Product.Price.ToString("C2")</td>
+
+                                            <td class="text-center">
+                                                @if (item.SalePrice < item.Product.Price)
+                                                {
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <small class="text-muted text-decoration-line-through" style="font-size: 0.85rem;">
+                                                            @item.Product.Price.ToString("C2")
+                                                        </small>
+                                                        <span class="text-danger fw-bold">
+                                                            @item.SalePrice.ToString("C2")
+                                                        </span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="fw-bold text-dark">
+                                                        @item.Product.Price.ToString("C2")
+                                                    </span>
+                                                }
+                                            </td>
 
                                             <td class="text-center">
                                                 <div class="btn-group border rounded-pill" role="group">
@@ -63,7 +83,10 @@
                                                 </div>
                                             </td>
 
-                                            <td class="text-center fw-bold text-primary">@item.TotalPrice.ToString("C2")</td>
+                                            <td class="text-center fw-bold text-primary">
+                                                @item.TotalPrice.ToString("C2")
+                                            </td>
+
                                             <td class="text-end pe-4">
                                                 <button onclick="deleteFromCart(@item.Product.Id)" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px;">
                                                     <i class="fas fa-trash"></i>
@@ -129,6 +152,8 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         function deleteFromCart(id) {
             Swal.fire({

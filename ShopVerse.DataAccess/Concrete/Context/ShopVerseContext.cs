@@ -19,6 +19,7 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<AppUser> AppUsers { get; set; }
     public DbSet<AppRole> AppRoles { get; set; }
+    public DbSet<Campaign> Campaigns { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

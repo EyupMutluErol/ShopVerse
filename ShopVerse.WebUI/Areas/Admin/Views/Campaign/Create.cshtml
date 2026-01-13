@@ -1,0 +1,145 @@
+﻿@model ShopVerse.Entities.Concrete.Campaign
+
+@{
+    ViewData["Title"] = "Yeni Kampanya";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+
+<style>
+    /* Varsayılan sayı oklarını gizle */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+<div class="container mt-4">
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+    }
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white">
+            <h5 class="m-0"><i class="fas fa-plus-circle me-2"></i>Yeni Kampanya Oluştur</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kampanya Başlığı</label>
+                            <input asp-for="Title" class="form-control" placeholder="Örn: Bahar İndirimi" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Açıklama (Alt Başlık)</label>
+                            <input asp-for="Description" class="form-control" placeholder="Örn: Tüm Telefonlarda geçerli..." />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Başlangıç Tarihi</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
+                                    <input asp-for="StartDate" type="text" class="form-control date-picker" placeholder="Tarih ve Saat Seçin" />
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Bitiş Tarihi</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-check text-danger"></i></span>
+                                    <input asp-for="EndDate" type="text" class="form-control date-picker" placeholder="Tarih ve Saat Seçin" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 bg-light p-3 rounded">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">İndirim Oranı (%)</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                <input asp-for="DiscountPercentage" type="number" id="discountInput"
+                                       class="form-control text-center fw-bold text-danger fs-5"
+                                       min="1" max="100" value="10" />
+
+                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hedef Kategori</label>
+                            <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">Tüm Site (Genel)</option>
+                            </select>
+                            <small class="text-muted">Seçmezseniz genel kampanya olur.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Banner Görseli</label>
+                            <input type="file" name="file" class="form-control" required />
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label class="form-check-label fw-bold">Kampanya Aktif</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+
+    <script>
+        // 1. Tarih Seçici Ayarları (Flatpickr)
+        flatpickr(".date-picker", {
+            enableTime: true,       // Saat seçimi aktif
+            dateFormat: "Y-m-d H:i", // Veritabanı formatı (Yıl-Ay-Gün Saat:Dakika)
+            locale: "tr",           // Türkçe dil desteği
+            time_24hr: true,        // 24 saat formatı
+            minDate: "today"        // Geçmiş tarih seçilemesin
+        });
+
+        // 2. İndirim Arttır/Azalt Buton Mantığı
+        function updateDiscount(amount) {
+            var input = document.getElementById("discountInput");
+            var currentVal = parseInt(input.value) || 0;
+            var newVal = currentVal + amount;
+
+            // 1 ile 100 arasında sınırla
+            if (newVal >= 1 && newVal <= 100) {
+                input.value = newVal;
+            }
+        }
+    </script>
+}

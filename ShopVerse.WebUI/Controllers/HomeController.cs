@@ -13,13 +13,15 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly ICampaignService _campaignService;
 
 
-        public HomeController(ILogger<HomeController> logger,IProductService productService, ICategoryService categoryService)
+        public HomeController(ILogger<HomeController> logger,IProductService productService, ICategoryService categoryService, ICampaignService campaignService)
         {
             _logger = logger;
             _productService = productService;
             _categoryService = categoryService;
+            _campaignService = campaignService;
         }
 
         public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder)
@@ -37,10 +39,17 @@ namespace ShopVerse.WebUI.Controllers
 
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
+            var activeCampaigns = await _campaignService.GetAllAsync(x =>
+                    x.IsActive &&
+                    x.StartDate <= DateTime.Now &&
+                    x.EndDate >= DateTime.Now
+            );
+
             var model = new HomeViewModel
             {
                 FeaturedProducts = products,
-                Categories = categories
+                Categories = categories,
+                ActiveCampaigns = activeCampaigns.ToList()
             };
 
             ViewData["CurrentSearch"] = search;

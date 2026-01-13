@@ -25,37 +25,47 @@
 
             <h1 class="fw-bold mb-3">@Model.Name</h1>
 
-            <div class="mb-4">
-                @if (Model.DiscountRate > 0)
+            <div class="mb-3">
+                @if (ViewBag.DiscountType == "Campaign")
                 {
-                    <div class="d-flex flex-column align-items-start">
-                        <span class="text-decoration-line-through text-muted fs-5">
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted text-decoration-line-through fs-4 me-2">
                             @Model.Price.ToString("C2")
                         </span>
 
-                        <div class="d-flex align-items-center gap-3">
-                            <span class="fw-bold text-danger fs-2">
-                                @Model.PriceWithDiscount.ToString("C2")
-                            </span>
+                        <span class="text-danger fw-bold fs-2">
+                            @(((decimal)ViewBag.FinalPrice).ToString("C2"))
+                        </span>
 
-                            <span class="badge bg-danger fs-6 py-2 px-3 rounded-pill shadow-sm">
-                                <i class="fas fa-arrow-down me-1"></i>%@Model.DiscountRate İNDİRİM
-                            </span>
-                        </div>
+                        <span class="badge bg-danger ms-3">
+                            <i class="fas fa-fire me-1"></i>%@ViewBag.DiscountRate Kampanya
+                        </span>
+                    </div>
+                    <small class="text-danger fw-bold">Bu üründe süreli kampanya var!</small>
+                }
+                else if (ViewBag.DiscountType == "ProductDiscount")
+                {
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted text-decoration-line-through fs-4 me-2">
+                            @Model.Price.ToString("C2")
+                        </span>
 
-                        <small class="text-success fw-bold mt-1">
-                            (Kazancınız: @((Model.Price - Model.PriceWithDiscount).ToString("C2")))
-                        </small>
+                        <span class="text-danger fw-bold fs-2">
+                            @(((decimal)ViewBag.FinalPrice).ToString("C2"))
+                        </span>
+
+                        <span class="badge bg-warning text-dark ms-3">
+                            <i class="fas fa-arrow-down me-1"></i>%@ViewBag.DiscountRate İndirim
+                        </span>
                     </div>
                 }
                 else
                 {
-                    <span class="fw-bold text-primary fs-2">
+                    <span class="fw-bold fs-2 text-primary">
                         @Model.Price.ToString("C2")
                     </span>
                 }
             </div>
-
             <p class="text-muted fs-5 mb-4">@Model.Description</p>
 
             <div class="mb-4">
@@ -141,7 +151,7 @@
             }
         }
 
-        // SEPETE EKLEME FONKSİYONU
+        // SEPETE EKLEME FONKSİYONU (AJAX + SWEETALERT)
         function addToCartDetail(productId) {
             var quantity = document.getElementById("quantityInput").value;
 
@@ -152,18 +162,18 @@
                 success: function (res) {
                     if (res.success) {
 
-                        // --- GÜNCELLENEN KISIM: TOAST BİLDİRİMİ (GÖRSELDEKİ GİBİ) ---
+                        // TOAST BİLDİRİMİ
                         Swal.fire({
                             position: 'top-end',            // Sağ üst köşe
                             icon: 'success',                // Yeşil tik ikonu
-                            title: 'Sepete Eklendi',        // Başlık (Görseldeki gibi)
+                            title: 'Sepete Eklendi',        // Başlık
                             text: 'Ürün sepetinize başarıyla eklendi.', // Alt metin
                             showConfirmButton: false,       // Buton yok
                             timer: 3000,                    // 3 saniye ekranda kalır
                             toast: true,                    // Bildirim balonu modu
                             background: '#fff',             // Beyaz arka plan
                             color: '#000',                  // Siyah yazı rengi
-                            timerProgressBar: true          // Altta süre çubuğu (Opsiyonel, şık durur)
+                            timerProgressBar: true          // Altta süre çubuğu
                         });
 
                         // Sepet Badge Güncelleme
@@ -174,7 +184,7 @@
                         }
 
                     } else {
-                        // Hata durumunda da sağ üstte uyarı verelim
+                        // Hata durumunda
                         Swal.fire({
                             position: 'top-end',
                             icon: 'error',

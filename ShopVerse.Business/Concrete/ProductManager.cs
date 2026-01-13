@@ -8,10 +8,12 @@ namespace ShopVerse.Business.Concrete;
 public class ProductManager : GenericManager<Product>, IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly ICampaignService _campaignService;
 
-    public ProductManager(IProductRepository productRepository) : base(productRepository)
+    public ProductManager(IProductRepository productRepository, ICampaignService campaignService) : base(productRepository)
     {
         _productRepository = productRepository;
+        _campaignService = campaignService;
     }
 
     public override async Task AddAsync(Product product)
@@ -82,5 +84,16 @@ public class ProductManager : GenericManager<Product>, IProductService
         }
 
         return products;
+    }
+
+    public async Task<decimal> CalculatePriceWithCampaignAsync(Product product)
+    {
+        var activeCampaign = await _campaignService.GetActiveCampaignForCategoryAsync(product.CategoryId);
+        if(activeCampaign != null)
+        {
+            decimal discountAmount = product.Price * activeCampaign.DiscountPercentage / 100;
+            return product.Price - discountAmount;
+        }
+        return product.Price;
     }
 }
