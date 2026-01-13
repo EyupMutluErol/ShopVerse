@@ -30,4 +30,14 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
             .ThenInclude(y => y.Product)
             .FirstOrDefault(x => x.Id == orderId);
     }
+
+    public int GetTotalOrderCount()
+    {
+        return _context.Orders.Count();
+    }
+
+    public decimal GetTotalTurnover()
+    {
+        return _context.Orders.Any() ? _context.Orders.Sum(x => x.TotalPrice) : 0;
+    }
 }

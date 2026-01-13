@@ -140,6 +140,7 @@
                                 <!option value="@OrderStatus.Shipped" @(Model.OrderStatus == OrderStatus.Shipped ? "selected" : "")>Kargoya Verildi</!option>
                                 <!option value="@OrderStatus.Delivered" @(Model.OrderStatus == OrderStatus.Delivered ? "selected" : "")>Teslim Edildi</!option>
                                 <!option value="@OrderStatus.Canceled" @(Model.OrderStatus == OrderStatus.Canceled ? "selected" : "")>İptal Edildi</!option>
+                                <!option value="@OrderStatus.Refunded" @(Model.OrderStatus == OrderStatus.Refunded ? "selected" : "")>İade Edildi</!option>
                             </select>
                             <label for="statusSelect">Yeni Durum Seçin</label>
                         </div>

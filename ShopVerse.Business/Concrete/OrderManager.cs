@@ -58,4 +58,14 @@ public class OrderManager:GenericManager<Order>,IOrderService
     {
         return _orderRepository.GetOrderWithDetails(orderId);
     }
+
+    public decimal GetTotalTurnover()
+    {
+        return _orderRepository.GetTotalTurnover();
+    }
+
+    public int GetTotalOrderCount()
+    {
+        return _orderRepository.GetTotalOrderCount();
+    }
 }

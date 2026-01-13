@@ -96,4 +96,10 @@ public class ProductManager : GenericManager<Product>, IProductService
         }
         return product.Price;
     }
+
+    public int GetProductCount()
+    {
+
+        return _productRepository.GetProductCount();
+    }
 }

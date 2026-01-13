@@ -25,16 +25,33 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var products = await _productService.GetAllAsync();
-            var orders = await _orderService.GetAllAsync();
+            // ------------------------------------------------------------
+            // YENİ METOTLARLA OPTİMİZE EDİLMİŞ VERİ ÇEKME
+            // ------------------------------------------------------------
+
+            // 1. Toplam Ürün Sayısı (Tüm listeyi çekmek yerine sadece sayıyı alıyoruz)
+            ViewBag.ProductCount = _productService.GetProductCount();
+
+            // 2. Toplam Sipariş Sayısı
+            ViewBag.OrderCount = _orderService.GetTotalOrderCount();
+
+            // 3. Toplam Ciro (YENİ ÖZELLİK)
+            ViewBag.TotalTurnover = _orderService.GetTotalTurnover();
+
+            // ------------------------------------------------------------
+            // DİĞER İSTATİSTİKLER
+            // ------------------------------------------------------------
+
+            // Kategori Sayısı
             var categories = await _categoryService.GetAllAsync();
-
-            ViewBag.ProductCount = products.Count;
-            ViewBag.OrderCount = orders.Count;
             ViewBag.CategoryCount = categories.Count;
-            ViewBag.UserCount = _userManager.Users.Count();
-            ViewBag.PendingOrders = orders.Count(x => x.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Pending);
 
+            // Bekleyen Siparişler
+            // (Bunu da Business katmanına özel metot olarak ekleyebiliriz ama şimdilik filtreleyerek alıyoruz)
+            var allOrders = await _orderService.GetAllAsync();
+            ViewBag.PendingOrders = allOrders.Count(x => x.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Pending);
+
+            // Kullanıcı Sayısı (Admin olmayan Üyeler)
             var members = await _userManager.GetUsersInRoleAsync("Member");
             int realMemberCount = 0;
             foreach (var member in members)
@@ -45,6 +62,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 }
             }
             ViewBag.UserCount = realMemberCount;
+
             return View();
         }
     }
