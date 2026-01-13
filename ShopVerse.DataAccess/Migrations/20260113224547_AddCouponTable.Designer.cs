@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopVerse.DataAccess.Concrete.Context;
 
@@ -11,9 +12,11 @@ using ShopVerse.DataAccess.Concrete.Context;
 namespace ShopVerse.DataAccess.Migrations
 {
     [DbContext(typeof(ShopVerseContext))]
-    partial class ShopVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20260113224547_AddCouponTable")]
+    partial class AddCouponTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -399,9 +402,6 @@ namespace ShopVerse.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -431,8 +431,6 @@ namespace ShopVerse.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.ToTable("Coupons");
                 });
@@ -721,15 +719,6 @@ namespace ShopVerse.DataAccess.Migrations
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("ShopVerse.Entities.Concrete.Coupon", b =>
-                {
-                    b.HasOne("ShopVerse.Entities.Concrete.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId");
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("ShopVerse.Entities.Concrete.Favorite", b =>

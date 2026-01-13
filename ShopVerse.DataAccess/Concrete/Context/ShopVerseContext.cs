@@ -20,6 +20,7 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
     public DbSet<AppUser> AppUsers { get; set; }
     public DbSet<AppRole> AppRoles { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<Coupon> Coupons { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

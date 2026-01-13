@@ -189,6 +189,10 @@
                     <i class="fas fa-bullhorn"></i> Kampanyalar
                 </a>
 
+                <a href="/Admin/Coupon" class="sidebar-link @(path.StartsWith("/Admin/Coupon") ? "active" : "")">
+                    <i class="fas fa-ticket-alt"></i> Kuponlar
+                </a>
+
                 <a href="/Admin/Order" class="sidebar-link @(path.StartsWith("/Admin/Order") ? "active" : "")">
                     <i class="fas fa-shopping-cart"></i> Siparişler
                     @if (ViewBag.PendingOrders > 0)

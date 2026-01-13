@@ -12,7 +12,6 @@
     </div>
 
     <div class="row g-4">
-
         <div class="col-xl-3 col-md-6">
             <div class="card bg-dark text-white h-100 shadow-sm border-0">
                 <div class="card-body d-flex align-items-center justify-content-between">
@@ -107,10 +106,9 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <div class="row mt-5">
+    <div class="row mt-4">
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white fw-bold py-3">
@@ -163,4 +161,208 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-area me-2"></i>Aylık Satış Analizi</h6>
+                        <small class="text-muted">Son 6 ayın ciro performansı (Onaylanan Siparişler)</small>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">Canlı Veri</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 g-4 pb-5">
+
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0 d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 p-2 rounded me-2">
+                        <i class="fas fa-trophy text-success"></i>
+                    </div>
+                    <h6 class="m-0 fw-bold text-dark">En Çok Satanlar (Son 30 Gün)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small">
+                                <tr>
+                                    <th class="ps-4">Ürün</th>
+                                    <th>Fiyat</th>
+                                    <th class="text-center">Satış Performansı</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.BestSellers != null)
+                                {
+                                    @foreach (var item in ViewBag.BestSellers as List<ShopVerse.Entities.Dtos.BestSellerDto>)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                    {
+                                                        <img src="@item.ImageUrl" class="rounded-circle me-2 border" style="width:36px; height:36px; object-fit:contain;">
+                                                    }
+                                                    <div>
+                                                        <span class="fw-bold text-dark small d-block text-truncate" style="max-width: 140px;">@item.ProductName</span>
+                                                        <small class="text-muted" style="font-size: 0.75rem;">Mevcut Stok: @item.Stock</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="small fw-bold text-dark">@item.Price.ToString("C0")</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                                                    <i class="fas fa-chart-line me-1"></i> @item.SalesCount Adet
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                <a href="/Admin/Product/Update/@item.ProductId" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Ürünü Düzenle">
+                                                    <i class="fas fa-pen small text-muted"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Henüz satış verisi yok.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-danger bg-opacity-10 p-2 rounded me-2">
+                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                        </div>
+                        <h6 class="m-0 fw-bold text-dark">Kritik Stok Alarmı</h6>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-2 border border-danger border-opacity-25">Acil</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small">
+                                <tr>
+                                    <th class="ps-4">Ürün Adı</th>
+                                    <th>Fiyat</th>
+                                    <th>Stok Durumu</th>
+                                    <th class="text-end pe-4">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.CriticalProducts != null)
+                                {
+                                    @foreach (var item in ViewBag.CriticalProducts as List<ShopVerse.Entities.Concrete.Product>)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark small text-truncate" style="max-width: 150px;">@item.Name</td>
+                                            <td class="small text-muted">@item.Price.ToString("C0")</td>
+                                            <td style="width: 30%;">
+                                                <div class="d-flex flex-column">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="fw-bold text-danger small">@item.Stock Adet Kaldı</span>
+                                                    </div>
+                                                    <div class="progress" style="height: 6px;">
+                                                        <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar"
+                                                             style="width: @(item.Stock < 20 ? (item.Stock * 5) : 100)%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a href="/Admin/Product/Update/@item.Id" class="btn btn-sm btn-outline-danger shadow-sm py-0" style="font-size: 0.8rem;">
+                                                    <i class="fas fa-plus-circle me-1"></i>Stok Ekle
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Stok sorunu olan ürün yok.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var salesData = @Html.Raw(Json.Serialize(ViewBag.SalesTrend));
+        if (!salesData) salesData = [];
+
+        var labels = salesData.map(function(e) { return e.date; });
+        var data = salesData.map(function(e) { return e.totalSales; });
+
+        var ctx = document.getElementById('salesChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Toplam Ciro (₺)',
+                    data: data,
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#0d6efd',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#0d6efd',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f8f9fa' },
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('tr-TR') + ' ₺'; }
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+}

@@ -1,4 +1,5 @@
 ﻿using ShopVerse.Entities.Concrete;
+using ShopVerse.Entities.Dtos;
 
 namespace ShopVerse.DataAccess.Abstract;
 
@@ -8,4 +9,5 @@ public interface IOrderRepository:IGenericRepository<Order>
     Order GetOrderWithDetails(int id);
     decimal GetTotalTurnover();
     int GetTotalOrderCount();
+    List<SalesChartDto> GetSalesTrend(int lastMonths);
 }

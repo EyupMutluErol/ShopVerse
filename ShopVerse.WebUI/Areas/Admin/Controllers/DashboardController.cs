@@ -23,35 +23,24 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // ------------------------------------------------------------
-            // YENİ METOTLARLA OPTİMİZE EDİLMİŞ VERİ ÇEKME
-            // ------------------------------------------------------------
-
-            // 1. Toplam Ürün Sayısı (Tüm listeyi çekmek yerine sadece sayıyı alıyoruz)
+            // 1. GENEL İSTATİSTİKLER
+            // (Business katmanındaki manager metotlarını çağırıyoruz)
             ViewBag.ProductCount = _productService.GetProductCount();
-
-            // 2. Toplam Sipariş Sayısı
             ViewBag.OrderCount = _orderService.GetTotalOrderCount();
-
-            // 3. Toplam Ciro (YENİ ÖZELLİK)
             ViewBag.TotalTurnover = _orderService.GetTotalTurnover();
-
-            // ------------------------------------------------------------
-            // DİĞER İSTATİSTİKLER
-            // ------------------------------------------------------------
 
             // Kategori Sayısı
             var categories = await _categoryService.GetAllAsync();
             ViewBag.CategoryCount = categories.Count;
 
             // Bekleyen Siparişler
-            // (Bunu da Business katmanına özel metot olarak ekleyebiliriz ama şimdilik filtreleyerek alıyoruz)
             var allOrders = await _orderService.GetAllAsync();
             ViewBag.PendingOrders = allOrders.Count(x => x.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Pending);
 
-            // Kullanıcı Sayısı (Admin olmayan Üyeler)
+            // Kullanıcı Sayısı (Admin olmayanlar)
             var members = await _userManager.GetUsersInRoleAsync("Member");
             int realMemberCount = 0;
             foreach (var member in members)
@@ -62,6 +51,18 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 }
             }
             ViewBag.UserCount = realMemberCount;
+
+            // 2. TABLO VERİLERİ
+            // Kritik Stok (20'den az)
+            ViewBag.CriticalProducts = _productService.GetCriticalStock(20);
+
+            // En Çok Satanlar (İlk 5)
+            ViewBag.BestSellers = _productService.GetBestSellers(5);
+
+            // 3. GRAFİK VERİSİ (YENİ - SON 6 AY)
+            // Bu veriyi View tarafında JSON'a çevirip Chart.js ile çizdireceğiz
+            var salesTrend = _orderService.GetSalesTrend(6);
+            ViewBag.SalesTrend = salesTrend;
 
             return View();
         }

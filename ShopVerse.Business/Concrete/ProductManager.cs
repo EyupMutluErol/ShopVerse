@@ -102,4 +102,13 @@ public class ProductManager : GenericManager<Product>, IProductService
 
         return _productRepository.GetProductCount();
     }
+    public List<Product> GetCriticalStock(int threshold = 20)
+    {
+        return _productRepository.GetCriticalStock(threshold);
+    }
+
+    public List<BestSellerDto> GetBestSellers(int count = 5)
+    {
+        return _productRepository.GetBestSellers(count);
+    }
 }

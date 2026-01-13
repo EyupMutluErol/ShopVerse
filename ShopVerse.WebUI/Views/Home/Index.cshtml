@@ -8,9 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    /* ... (CSS Kodları Aynen Kalıyor) ... */
-    /* Yer kaplamaması için CSS kısmını özet geçiyorum, senin kodunda zaten var */
-
     body {
         font-family: 'Poppins', sans-serif;
         background-color: #ffffff;
@@ -21,6 +18,8 @@
         --blue-light: #e3f2fd;
         --blue-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     }
+
+    /* ... Diğer CSS kodları aynen kalıyor ... */
 
     .top-announcement-strip {
         background-color: #f9ca24;
@@ -148,19 +147,17 @@
         .filter-dropdown-menu.show {
             display: block;
         }
+
     @@keyframes slideDown {
-        from
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
 
-    {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .category-grid {
@@ -454,6 +451,7 @@
             <button class="carousel-control-next custom-carousel-control" type="button" data-bs-target="#mainSlider" data-bs-slide="next"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
+
     <div id="products-list" class="mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <h4 class="fw-bold m-0" style="color: #2d3436;"><i class="fas fa-fire text-danger me-2"></i>Tüm Ürünler</h4>
@@ -474,7 +472,7 @@
                 @foreach (var item in Model.FeaturedProducts)
                 {
                     // -----------------------------------------------------------
-                    // EN İYİ FİYAT MANTIĞI (Home/Index)
+                    // EN İYİ FİYAT MANTIĞI & KUPON KONTROLÜ
                     // -----------------------------------------------------------
 
                     // 1. Kampanya Fiyatı
@@ -494,7 +492,6 @@
                     decimal productDiscountPrice = item.Price;
                     if (item.DiscountRate > 0)
                     {
-                        // PriceWithDiscount entity'de yoksa manuel hesapla: item.Price * (100 - item.DiscountRate) / 100
                         productDiscountPrice = item.PriceWithDiscount;
                     }
 
@@ -503,7 +500,6 @@
                     bool showCampaignLabel = false;
                     bool showProductDiscountLabel = false;
 
-                    // İkisi de varsa en ucuzu seç
                     if (campaign != null && item.DiscountRate > 0)
                     {
                         if (campaignPrice < productDiscountPrice)
@@ -517,16 +513,22 @@
                             showProductDiscountLabel = true;
                         }
                     }
-                    else if (campaign != null) // Sadece Kampanya
+                    else if (campaign != null)
                     {
                         finalPrice = campaignPrice;
                         showCampaignLabel = true;
                     }
-                    else if (item.DiscountRate > 0) // Sadece Ürün İndirimi
+                    else if (item.DiscountRate > 0)
                     {
                         finalPrice = productDiscountPrice;
                         showProductDiscountLabel = true;
                     }
+
+                    // 4. KUPON KONTROLÜ (YENİ)
+                    // ViewBag'den gelen kupon listesini kontrol et
+                    var applicableCoupon = (ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>)
+                    ?.FirstOrDefault(c => c.CategoryId == null || c.CategoryId == item.CategoryId);
+
                     // -----------------------------------------------------------
 
                     <div class="col-lg-3 col-md-6 col-sm-12">
@@ -548,6 +550,21 @@
                                 else
                                 {
                                     <span class="badge bg-success shadow-sm">YENİ</span>
+                                }
+
+                                @if (applicableCoupon != null)
+                                {
+                                    <span class="badge bg-dark text-warning border border-warning shadow-sm" title="Bu üründe kupon kullanabilirsin!">
+                                        <i class="fas fa-ticket-alt me-1"></i>
+                                        @if (applicableCoupon.CategoryId == null)
+                                        {
+                                            <span>Fırsat: @applicableCoupon.Code</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@applicableCoupon.Code</span>
+                                        }
+                                    </span>
                                 }
                             </div>
 

@@ -6,6 +6,8 @@
     var categories = ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>;
     var activeCampaigns = ViewBag.ActiveCampaigns as List<ShopVerse.Entities.Concrete.Campaign>;
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
+    // Controller'dan gelen aktif kuponlar (Cast işlemi yaparak alıyoruz)
+    var activeCoupons = ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>;
 }
 
 <div class="container py-4">
@@ -106,10 +108,10 @@
                     @foreach (var item in Model)
                     {
                         // -----------------------------------------------------------
-                        // GÜNCELLENEN MANTIK: EN İYİ FİYAT (BEST PRICE)
+                        // EN İYİ FİYAT MANTIĞI & KUPON KONTROLÜ
                         // -----------------------------------------------------------
 
-                        // 1. Kampanya Fiyatını Hesapla
+                        // 1. Kampanya Fiyatı
                         ShopVerse.Entities.Concrete.Campaign? campaign = null;
                         decimal campaignPrice = item.Price; // Başlangıçta normal fiyat
 
@@ -122,12 +124,10 @@
                             }
                         }
 
-                        // 2. Ürünün Kendi İndirimli Fiyatını Hesapla
+                        // 2. Ürün İndirimi Fiyatı
                         decimal productDiscountPrice = item.Price;
                         if (item.DiscountRate > 0)
                         {
-                            // PriceWithDiscount entity'de hesaplanıyorsa direkt onu kullanabilirsin
-                            // Yoksa manuel hesap: item.Price - (item.Price * item.DiscountRate / 100);
                             productDiscountPrice = item.PriceWithDiscount;
                         }
 
@@ -136,7 +136,6 @@
                         bool showCampaignLabel = false;
                         bool showProductDiscountLabel = false;
 
-                        // Eğer hem kampanya hem ürün indirimi varsa -> En ucuzunu seç
                         if (campaign != null && item.DiscountRate > 0)
                         {
                             if (campaignPrice < productDiscountPrice)
@@ -150,19 +149,21 @@
                                 showProductDiscountLabel = true;
                             }
                         }
-                        // Sadece Kampanya varsa
                         else if (campaign != null)
                         {
                             finalPrice = campaignPrice;
                             showCampaignLabel = true;
                         }
-                        // Sadece Ürün İndirimi varsa
                         else if (item.DiscountRate > 0)
                         {
                             finalPrice = productDiscountPrice;
                             showProductDiscountLabel = true;
                         }
-                        // Hiçbiri yoksa finalPrice = item.Price kalır.
+
+                        // 4. KUPON KONTROLÜ (YENİ)
+                        // Kategoriye özel veya genel kupon var mı?
+                        var applicableCoupon = activeCoupons?.FirstOrDefault(c => c.CategoryId == null || c.CategoryId == item.CategoryId);
+
                         // -----------------------------------------------------------
 
                         <div class="col-md-6 col-lg-4">
@@ -186,9 +187,25 @@
                                     {
                                         <span class="badge bg-success shadow-sm" style="font-size: 0.7rem;">YENİ</span>
                                     }
+
+                                    @if (applicableCoupon != null)
+                                    {
+                                        <span class="badge bg-dark text-warning border border-warning shadow-sm" style="font-size: 0.75rem;">
+                                            <i class="fas fa-ticket-alt me-1"></i>
+                                            @if (applicableCoupon.CategoryId == null)
+                                            {
+                                                <span>Fırsat: @applicableCoupon.Code</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@applicableCoupon.Code</span>
+                                            }
+                                        </span>
+                                    }
+
                                 </div>
 
-                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="d-block overflow-hidden bg-white rounded-top p-3 text-center" style="height: 220px;">
+                                <a href="/Product/Detail/@item.Id" class="d-block overflow-hidden bg-white rounded-top p-3 text-center" style="height: 220px;">
                                     @if (string.IsNullOrEmpty(item.ImageUrl))
                                     {
                                         <div class="h-100 d-flex align-items-center justify-content-center bg-light rounded">
@@ -208,7 +225,7 @@
                                         @item.Category?.Name
                                     </small>
 
-                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                                    <a href="/Product/Detail/@item.Id" class="text-decoration-none text-dark">
                                         <h6 class="card-title fw-bold text-truncate" title="@item.Name">@item.Name</h6>
                                     </a>
 
@@ -235,7 +252,7 @@
                                         </div>
 
                                         <div class="d-flex gap-2">
-                                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id"
+                                            <a href="/Product/Detail/@item.Id"
                                                class="btn btn-outline-secondary btn-sm rounded-3"
                                                title="İncele">
                                                 İncele

@@ -10,12 +10,14 @@ namespace ShopVerse.WebUI.Controllers
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly ICampaignService _campaignService;
+        private readonly ICouponService _couponService;
 
-        public ProductController(IProductService productService, ICategoryService categoryService, ICampaignService campaignService)
+        public ProductController(IProductService productService, ICategoryService categoryService, ICampaignService campaignService, ICouponService couponService)
         {
             _productService = productService;
             _categoryService = categoryService;
             _campaignService = campaignService;
+            _couponService = couponService;
         }
 
         [HttpGet]
@@ -24,8 +26,7 @@ namespace ShopVerse.WebUI.Controllers
             // 1. Kategorileri Çek
             ViewBag.Categories = await _categoryService.GetAllAsync();
 
-            // 2. YENİ EKLENEN KISIM: Aktif Kampanyaları Çek ve View'a Gönder
-            // Bu kısım olmadan View'daki indirim hesaplaması çalışmaz.
+            // 2. Aktif Kampanyaları Çek
             var activeCampaigns = await _campaignService.GetAllAsync(x =>
                 x.IsActive &&
                 x.StartDate <= DateTime.Now &&
@@ -33,7 +34,14 @@ namespace ShopVerse.WebUI.Controllers
             );
             ViewBag.ActiveCampaigns = activeCampaigns;
 
-            // 3. Filtreleme İşlemleri
+
+            // Sadece aktif ve süresi dolmamış kuponları getiriyoruz.
+            // View tarafında (Product/Index.cshtml) bu veriyi kullanarak rozet basacağız.
+            var activeCoupons = await _couponService.GetAllAsync(x => x.IsActive && x.ExpirationDate >= DateTime.Now);
+            ViewBag.ActiveCoupons = activeCoupons;
+            // ============================================================
+
+            // 4. Filtreleme İşlemleri
             var filterDto = new ProductFilterDto
             {
                 CategoryIds = categoryIds,
@@ -45,7 +53,7 @@ namespace ShopVerse.WebUI.Controllers
 
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
-            // 4. Filtrelerin Ekranda Korunması İçin ViewData
+            // 5. Filtrelerin Ekranda Korunması İçin ViewData
             ViewData["CurrentSearch"] = search;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;

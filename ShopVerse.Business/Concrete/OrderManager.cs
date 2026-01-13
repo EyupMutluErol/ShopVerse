@@ -1,6 +1,7 @@
 ﻿using ShopVerse.Business.Abstract;
 using ShopVerse.DataAccess.Abstract;
 using ShopVerse.Entities.Concrete;
+using ShopVerse.Entities.Dtos;
 
 namespace ShopVerse.Business.Concrete;
 
@@ -67,5 +68,9 @@ public class OrderManager:GenericManager<Order>,IOrderService
     public int GetTotalOrderCount()
     {
         return _orderRepository.GetTotalOrderCount();
+    }
+    public List<SalesChartDto> GetSalesTrend(int lastMonths = 6)
+    {
+        return _orderRepository.GetSalesTrend(lastMonths);
     }
 }

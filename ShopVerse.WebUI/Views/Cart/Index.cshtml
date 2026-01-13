@@ -112,14 +112,62 @@
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Sipariş Özeti</h5>
 
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Ara Toplam</span>
-                            <span class="fw-bold">@Model.SubTotal.ToString("C2")</span>
+                        <div class="mb-4">
+                            @if (ViewBag.CouponCode == null)
+                            {
+                                <form asp-action="ApplyCoupon" asp-controller="Cart" method="post">
+                                    <label class="form-label small text-muted fw-bold">İndirim Kuponu</label>
+                                    <div class="input-group">
+                                        <input type="text" name="code" class="form-control" placeholder="Kod Giriniz" required>
+                                        <button class="btn btn-dark" type="submit">Uygula</button>
+                                    </div>
+                                    @if (TempData["Error"] != null)
+                                    {
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle me-1"></i>@TempData["Error"]
+                                        </div>
+                                    }
+                                    @if (TempData["Success"] != null)
+                                    {
+                                        <div class="text-success small mt-1">
+                                            <i class="fas fa-check-circle me-1"></i>@TempData["Success"]
+                                        </div>
+                                    }
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-0 shadow-sm">
+                                    <div class="small">
+                                        <i class="fas fa-ticket-alt me-2"></i>
+                                        <strong>@ViewBag.CouponCode</strong> uygulandı.
+                                    </div>
+                                    <a href="/Cart/RemoveCoupon" class="text-danger small text-decoration-none fw-bold" title="Kaldır">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            }
                         </div>
 
-                        <div class="d-flex justify-content-between mb-4 align-items-center">
+                        <hr class="text-muted">
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Ara Toplam</span>
+                            <span class="fw-bold">
+                                @if (ViewBag.TotalPrice != null)
+                                {
+                                    @(((decimal)ViewBag.TotalPrice).ToString("C2"))
+                                }
+                                else
+                                {
+                                    @Model.SubTotal.ToString("C2")
+                                }
+                            </span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
                             <span class="text-muted">Kargo</span>
-                            @if (Model.ShippingCost == 0)
+                            @if (ViewBag.FinalPrice >= 500 || (ViewBag.FinalPrice == null && Model.SubTotal >= 500))
                             {
                                 <div>
                                     <span class="text-decoration-line-through text-muted small me-2">39,90 ₺</span>
@@ -128,15 +176,41 @@
                             }
                             else
                             {
-                                <span class="fw-bold text-dark">@Model.ShippingCost.ToString("C2")</span>
+                                <span class="fw-bold text-dark">39,90 ₺</span>
                             }
                         </div>
 
-                        @if (Model.ShippingCost > 0)
+                        @if (ViewBag.DiscountAmount != null && (decimal)ViewBag.DiscountAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2 align-items-center text-success">
+                                <span><i class="fas fa-tags me-1"></i>İndirim</span>
+                                <span class="fw-bold">-@(((decimal)ViewBag.DiscountAmount).ToString("C2"))</span>
+                            </div>
+                        }
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <span class="h5 fw-bold">Toplam</span>
+                                <div class="small text-muted" style="font-size: 0.75rem;">(KDV Dahil)</div>
+                            </div>
+
+                            @{
+                                // Kargo Dahil Son Fiyat Hesabı
+                                decimal cartTotal = ViewBag.FinalPrice != null ? (decimal)ViewBag.FinalPrice : Model.SubTotal;
+                                decimal shipping = cartTotal >= 500 ? 0 : 39.90m;
+                                decimal grandTotal = cartTotal + shipping;
+                            }
+
+                            <span class="h4 fw-bold text-primary">@grandTotal.ToString("C2")</span>
+                        </div>
+
+                        @if (shipping > 0)
                         {
                             <div class="alert alert-warning py-2 small mb-4">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Sepetini <strong>@((500 - Model.SubTotal).ToString("C2"))</strong> daha doldur, kargo bedava olsun!
+                                Sepetini <strong>@((500 - cartTotal).ToString("C2"))</strong> daha doldur, kargo bedava olsun!
                             </div>
                         }
                         else
@@ -146,13 +220,6 @@
                                 Tebrikler! Kargo bedava hakkı kazandınız.
                             </div>
                         }
-
-                        <hr>
-
-                        <div class="d-flex justify-content-between mb-4">
-                            <span class="h5 fw-bold">Toplam</span>
-                            <span class="h4 fw-bold text-primary">@Model.GrandTotal.ToString("C2")</span>
-                        </div>
 
                         <a asp-controller="Checkout" asp-action="Index" class="btn btn-dark w-100 btn-lg py-3 shadow-sm">
                             Sepeti Onayla <i class="fas fa-check ms-2"></i>
