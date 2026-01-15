@@ -9,7 +9,8 @@ using System.Diagnostics;
 
 namespace ShopVerse.WebUI.Controllers
 {
-    [Authorize]
+    // [Authorize] kaldýrýldý, çünkü ana sayfayý herkes görebilmeli.
+    // Sadece favori iþlemleri giriþ gerektiriyor.
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -19,8 +20,17 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICouponService _couponService;
         private readonly UserManager<AppUser> _userManager;
 
+        // YENÝ EKLENEN SERVÝS
+        private readonly IFavoriteService _favoriteService;
 
-        public HomeController(ILogger<HomeController> logger,IProductService productService, ICategoryService categoryService, ICampaignService campaignService, ICouponService couponService, UserManager<AppUser> userManager)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IProductService productService,
+            ICategoryService categoryService,
+            ICampaignService campaignService,
+            ICouponService couponService,
+            UserManager<AppUser> userManager,
+            IFavoriteService favoriteService) // Constructor Injection
         {
             _logger = logger;
             _productService = productService;
@@ -28,6 +38,7 @@ namespace ShopVerse.WebUI.Controllers
             _campaignService = campaignService;
             _couponService = couponService;
             _userManager = userManager;
+            _favoriteService = favoriteService; // Atama
         }
 
         public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder)
@@ -75,9 +86,24 @@ namespace ShopVerse.WebUI.Controllers
 
             // View tarafýnda banner alanýnda göstermek için ViewBag'e atýyoruz
             ViewBag.ActiveCoupons = activeCoupons;
-            // ============================================================
 
-            // 6. ViewModel Oluþturma
+            // ============================================================
+            // 6. FAVORÝLERÝ GETÝR (YENÝ EKLENEN KISIM)
+            // ============================================================
+            if (user != null)
+            {
+                // Giriþ yapmýþsa favorilerini çekiyoruz
+                var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
+                // Sadece ProductId'leri liste olarak View'a gönderiyoruz
+                ViewBag.FavoriteProductIds = userFavorites.Select(x => x.ProductId).ToList();
+            }
+            else
+            {
+                // Giriþ yapmamýþsa boþ liste gönderiyoruz (Hata almamak için)
+                ViewBag.FavoriteProductIds = new List<int>();
+            }
+
+            // 7. ViewModel Oluþturma
             var model = new HomeViewModel
             {
                 FeaturedProducts = products,
@@ -85,7 +111,7 @@ namespace ShopVerse.WebUI.Controllers
                 ActiveCampaigns = activeCampaigns.ToList()
             };
 
-            // 7. Filtrelerin View'da korunmasý için ViewData atamalarý
+            // 8. Filtrelerin View'da korunmasý için ViewData atamalarý
             ViewData["CurrentSearch"] = search;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;
@@ -93,6 +119,11 @@ namespace ShopVerse.WebUI.Controllers
             ViewData["SortOrder"] = sortOrder;
 
             return View(model);
+        }
+
+        public IActionResult About()
+        {
+            return View();
         }
 
         public IActionResult Privacy()

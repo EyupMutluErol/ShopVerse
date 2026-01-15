@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Areas.Admin.Models;
-using ShopVerse.WebUI.Utils; // ImageHelper için namespace
+using ShopVerse.WebUI.Utils; // ImageHelper namespace
 
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
@@ -14,7 +14,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
     {
         private readonly ICampaignService _campaignService;
         private readonly ICategoryService _categoryService;
-        private readonly ImageHelper _imageHelper; // Helper Tanımlandı
+        private readonly ImageHelper _imageHelper; // Helper
 
         public CampaignController(
             ICampaignService campaignService,
@@ -45,12 +45,11 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. RESİM YÜKLEME (Helper Kullanarak)
-                string imagePath = "/img/no-image.png"; // Varsayılan görsel
+                // 1. RESİM YÜKLEME
+                string imagePath = "/img/no-image.png"; // Varsayılan
 
                 if (model.ImageFile != null)
                 {
-                    // "campaigns" klasörüne yükle. Helper, klasör yoksa oluşturur.
                     imagePath = await _imageHelper.UploadFile(model.ImageFile, "campaigns");
                 }
 
@@ -62,10 +61,8 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     StartDate = model.StartDate.Value,
                     EndDate = model.EndDate.Value,
                     DiscountPercentage = model.DiscountPercentage ?? 0,
-                    TargetCategoryId = model.TargetCategoryId, // Null olabilir
-
-                    ImageUrl = imagePath, // Helper'dan dönen yolu kaydet
-
+                    TargetCategoryId = model.TargetCategoryId,
+                    ImageUrl = imagePath,
                     IsActive = model.IsActive,
                     CreatedDate = DateTime.Now
                 };
@@ -73,15 +70,18 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 // 3. KAYIT
                 await _campaignService.AddAsync(campaign);
 
-                // 4. BAŞARI MESAJI (Admin Özel Key)
                 TempData["AdminSuccess"] = "Kampanya başarıyla oluşturuldu.";
                 return RedirectToAction("Index");
             }
 
-            // Validasyon Hatası Varsa Dropdown'ı Tekrar Doldur
+            // Hata varsa
             ViewBag.Categories = new SelectList(await _categoryService.GetAllAsync(), "Id", "Name");
             return View(model);
         }
+
+        // ==================================================================
+        // EDIT İŞLEMLERİ (GÜNCELLENMİŞ KISIM)
+        // ==================================================================
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -92,71 +92,82 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            // Entity -> UpdateViewModel Dönüşümü (Manuel Mapping)
+            var model = new CampaignUpdateViewModel
+            {
+                Id = campaign.Id,
+                Title = campaign.Title,
+                Description = campaign.Description,
+                StartDate = campaign.StartDate,
+                EndDate = campaign.EndDate,
+                DiscountPercentage = campaign.DiscountPercentage,
+                TargetCategoryId = campaign.TargetCategoryId,
+                IsActive = campaign.IsActive,
+                CurrentImageUrl = campaign.ImageUrl // Mevcut resmi View'da göstermek için
+            };
+
             var categories = await _categoryService.GetAllAsync();
-            // Dropdown'da mevcut kategoriyi seçili getir
             ViewBag.Categories = new SelectList(categories, "Id", "Name", campaign.TargetCategoryId);
 
-            return View(campaign);
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Campaign campaign, IFormFile? file)
+        public async Task<IActionResult> Edit(CampaignUpdateViewModel model)
         {
-            // Validasyondan ImageUrl ve Navigation Property'yi çıkar
-            ModelState.Remove("ImageUrl");
-            ModelState.Remove("TargetCategory");
-
             if (ModelState.IsValid)
             {
-                var existingCampaign = await _campaignService.GetByIdAsync(campaign.Id);
+                // 1. Veritabanındaki orijinal kaydı çek
+                var existingCampaign = await _campaignService.GetByIdAsync(model.Id);
+
                 if (existingCampaign == null)
                 {
                     return NotFound();
                 }
 
-                // YENİ RESİM VARSA YÜKLE
-                if (file != null)
+                // 2. YENİ RESİM VARSA YÜKLE
+                if (model.ImageFile != null)
                 {
-                    // Eski resmi sil (Opsiyonel ama iyi olur)
-                    // if (existingCampaign.ImageUrl != "/img/no-image.png") { ... silme kodu ... }
+                    // Eski resmi silme kodu (Opsiyonel) buraya eklenebilir.
 
-                    // Yeni resmi yükle
-                    existingCampaign.ImageUrl = await _imageHelper.UploadFile(file, "campaigns");
+                    // Yeni resmi yükle ve ImageUrl'i güncelle
+                    existingCampaign.ImageUrl = await _imageHelper.UploadFile(model.ImageFile, "campaigns");
                 }
-                // else: Dosya yoksa mevcut ImageUrl korunur
+                // Else: Resim seçilmediyse existingCampaign.ImageUrl değişmez, eskisi kalır.
 
-                // DİĞER ALANLARI GÜNCELLE
-                existingCampaign.Title = campaign.Title;
-                existingCampaign.Description = campaign.Description;
-                existingCampaign.DiscountPercentage = campaign.DiscountPercentage;
-                existingCampaign.StartDate = campaign.StartDate;
-                existingCampaign.EndDate = campaign.EndDate;
-                existingCampaign.IsActive = campaign.IsActive;
-                existingCampaign.TargetCategoryId = campaign.TargetCategoryId;
+                // 3. Diğer bilgileri Entity'ye aktar (Mapping)
+                existingCampaign.Title = model.Title;
+                existingCampaign.Description = model.Description;
+                existingCampaign.StartDate = model.StartDate.Value;
+                existingCampaign.EndDate = model.EndDate.Value;
+                existingCampaign.DiscountPercentage = model.DiscountPercentage ?? 0;
+                existingCampaign.TargetCategoryId = model.TargetCategoryId;
+                existingCampaign.IsActive = model.IsActive;
 
+                // 4. Güncelle
                 await _campaignService.UpdateAsync(existingCampaign);
 
                 TempData["AdminSuccess"] = "Kampanya başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
 
-            // Hata varsa view'ı doldur
+            // Validasyon hatası varsa kategorileri tekrar doldur ve view'a dön
             var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name", campaign.TargetCategoryId);
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", model.TargetCategoryId);
 
-            return View(campaign);
+            return View(model);
         }
+
+        // ==================================================================
 
         public async Task<IActionResult> Delete(int id)
         {
             var campaign = await _campaignService.GetByIdAsync(id);
             if (campaign != null)
             {
-                // RESİM SİLME İŞLEMİ (Opsiyonel: Varsayılan resmi silme)
+                // RESİM SİLME İŞLEMİ
                 if (!string.IsNullOrEmpty(campaign.ImageUrl) && !campaign.ImageUrl.Contains("no-image"))
                 {
-                    // ImageUrl: "/img/campaigns/resim.jpg"
-                    // Path: "wwwroot/img/campaigns/resim.jpg"
                     var relativePath = campaign.ImageUrl.TrimStart('/');
                     var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 

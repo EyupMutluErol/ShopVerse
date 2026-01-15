@@ -36,7 +36,7 @@
                     <label class="form-label">Rol Adı</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fas fa-tag text-muted"></i></span>
-                        <input type="text" name="roleName" class="form-control" required placeholder="Örn: Editor" />
+                        <input type="text" name="roleName" class="form-control" required />
                     </div>
                 </div>
 
@@ -44,7 +44,7 @@
                     <label class="form-label">Açıklama</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fas fa-align-left text-muted"></i></span>
-                        <input type="text" name="description" class="form-control" placeholder="Örn: İçerik düzenleyebilir" />
+                        <input type="text" name="description" class="form-control" />
                     </div>
                 </div>
 
@@ -68,54 +68,67 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var role in Model)
+                    @if (Model != null && Model.Count > 0)
                     {
-                        string roleNameLower = role.Name?.ToLower().Trim() ?? "";
-                        string badgeClass = roleNameLower switch
+                        @foreach (var role in Model)
                         {
-                            "admin" => "bg-primary",
-                            "member" => "bg-secondary",
-                            "editor" => "bg-info text-dark",
-                            "manager" => "bg-warning text-dark",
-                            _ => "bg-success"
-                        };
+                            string roleNameLower = role.Name?.ToLower().Trim() ?? "";
+                            string badgeClass = roleNameLower switch
+                            {
+                                "admin" => "bg-primary",
+                                "member" => "bg-secondary",
+                                "editor" => "bg-info text-dark",
+                                "manager" => "bg-warning text-dark",
+                                _ => "bg-success"
+                            };
 
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge @badgeClass rounded-pill px-3 py-2 shadow-sm" style="font-size: 0.9rem;">
+                                        @role.Name
+                                    </span>
+                                </td>
+
+                                <td class="text-muted small">
+                                    @if (!string.IsNullOrEmpty(role.Description))
+                                    {
+                                        <i class="fas fa-info-circle me-1 opacity-50"></i>
+                                        @role.Description
+                                    }
+                                    else
+                                    {
+                                        <span class="opacity-25">-</span>
+                                    }
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <button type="button"
+                                            class="btn btn-sm btn-warning text-dark me-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editRoleModal"
+                                            data-id="@role.Id"
+                                            data-name="@role.Name"
+                                            data-description="@role.Description"
+                                            onclick="loadRoleData(this)">
+                                        <i class="fas fa-edit"></i> Düzenle
+                                    </button>
+
+                                    <a asp-action="Delete" asp-route-id="@role.Id" class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Bu rolü silmek istediğinize emin misiniz?');"
+                                       data-bs-toggle="tooltip" title="Rolü Sil">
+                                        <i class="fas fa-trash-alt"></i> Sil
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
                         <tr>
-                            <td class="ps-4">
-                                <span class="badge @badgeClass rounded-pill px-3 py-2 shadow-sm" style="font-size: 0.9rem;">
-                                    @role.Name
-                                </span>
-                            </td>
-
-                            <td class="text-muted small">
-                                @if (!string.IsNullOrEmpty(role.Description))
-                                {
-                                    <i class="fas fa-info-circle me-1 opacity-50"></i>
-                                    @role.Description
-                                }
-                                else
-                                {
-                                    <span class="opacity-25">-</span>
-                                }
-                            </td>
-
-                            <td class="text-end pe-4">
-                                <button type="button"
-                                        class="btn btn-sm btn-warning text-dark me-2"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editRoleModal"
-                                        data-id="@role.Id"
-                                        data-name="@role.Name"
-                                        data-description="@role.Description"
-                                        onclick="loadRoleData(this)">
-                                    <i class="fas fa-edit"></i> Düzenle
-                                </button>
-
-                                <a asp-action="Delete" asp-route-id="@role.Id" class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('Bu rolü silmek istediğinize emin misiniz?');"
-                                   data-bs-toggle="tooltip" title="Rolü Sil">
-                                    <i class="fas fa-trash-alt"></i> Sil
-                                </a>
+                            <td colspan="3" class="text-center py-5 text-muted bg-light">
+                                <i class="fas fa-user-tag fa-3x mb-3 opacity-25"></i>
+                                <p class="mb-0 fw-bold">Henüz tanımlanmış bir rol bulunmuyor.</p>
+                                <small>Yukarıdaki formdan yeni bir rol ekleyebilirsiniz.</small>
                             </td>
                         </tr>
                     }

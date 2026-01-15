@@ -21,21 +21,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var user in Model)
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@user.Name @user.Surname</td>
+                                <td>@user.Email</td>
+                                <td>
+                                    <span class="badge bg-primary">Admin</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="AssignRole" asp-route-id="@user.Id" class="btn btn-sm btn-warning text-dark">
+                                        <i class="fas fa-user-tag"></i> Rol Düzenle
+                                    </a>
+                                    <button onclick="deleteUser('@user.Id')" class="btn btn-sm btn-outline-danger ms-1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td class="ps-4 fw-bold">@user.Name @user.Surname</td>
-                            <td>@user.Email</td>
-                            <td>
-                                <span class="badge bg-primary">Admin</span>
-                            </td>
-                            <td class="text-end pe-4">
-                                <a asp-action="AssignRole" asp-route-id="@user.Id" class="btn btn-sm btn-warning text-dark">
-                                    <i class="fas fa-user-tag"></i> Rol Düzenle
-                                </a>
-                                <button onclick="deleteUser('@user.Id')" class="btn btn-sm btn-outline-danger ms-1">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                            <td colspan="4" class="text-center py-5 text-muted bg-light">
+                                <i class="fas fa-user-shield fa-3x mb-3 opacity-25"></i>
+                                <p class="mb-0 fw-bold">Henüz yönetici bulunmuyor.</p>
                             </td>
                         </tr>
                     }

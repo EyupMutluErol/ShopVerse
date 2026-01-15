@@ -6,28 +6,86 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
         <h3 class="m-0 fw-bold text-secondary">Genel Bakış</h3>
-        <span class="badge bg-light text-dark border px-3 py-2">
+        <span class="badge bg-light text-dark border px-3 py-2 shadow-sm">
             <i class="far fa-clock me-1"></i> @DateTime.Now.ToString("dd MMMM yyyy dddd")
         </span>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-3 mb-4">
+
         <div class="col-xl-3 col-md-6">
-            <div class="card bg-dark text-white h-100 shadow-sm border-0">
+            <div class="card bg-warning text-dark h-100 shadow-sm border-0">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Toplam Ciro</h6>
-                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.TotalTurnover.ToString("C2")</h2>
-                        <small class="text-white-50">Tüm zamanlar</small>
+                        <h6 class="card-title mb-1 text-dark-50 text-uppercase small fw-bold">Kategoriler</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.CategoryCount</h2>
+                        <small class="text-dark-50">Aktif Kategori</small>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="fas fa-list fa-2x text-dark"></i>
+                    </div>
+                </div>
+                <a href="/Admin/Category" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-dark text-decoration-none small">
+                    <span>İncele</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Ürünler</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.ProductCount</h2>
+                        <small class="text-white-50">Stoktaki Ürünler</small>
                     </div>
                     <div class="bg-white bg-opacity-10 rounded-circle p-3">
-                        <i class="fas fa-wallet fa-2x text-white"></i>
+                        <i class="fas fa-box fa-2x text-white"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-25">
-                    <a href="/Admin/Order" class="text-white text-decoration-none small stretched-link">Finansal Detaylar</a>
-                    <i class="fas fa-angle-right small text-white"></i>
+                <a href="/Admin/Product" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Ürün Listesi</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white h-100 shadow-sm border-0" style="background-color: #6610f2;">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Kampanyalar</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@(ViewBag.CampaignCount ?? 0)</h2>
+                        <small class="text-white-50">Aktif Kampanya</small>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-bullhorn fa-2x text-white"></i>
+                    </div>
                 </div>
+                <a href="/Admin/Campaign" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Yönet</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card text-white h-100 shadow-sm border-0" style="background-color: #e83e8c;">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Kuponlar</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@(ViewBag.CouponCount ?? 0)</h2>
+                        <small class="text-white-50">Aktif İndirim Kodu</small>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-ticket-alt fa-2x text-white"></i>
+                    </div>
+                </div>
+                <a href="/Admin/Coupon" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Kupon Listesi</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
             </div>
         </div>
 
@@ -43,48 +101,10 @@
                         <i class="fas fa-shopping-cart fa-2x text-white"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10">
-                    <a href="/Admin/Order" class="text-white text-decoration-none small stretched-link">Siparişleri Yönet</a>
-                    <i class="fas fa-angle-right small text-white"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white h-100 shadow-sm border-0">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Ürünler</h6>
-                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.ProductCount</h2>
-                        <small class="text-white-50">Stoktaki ürünler</small>
-                    </div>
-                    <div class="bg-white bg-opacity-10 rounded-circle p-3">
-                        <i class="fas fa-box fa-2x text-white"></i>
-                    </div>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10">
-                    <a href="/Admin/Product" class="text-white text-decoration-none small stretched-link">Ürün Listesi</a>
-                    <i class="fas fa-angle-right small text-white"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-warning text-dark h-100 shadow-sm border-0">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="card-title mb-1 text-dark-50 text-uppercase small fw-bold">Kategoriler</h6>
-                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.CategoryCount</h2>
-                        <small class="text-dark-50">Aktif kategori</small>
-                    </div>
-                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                        <i class="fas fa-list fa-2x text-dark"></i>
-                    </div>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10">
-                    <a href="/Admin/Category" class="text-dark text-decoration-none small stretched-link">İncele</a>
-                    <i class="fas fa-angle-right small text-dark"></i>
-                </div>
+                <a href="/Admin/Order" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Siparişleri Yönet</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
             </div>
         </div>
 
@@ -94,67 +114,105 @@
                     <div>
                         <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Üyeler</h6>
                         <h2 class="mt-2 fw-bold mb-0">@ViewBag.UserCount</h2>
-                        <small class="text-white-50">Kayıtlı müşteri</small>
+                        <small class="text-white-50">Kayıtlı Müşteri</small>
                     </div>
                     <div class="bg-white bg-opacity-10 rounded-circle p-3">
                         <i class="fas fa-users fa-2x text-white"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10">
-                    <a href="/Admin/User/Members" class="text-white text-decoration-none small stretched-link">Üye Listesi</a>
-                    <i class="fas fa-angle-right small text-white"></i>
+                <a href="/Admin/User/Members" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Üye Listesi</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-dark text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Toplam Ciro</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.TotalTurnover.ToString("C2")</h2>
+                        <small class="text-white-50">Tüm Zamanlar</small>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-wallet fa-2x text-white"></i>
+                    </div>
                 </div>
+                <a href="/Admin/Order" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-25 text-white text-decoration-none small">
+                    <span>Finansal Detaylar</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Kritik Stok</h6>
+                        <h2 class="mt-2 fw-bold mb-0">@(ViewBag.CriticalStockCount ?? 0)</h2>
+                        <small class="text-white-50">Ürün Azalıyor</small>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-white"></i>
+                    </div>
+                </div>
+                <a href="/Admin/Product" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                    <span>Stokları Kontrol Et</span>
+                    <i class="fas fa-angle-right"></i>
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-bold py-3">
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white fw-bold py-3 border-bottom-0">
                     <i class="fas fa-bolt text-warning me-2"></i>Hızlı İşlemler
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-3">
-                        <a href="/Admin/Product/Add" class="btn btn-outline-primary text-start p-3 shadow-sm hover-shadow">
-                            <i class="fas fa-plus-circle fa-lg me-2"></i> <strong>Yeni Ürün Ekle</strong>
-                            <div class="small text-muted ms-4 ps-2">Kataloğa yeni bir ürün ekleyin.</div>
+                <div class="card-body pt-0">
+                    <div class="d-grid gap-2">
+                        <a href="/Admin/Product/Add" class="btn btn-outline-primary text-start p-2 shadow-sm">
+                            <i class="fas fa-plus-circle me-2"></i> Yeni Ürün Ekle
                         </a>
-                        <a href="/Admin/Category/Add" class="btn btn-outline-secondary text-start p-3 shadow-sm hover-shadow">
-                            <i class="fas fa-tags fa-lg me-2"></i> <strong>Yeni Kategori Oluştur</strong>
-                            <div class="small text-muted ms-4 ps-2">Ürünleri gruplamak için kategori tanımlayın.</div>
+                        <a href="/Admin/Category/Add" class="btn btn-outline-secondary text-start p-2 shadow-sm">
+                            <i class="fas fa-tags me-2"></i> Yeni Kategori Ekle
                         </a>
-                        <a href="/Admin/Campaign/Create" class="btn btn-outline-warning text-start text-dark p-3 shadow-sm hover-shadow">
-                            <i class="fas fa-bullhorn fa-lg me-2"></i> <strong>Yeni Kampanya Oluştur</strong>
-                            <div class="small text-muted ms-4 ps-2">İndirim ve fırsat tanımlayın.</div>
+                        <a href="/Admin/Campaign/Create" class="btn btn-outline-warning text-start text-dark p-2 shadow-sm">
+                            <i class="fas fa-bullhorn me-2"></i> Yeni Kampanya Oluştur
+                        </a>
+                        <a href="/Admin/Coupon/Create" class="btn btn-outline-info text-start text-dark p-2 shadow-sm">
+                            <i class="fas fa-ticket-alt me-2"></i> Yeni Kupon Tanımla
                         </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-bold py-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white fw-bold py-3 border-bottom-0">
                     <i class="fas fa-server text-info me-2"></i>Sistem Durumu
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
+                <div class="card-body pt-0">
+                    <ul class="list-group list-group-flush border rounded">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-user-shield text-muted me-2"></i>Aktif Yönetici</span>
                             <span class="fw-bold text-dark">@User.Identity.Name</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-calendar-alt text-muted me-2"></i>Sunucu Tarihi</span>
-                            <span class="fw-bold text-dark">@DateTime.Now.ToString("dd MMMM yyyy")</span>
+                            <span class="fw-bold text-dark">@DateTime.Now.ToString("dd.MM.yyyy")</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-clock text-muted me-2"></i>Sunucu Saati</span>
                             <span class="fw-bold text-dark">@DateTime.Now.ToString("HH:mm")</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-check-circle text-success me-2"></i>Sistem Durumu</span>
-                            <span class="badge bg-success rounded-pill">Aktif</span>
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            <span><i class="fas fa-check-circle text-success me-2"></i>Uygulama Durumu</span>
+                            <span class="badge bg-success rounded-pill">Çalışıyor</span>
                         </li>
                     </ul>
                 </div>
@@ -162,24 +220,22 @@
         </div>
     </div>
 
-    <div class="row mt-4">
+    <div class="row g-4 pb-5">
+
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-area me-2"></i>Aylık Satış Analizi</h6>
-                        <small class="text-muted">Son 6 ayın ciro performansı (Onaylanan Siparişler)</small>
+                        <small class="text-muted">Son 6 ayın ciro performansı</small>
                     </div>
                     <span class="badge bg-primary bg-opacity-10 text-primary">Canlı Veri</span>
                 </div>
                 <div class="card-body">
-                    <canvas id="salesChart" style="max-height: 350px;"></canvas>
+                    <canvas id="salesChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row mt-4 g-4 pb-5">
 
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm border-0">
@@ -196,12 +252,12 @@
                                 <tr>
                                     <th class="ps-4">Ürün</th>
                                     <th>Fiyat</th>
-                                    <th class="text-center">Satış Performansı</th>
+                                    <th class="text-center">Satış</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (ViewBag.BestSellers != null)
+                                @if (ViewBag.BestSellers != null && (ViewBag.BestSellers as List<ShopVerse.Entities.Dtos.BestSellerDto>).Count > 0)
                                 {
                                     @foreach (var item in ViewBag.BestSellers as List<ShopVerse.Entities.Dtos.BestSellerDto>)
                                     {
@@ -214,18 +270,18 @@
                                                     }
                                                     <div>
                                                         <span class="fw-bold text-dark small d-block text-truncate" style="max-width: 140px;">@item.ProductName</span>
-                                                        <small class="text-muted" style="font-size: 0.75rem;">Mevcut Stok: @item.Stock</small>
+                                                        <small class="text-muted" style="font-size: 0.75rem;">Stok: @item.Stock</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="small fw-bold text-dark">@item.Price.ToString("C0")</td>
                                             <td class="text-center">
-                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                                    <i class="fas fa-chart-line me-1"></i> @item.SalesCount Adet
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill">
+                                                    @item.SalesCount
                                                 </span>
                                             </td>
                                             <td class="text-end pe-3">
-                                                <a href="/Admin/Product/Update/@item.ProductId" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Ürünü Düzenle">
+                                                <a href="/Admin/Product/Update/@item.ProductId" class="btn btn-sm btn-light rounded-circle shadow-sm">
                                                     <i class="fas fa-pen small text-muted"></i>
                                                 </a>
                                             </td>
@@ -234,7 +290,12 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Henüz satış verisi yok.</td></tr>
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-muted bg-light">
+                                            <i class="fas fa-chart-bar fa-2x mb-2 opacity-25"></i>
+                                            <p class="mb-0 small fw-bold">Henüz satış verisi yok.</p>
+                                        </td>
+                                    </tr>
                                 }
                             </tbody>
                         </table>
@@ -250,7 +311,7 @@
                         <div class="bg-danger bg-opacity-10 p-2 rounded me-2">
                             <i class="fas fa-exclamation-triangle text-danger"></i>
                         </div>
-                        <h6 class="m-0 fw-bold text-dark">Kritik Stok Alarmı</h6>
+                        <h6 class="m-0 fw-bold text-dark">Kritik Stok</h6>
                     </div>
                     <span class="badge bg-danger bg-opacity-10 text-danger px-2 border border-danger border-opacity-25">Acil</span>
                 </div>
@@ -259,34 +320,29 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-muted small">
                                 <tr>
-                                    <th class="ps-4">Ürün Adı</th>
-                                    <th>Fiyat</th>
-                                    <th>Stok Durumu</th>
+                                    <th class="ps-4">Ürün</th>
+                                    <th>Kalan</th>
                                     <th class="text-end pe-4">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (ViewBag.CriticalProducts != null)
+                                @if (ViewBag.CriticalProducts != null && (ViewBag.CriticalProducts as List<ShopVerse.Entities.Concrete.Product>).Count > 0)
                                 {
                                     @foreach (var item in ViewBag.CriticalProducts as List<ShopVerse.Entities.Concrete.Product>)
                                     {
                                         <tr>
                                             <td class="ps-4 fw-bold text-dark small text-truncate" style="max-width: 150px;">@item.Name</td>
-                                            <td class="small text-muted">@item.Price.ToString("C0")</td>
                                             <td style="width: 30%;">
-                                                <div class="d-flex flex-column">
-                                                    <div class="d-flex justify-content-between mb-1">
-                                                        <span class="fw-bold text-danger small">@item.Stock Adet Kaldı</span>
-                                                    </div>
-                                                    <div class="progress" style="height: 6px;">
-                                                        <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar"
-                                                             style="width: @(item.Stock < 20 ? (item.Stock * 5) : 100)%;"></div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fw-bold text-danger small">@item.Stock</span>
+                                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-danger" role="progressbar" style="width: @(item.Stock * 5)%;"></div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-end pe-4">
                                                 <a href="/Admin/Product/Update/@item.Id" class="btn btn-sm btn-outline-danger shadow-sm py-0" style="font-size: 0.8rem;">
-                                                    <i class="fas fa-plus-circle me-1"></i>Stok Ekle
+                                                    <i class="fas fa-plus me-1"></i>Ekle
                                                 </a>
                                             </td>
                                         </tr>
@@ -294,7 +350,12 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Stok sorunu olan ürün yok.</td></tr>
+                                    <tr>
+                                        <td colspan="3" class="text-center py-5 text-muted bg-light">
+                                            <i class="fas fa-check-circle fa-2x mb-2 opacity-25 text-success"></i>
+                                            <p class="mb-0 small fw-bold">Stok sorunu olan ürün yok.</p>
+                                        </td>
+                                    </tr>
                                 }
                             </tbody>
                         </table>
@@ -302,6 +363,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 

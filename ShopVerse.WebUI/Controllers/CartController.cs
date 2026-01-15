@@ -6,7 +6,6 @@ using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Extensions;
 using ShopVerse.WebUI.Models;
 
-
 namespace ShopVerse.WebUI.Controllers
 {
     public class CartController : Controller
@@ -16,16 +15,21 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICouponService _couponService;
         private readonly UserManager<AppUser> _userManager;
 
+        // YENİ EKLENEN SERVİS
+        private readonly IFavoriteService _favoriteService;
+
         public CartController(
             IProductService productService,
             ICampaignService campaignService,
             ICouponService couponService,
-            UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager,
+            IFavoriteService favoriteService) // Constructor Injection
         {
             _productService = productService;
             _campaignService = campaignService;
             _couponService = couponService;
             _userManager = userManager;
+            _favoriteService = favoriteService; // Atama
         }
 
         public async Task<IActionResult> Index()
@@ -51,7 +55,6 @@ namespace ShopVerse.WebUI.Controllers
                 {
                     var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null);
 
-                    // DÜZELTME: Değişken ismi 'itemPrice' yapıldı (CS0136 Hatası Çözümü)
                     decimal itemPrice = item.Product.Price;
 
                     // Kampanya İndirimi
@@ -75,8 +78,6 @@ namespace ShopVerse.WebUI.Controllers
             // --- 3. TOPLAMLARI HESAPLA ---
             decimal totalPrice = cart.Sum(x => x.Quantity * x.SalePrice);
             decimal discountAmount = 0;
-
-            // Bu değişken artık döngü dışındaki scope'ta olduğu için hata vermez
             decimal finalPrice = totalPrice;
 
             // --- 4. KUPON İNDİRİMİNİ UYGULA ---
@@ -110,6 +111,23 @@ namespace ShopVerse.WebUI.Controllers
 
             ViewBag.TotalPrice = totalPrice;
             ViewBag.FinalPrice = finalPrice;
+
+            // ============================================================
+            // 5. FAVORİ KONTROLÜ (YENİ EKLENEN KISIM)
+            // ============================================================
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
+                    ViewBag.FavoriteProductIds = userFavorites.Select(x => x.ProductId).ToList();
+                }
+            }
+            else
+            {
+                ViewBag.FavoriteProductIds = new List<int>();
+            }
 
             return View(new CartViewModel { CartItems = cart });
         }

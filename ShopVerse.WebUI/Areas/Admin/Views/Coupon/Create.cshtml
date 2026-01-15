@@ -44,7 +44,7 @@
                             <label asp-for="Code" class="form-label fw-bold"></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white"><i class="fas fa-barcode text-muted"></i></span>
-                                <input asp-for="Code" class="form-control text-uppercase fw-bold" placeholder="Örn: YAZ2026" />
+                                <input asp-for="Code" class="form-control text-uppercase fw-bold" />
                             </div>
                             <span asp-validation-for="Code" class="text-danger small fw-bold mt-1 d-block"></span>
                             <small class="text-muted">Kod otomatik olarak büyük harfe çevrilir.</small>
@@ -63,7 +63,7 @@
                             <label asp-for="MinCartAmount" class="form-label fw-bold"></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white">₺</span>
-                                <input asp-for="MinCartAmount" type="number" step="0.01" class="form-control no-spinners" placeholder="0.00" />
+                                <input asp-for="MinCartAmount" type="number" step="0.01" class="form-control no-spinners" />
                             </div>
                             <span asp-validation-for="MinCartAmount" class="text-danger small fw-bold mt-1 d-block"></span>
                             <small class="text-muted">Alt limit yoksa 0 bırakın.</small>
@@ -72,7 +72,7 @@
                         <div class="mb-4">
                             <label class="form-label fw-bold text-primary">Özel Kullanıcı Tanımla (Opsiyonel)</label>
                             <select name="UserId" class="form-select border-primary">
-                                <option value="">-- Herkes Kullanabilir (Genel) --</option>
+                                <option value=""> Herkes Kullanabilir (Genel) </option>
                                 @if (ViewBag.Users != null)
                                 {
                                     @foreach (var user in ViewBag.Users as IList<ShopVerse.Entities.Concrete.AppUser>)

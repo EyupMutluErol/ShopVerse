@@ -1,7 +1,19 @@
-﻿@model ShopVerse.WebUI.Models.UserProfileViewModel
+﻿@using ShopVerse.WebUI.Models
+@model UserProfileViewModel
+
 @{
     ViewData["Title"] = "Hesabım";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Profil sayfasında da favori listesini göstermek için ViewBag'den alıyoruz (Controller'da doldurmadıysak boş gelir)
+    // Ancak en doğrusu bu veriyi UserProfileViewModel içine dahil etmektir.
+    // Şimdilik ViewBag ile taşıdığımızı varsayalım veya ViewComponent kullanalım.
+    // Pratik çözüm: View içinde doğrudan göstermek için ViewModel'e 'Favorites' alanı eklemiş olmalısın.
+    // Eğer ViewModel'de yoksa, Favorilerim linkine tıklandığında ayrı sayfaya (/Favorite/Index) gitmesi daha temiz olur.
+
+    // YÖNTEM: "Favorilerim" sekmesine tıklandığında içeriği göstermek yerine,
+    // sol menüye "Favorilerim" butonu koyup tıklandığında /Favorite/Index sayfasına yönlendirelim.
+    // Bu, kod tekrarını önler ve yapıyı sade tutar.
 }
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +40,7 @@
         border-radius: 50px;
         display: inline-flex;
         gap: 5px;
+        flex-wrap: wrap; /* Mobil uyumluluk için */
     }
 
         .custom-nav-pills .nav-link {
@@ -129,6 +142,11 @@
                                 <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
                                     <i class="fas fa-cog me-2"></i>Ayarlar
                                 </button>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/Favorite/Index" class="nav-link text-decoration-none">
+                                    <i class="fas fa-heart me-2"></i>Favorilerim
+                                </a>
                             </li>
                         </ul>
                     </div>

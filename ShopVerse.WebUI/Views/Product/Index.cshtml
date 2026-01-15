@@ -6,8 +6,12 @@
     var categories = ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>;
     var activeCampaigns = ViewBag.ActiveCampaigns as List<ShopVerse.Entities.Concrete.Campaign>;
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
-    // Kupon değişkenini artık View içinde kullanmayacağız ama Controller'dan geliyor olabilir,
-    // o yüzden tanımlı kalsa da olur veya silebilirsin. Şimdilik temiz kalsın.
+
+    // Controller'dan gelen Favori Ürün ID Listesi
+    var favList = ViewBag.FavoriteProductIds as List<int>;
+
+    // Fırsat Sayfası Kontrolü
+    var isDealsPage = ViewData["IsDealsPage"] != null && (bool)ViewData["IsDealsPage"];
 }
 
 <div class="container py-4">
@@ -20,6 +24,12 @@
                 </div>
                 <div class="card-body p-4">
                     <form action="/Product/Index" method="get" id="filterForm">
+
+                        @if (isDealsPage)
+                        {
+                            <input type="hidden" name="showDeals" value="true">
+                        }
+
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-uppercase text-muted">Arama</label>
                             <div class="input-group">
@@ -59,7 +69,7 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary rounded-3"><i class="fas fa-check me-2"></i>Uygula</button>
-                            <a href="/Product/Index" class="btn btn-outline-secondary rounded-3 btn-sm">Temizle</a>
+                            <a href="/Product/Index@(isDealsPage ? "?showDeals=true" : "")" class="btn btn-outline-secondary rounded-3 btn-sm">Temizle</a>
                         </div>
                     </form>
                 </div>
@@ -69,22 +79,38 @@
         <div class="col-lg-9">
 
             <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm border">
-                <span class="fw-bold text-dark">
-                    @Model.Count ürün listeleniyor
-                </span>
 
-                <div class="d-flex align-items-center gap-2">
-                    <label class="small text-muted fw-bold text-nowrap">Sıralama:</label>
-                    <select class="form-select form-select-sm border-0 bg-light" style="width: 160px;"
-                            onchange="document.getElementById('sortOrderInput').value=this.value; document.getElementById('filterForm').submit();">
-                        <option value="">Önerilen</option>
-                        @{
-                            var currentSort = ViewData["SortOrder"]?.ToString();
-                        }
-                        <!option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>Artan Fiyat</!option>
-                        <!option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>Azalan Fiyat</!option>
-                        <!option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>İsim (A-Z)</!option>
-                    </select>
+                <h4 class="fw-bold m-0" style="color: #2d3436;">
+                    @if (isDealsPage)
+                    {
+                        <i class="fas fa-fire text-danger me-2"></i>
+                    
+                        <span class="text-danger">Günün Fırsatları</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-box-open text-primary me-2"></i>
+                    
+                        <span>Tüm Ürünler</span>
+                    }
+                </h4>
+
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-light text-dark border rounded-pill px-3">@Model.Count ürün</span>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted fw-bold text-nowrap d-none d-md-block">Sıralama:</label>
+                        <select class="form-select form-select-sm border-0 bg-light" style="width: 140px;"
+                                onchange="document.getElementById('sortOrderInput').value=this.value; document.getElementById('filterForm').submit();">
+                            <option value="">Önerilen</option>
+                            @{
+                                var currentSort = ViewData["SortOrder"]?.ToString();
+                            }
+                            <!option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>Artan Fiyat</!option>
+                            <!option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>Azalan Fiyat</!option>
+                            <!option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>İsim (A-Z)</!option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -111,9 +137,8 @@
                         // EN İYİ FİYAT MANTIĞI
                         // -----------------------------------------------------------
 
-                        // 1. Kampanya Fiyatı
                         ShopVerse.Entities.Concrete.Campaign? campaign = null;
-                        decimal campaignPrice = item.Price; // Başlangıçta normal fiyat
+                        decimal campaignPrice = item.Price;
 
                         if (activeCampaigns != null)
                         {
@@ -124,14 +149,12 @@
                             }
                         }
 
-                        // 2. Ürün İndirimi Fiyatı
                         decimal productDiscountPrice = item.Price;
                         if (item.DiscountRate > 0)
                         {
                             productDiscountPrice = item.PriceWithDiscount;
                         }
 
-                        // 3. Karşılaştır: Hangisi daha ucuz?
                         decimal finalPrice = item.Price;
                         bool showCampaignLabel = false;
                         bool showProductDiscountLabel = false;
@@ -160,10 +183,20 @@
                             showProductDiscountLabel = true;
                         }
 
+                        // FAVORİ KONTROLÜ
+                        bool isFav = favList != null && favList.Contains(item.Id);
+
                         // -----------------------------------------------------------
 
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 border-0 shadow-sm position-relative product-card-hover">
+
+                                <button onclick="toggleFavorite(@item.Id, this)"
+                                        class="btn btn-light rounded-circle position-absolute top-0 end-0 m-2 shadow-sm"
+                                        style="z-index: 20; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
+                                        title="@(isFav ? "Favorilerden Çıkar" : "Favorilere Ekle")">
+                                    <i class="@(isFav ? "fas text-danger" : "far") fa-heart" style="font-size: 1.1rem;"></i>
+                                </button>
 
                                 <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1" style="z-index: 10;">
 

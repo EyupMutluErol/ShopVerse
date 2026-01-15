@@ -1,9 +1,16 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using ShopVerse.Entities.Concrete
 @using Microsoft.AspNetCore.Http
+@using ShopVerse.Business.Abstract
 
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
+@inject ICategoryService CategoryService
+
+@{
+    // Kategorileri veritabanından çekiyoruz
+    var categories = await CategoryService.GetAllAsync();
+}
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -22,9 +29,9 @@
         /* --- GENEL AYARLAR --- */
         :root {
             --primary-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-            --navbar-bg: var(--primary-gradient);
+            --navbar-bg: #ffffff; /* Modern görünüm için beyaz arka plan */
             --body-bg: #ffffff;
-            --text-light: #ffffff;
+            --text-dark: #333333;
         }
 
         body {
@@ -38,9 +45,9 @@
         /* --- NAVBAR TASARIMI --- */
         .navbar-custom {
             background: var(--navbar-bg);
-            padding: 12px 0;
-            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.25);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #f0f0f0;
             transition: all 0.3s ease;
         }
 
@@ -48,46 +55,28 @@
             font-weight: 800;
             font-size: 1.5rem;
             letter-spacing: -0.5px;
-            color: var(--text-light) !important;
+            color: #0072ff !important;
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .brand-icon {
-            background: white;
-            color: #0072ff;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .navbar-brand:hover .brand-icon {
-            transform: rotate(-10deg) scale(1.05);
+            gap: 10px;
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.9) !important;
-            font-weight: 500;
+            color: #555 !important;
+            font-weight: 600;
             font-size: 0.95rem;
             margin: 0 4px;
-            padding: 8px 18px !important;
+            padding: 8px 15px !important;
             border-radius: 50px;
             transition: all 0.2s;
         }
 
             .nav-link:hover, .nav-link.active {
-                background: rgba(255,255,255,0.2);
-                color: white !important;
-                transform: translateY(-2px);
+                color: #0072ff !important;
+                background: rgba(0, 114, 255, 0.05);
             }
 
+        /* Özel İkon Butonları (Sepet, Profil vb.) */
         .nav-icon-btn {
             position: relative;
             display: flex;
@@ -95,48 +84,37 @@
             justify-content: center;
             width: 42px;
             height: 42px;
-            background: rgba(255,255,255,0.15);
+            background: #f8f9fa;
             border-radius: 50%;
-            color: white;
+            color: #333;
             transition: all 0.3s;
             text-decoration: none;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid #e9ecef;
         }
 
             .nav-icon-btn:hover {
-                background: white;
-                color: #0072ff !important;
+                background: #0072ff;
+                color: white !important;
                 transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+                border-color: #0072ff;
             }
 
         .nav-profile-img {
             width: 40px;
             height: 40px;
             object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid #e9ecef;
             border-radius: 50%;
             transition: all 0.2s;
         }
 
-        .nav-profile-link {
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-            .nav-profile-link:hover .nav-profile-img {
-                border-color: white;
-                transform: scale(1.05);
-            }
-
         .dropdown-menu {
             border: none;
-            box-shadow: 0 10px 40px rgba(0, 114, 255, 0.15);
-            border-radius: 16px;
-            margin-top: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-top: 10px;
             padding: 8px;
-            background: white;
         }
 
         .dropdown-item {
@@ -151,29 +129,37 @@
                 color: #0072ff;
             }
 
-        .dropdown-divider {
-            margin: 8px 0;
-            opacity: 0.1;
+        /* Animasyonlar */
+        .animate-slide {
+            animation: slideIn 0.2s ease-out;
+        }
+        @@keyframes slideIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(10px);
         }
 
-        .navbar-toggler {
-            border: none;
-            padding: 0;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .navbar-toggler-icon {
-            filter: brightness(0) invert(1);
         }
+
+        /* Footer Link Hover */
+        .hover-link {
+            transition: color 0.3s ease, padding-left 0.3s ease;
+        }
+
+            .hover-link:hover {
+                color: #ffc107 !important;
+                padding-left: 5px;
+            }
 
         main {
             flex: 1;
-        }
-
-        footer {
-            background: white;
-            border-top: 1px solid #eee;
-            padding: 25px 0;
-            margin-top: auto;
         }
     </style>
 </head>
@@ -183,24 +169,49 @@
         <div class="container">
 
             <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                <div class="brand-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-                ShopVerse
+                <i class="fas fa-shopping-bag"></i> ShopVerse
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
 
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Home" asp-action="Index">Anasayfa</a>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Kategoriler
+                        </a>
+                        <ul class="dropdown-menu animate-slide border-0 shadow-lg">
+                            <li><a class="dropdown-item fw-bold text-primary" href="/Product/Index">Tüm Kategoriler</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            @if (categories != null)
+                            {
+                                foreach (var cat in categories)
+                                {
+                                    <li><a class="dropdown-item" href="/Product/Index?categoryIds=@cat.Id">@cat.Name</a></li>
+                                }
+                            }
+                        </ul>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Product" asp-action="Index">Tüm Ürünler</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="/Product/Index?showDeals=true">
+                            <i class="fas fa-fire me-1"></i> Fırsatlar
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="About">Hakkımızda</a>
                     </li>
                 </ul>
 
@@ -215,53 +226,66 @@
 
                     @if (SignInManager.IsSignedIn(User))
                     {
+                        var currentUser = await UserManager.FindByNameAsync(User.Identity.Name);
+                        var displayName = currentUser?.Name ?? User.Identity.Name;
+
                         if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-sm text-white fw-bold rounded-pill px-4 shadow-sm d-flex align-items-center" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                            // --- ADMIN İSE ---
+                            // Sadece Admin Butonu ve Çıkış Butonu gösterilir. Profil Gizlenir.
+                            <li class="nav-item d-flex align-items-center gap-2">
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                                   class="btn btn-sm btn-dark fw-bold rounded-pill px-4 shadow-sm d-flex align-items-center">
                                     <i class="fas fa-user-shield me-2"></i>Admin Paneline Git
+                                </a>
+
+                                <a asp-controller="Account" asp-action="Logout"
+                                   class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                   style="width: 34px; height: 34px;" title="Çıkış Yap">
+                                    <i class="fas fa-sign-out-alt"></i>
                                 </a>
                             </li>
                         }
                         else
                         {
-                            var currentUser = await UserManager.FindByNameAsync(User.Identity.Name);
-                            var displayName = currentUser?.Name ?? User.Identity.Name;
-
+                            // --- NORMAL KULLANICI İSE ---
+                            // Profil Dropdown Menüsü Gösterilir
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle nav-profile-link d-flex align-items-center gap-2 pe-1" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     @if (currentUser != null && !string.IsNullOrEmpty(currentUser.ImageUrl))
                                     {
                                         <img src="/userimages/@currentUser.ImageUrl" class="nav-profile-img">
                                     }
                                     else
                                     {
-                                        <div class="nav-icon-btn bg-white" style="width:40px; height:40px; color: #0072ff;">
-                                            <i class="fas fa-user"></i>
+                                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px; border: 2px solid #e9ecef;">
+                                            @displayName.Substring(0, 1).ToUpper()
                                         </div>
                                     }
-                                    <span class="d-none d-lg-inline text-white small fw-bold" style="opacity:0.95;">@displayName</span>
+                                    <span class="d-none d-lg-inline text-dark small fw-bold">@displayName</span>
                                 </a>
 
-                                <ul class="dropdown-menu dropdown-menu-end animate slideIn" aria-labelledby="userDropdown">
+                                <ul class="dropdown-menu dropdown-menu-end animate-slide p-2" aria-labelledby="userDropdown">
                                     <li>
                                         <div class="px-3 py-2 border-bottom mb-2">
                                             <small class="text-muted d-block" style="font-size: 0.75rem;">Hesap</small>
                                             <span class="fw-bold text-dark">@displayName</span>
                                         </div>
                                     </li>
-                                    <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-cog me-2 text-secondary"></i>Profilim</a></li>
+                                    <li><a class="dropdown-item rounded" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-circle me-2 text-muted"></i>Profilim</a></li>
+                                    <li><a class="dropdown-item rounded" asp-controller="Favorite" asp-action="Index"><i class="fas fa-heart me-2 text-muted"></i>Favorilerim</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
+                                    <li><a class="dropdown-item rounded text-danger" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
                                 </ul>
                             </li>
                         }
                     }
                     else
                     {
+                        // --- GİRİŞ YAPMAMIŞSA ---
                         <li class="nav-item d-flex align-items-center gap-2">
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-sm fw-bold rounded-pill px-4 text-white" style="border: 1px solid rgba(255,255,255,0.4);">Giriş</a>
-                            <a asp-controller="Account" asp-action="Register" class="btn btn-sm fw-bold rounded-pill px-4 shadow-sm bg-white border-0" style="color: #0072ff;">Kayıt</a>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm fw-bold rounded-pill px-4">Giriş</a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm fw-bold rounded-pill px-4 text-white">Kayıt</a>
                         </li>
                     }
                 </ul>
@@ -273,9 +297,62 @@
         @RenderBody()
     </main>
 
-    <footer class="text-center text-muted">
-        <div class="container">
-            <small>&copy; 2024 - ShopVerse - Tüm Hakları Saklıdır.</small>
+    <footer class="bg-dark text-white pt-5 pb-4 mt-auto" style="background: linear-gradient(to right, #2c3e50, #4ca1af);">
+        <div class="container text-center text-md-start">
+            <div class="row text-center text-md-start">
+
+                <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold text-warning">
+                        <i class="fas fa-shopping-bag me-2"></i>ShopVerse
+                    </h5>
+                    <p>
+                        Teknolojiden modaya, aradığınız her şey en uygun fiyatlarla ShopVerse'de. Güvenli alışverişin ve hızlı teslimatın keyfini çıkarın.
+                    </p>
+                </div>
+
+                <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold text-warning">Kurumsal</h5>
+                    <p><a href="/Home/Index" class="text-white text-decoration-none hover-link">Anasayfa</a></p>
+                    <p><a href="/Product/Index" class="text-white text-decoration-none hover-link">Tüm Ürünler</a></p>
+                    <p><a href="/Home/Privacy" class="text-white text-decoration-none hover-link">Gizlilik Politikası</a></p>
+                    <p><a href="/Home/About" class="text-white text-decoration-none hover-link">Hakkımızda</a></p>
+                </div>
+
+                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold text-warning">İletişim</h5>
+                    <p><i class="fas fa-home me-2"></i> İstanbul, Kadıköy, TR</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@shopverse.com</p>
+                    <p><i class="fas fa-phone me-2"></i> +90 555 123 45 67</p>
+                </div>
+
+                <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold text-warning">Bizi Takip Edin</h5>
+                    <div class="d-flex justify-content-center justify-content-md-start">
+                        <a href="#" class="btn btn-outline-light btn-floating m-1 rounded-circle border-0" style="background-color: rgba(255,255,255,0.1);"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-floating m-1 rounded-circle border-0" style="background-color: rgba(255,255,255,0.1);"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-floating m-1 rounded-circle border-0" style="background-color: rgba(255,255,255,0.1);"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-floating m-1 rounded-circle border-0" style="background-color: rgba(255,255,255,0.1);"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="mb-4">
+
+            <div class="row align-items-center">
+                <div class="col-md-7 col-lg-8">
+                    <p class="mb-0">
+                        © @DateTime.Now.Year <strong>ShopVerse</strong>. Tüm Hakları Saklıdır.
+                        <a href="/Home/Privacy" class="text-warning text-decoration-none ms-2"><strong>Gizlilik & Güvenlik</strong></a>
+                    </p>
+                </div>
+                <div class="col-md-5 col-lg-4">
+                    <div class="text-center text-md-end">
+                        <i class="fab fa-cc-visa fa-2x ms-2"></i>
+                        <i class="fab fa-cc-mastercard fa-2x ms-2"></i>
+                        <i class="fab fa-cc-paypal fa-2x ms-2"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -284,7 +361,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // 1. SEPETE EKLEME (AJAX - Toast Mesaj)
         function addToCart(productId, quantity = 1) {
             $.ajax({
                 url: '/Cart/AddToCart',
@@ -305,7 +381,6 @@
                             color: '#333'
                         });
 
-                        // Sepet sayısını güncelle
                         var badge = $("#cart-badge-count");
                         if (badge.length) {
                             badge.text(response.cartCount);
@@ -316,16 +391,74 @@
             });
         }
 
+        function toggleFavorite(productId, btnElement) {
+            $.ajax({
+                url: '/Favorite/Toggle',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (response) {
+                    if (response.success) {
+                        var icon = $(btnElement).find('i');
+
+                        if (response.isFavorited) {
+                            icon.removeClass('far').addClass('fas text-danger');
+                        } else {
+                            icon.removeClass('fas text-danger').addClass('far');
+                            if (window.location.pathname.toLowerCase().includes("/favorite")) {
+                                $(btnElement).closest('.col').fadeOut(300, function() { $(this).remove(); });
+
+                                var countBadge = $(".badge.bg-secondary.rounded-pill");
+                                if(countBadge.length) {
+                                    countBadge.text(response.count + " Ürün");
+                                }
+                            }
+                        }
+
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: false
+                        });
+
+                        Toast.fire({
+                            icon: response.isFavorited ? 'success' : 'info',
+                            title: response.isFavorited ? 'Favorilere Eklendi' : 'Favorilerden Çıkarıldı'
+                        });
+
+                    } else {
+                        Swal.fire({
+                            title: 'Giriş Yapmalısınız',
+                            text: response.message,
+                            icon: 'warning',
+                            confirmButtonText: 'Giriş Yap',
+                            showCancelButton: true,
+                            cancelButtonText: 'İptal',
+                            confirmButtonColor: '#0072ff'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/Account/Login';
+                            }
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire('Hata', 'Bir sorun oluştu.', 'error');
+                }
+            });
+        }
+
         $(document).ready(function() {
             var userMsg = '@Html.Raw(TempData["UserMessage"])';
-            var userType = '@TempData["UserType"]'; // "success", "error", "warning"
+            var userType = '@TempData["UserType"]';
 
             if (userMsg && userMsg.length > 0) {
                 Swal.fire({
-                    icon: userType || 'info', // Tip gelmezse info varsay
+                    icon: userType || 'info',
                     title: 'Bilgi',
                     text: userMsg,
-                    toast: true,             // Toast olarak göster (Sağ üst)
+                    toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,

@@ -3,6 +3,9 @@
 @{
     ViewData["Title"] = "Sepetim";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Controller'dan gelen Favori Ürün ID Listesi
+    var favList = ViewBag.FavoriteProductIds as List<int>;
 }
 
 <div class="container mt-5">
@@ -22,13 +25,16 @@
                                         <th scope="col" class="text-center">Fiyat</th>
                                         <th scope="col" class="text-center">Adet</th>
                                         <th scope="col" class="text-center">Toplam</th>
-                                        <th scope="col"></th>
+                                        <th scope="col" class="text-end pe-4">İşlemler</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var item in Model.CartItems)
                                     {
-                                        <tr>
+                                        // FAVORİ KONTROLÜ
+                                        bool isFav = favList != null && favList.Contains(item.Product.Id);
+
+                                        <tr id="row-@item.Product.Id">
                                             <td class="ps-4">
                                                 <div class="d-flex align-items-center">
                                                     <img src="@item.Product.ImageUrl" alt="@item.Product.Name"
@@ -87,9 +93,18 @@
                                             </td>
 
                                             <td class="text-end pe-4">
-                                                <button onclick="deleteFromCart(@item.Product.Id)" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px;">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="toggleFavorite(@item.Product.Id, this)"
+                                                            class="btn btn-sm btn-outline-secondary rounded-circle"
+                                                            style="width: 32px; height: 32px; display:flex; align-items:center; justify-content:center;"
+                                                            title="@(isFav ? "Favorilerden Çıkar" : "Favorilere Ekle")">
+                                                        <i class="@(isFav ? "fas text-danger" : "far") fa-heart"></i>
+                                                    </button>
+
+                                                    <button onclick="deleteFromCart(@item.Product.Id)" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
@@ -250,6 +265,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // GÜNCELLENMİŞ SİLME FONKSİYONU (AJAX - HIZLI YANIT)
         function deleteFromCart(id) {
             Swal.fire({
                 title: 'Emin misiniz?',
@@ -262,32 +278,62 @@
                 cancelButtonText: 'Vazgeç'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = "/Cart/RemoveFromCart?productId=" + id;
+                    // Sayfa yönlendirmesi yerine AJAX isteği yapıyoruz
+                    $.ajax({
+                        url: '/Cart/RemoveFromCart',
+                        type: 'GET', // Controller GET ile çalışıyor
+                        data: { productId: id },
+                        success: function () {
+                            // 1. ANINDA GÖRSEL GERİ BİLDİRİM (TOAST)
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Silindi',
+                                text: 'Ürün sepetten başarıyla kaldırıldı.',
+                                timer: 1000,
+                                showConfirmButton: false,
+                                toast: true,
+                                position: 'top-end',
+                                background: '#fff',
+                                timerProgressBar: true
+                            }).then(() => {
+                                // 2. Bildirim bittikten sonra sayfayı yenile (Fiyatları güncellemek için)
+                                location.reload();
+                            });
+
+                            // Opsiyonel: Satırı hemen silikleştir (Görsel hız için)
+                            $("#row-" + id).css("opacity", "0.3");
+                        },
+                        error: function() {
+                            Swal.fire('Hata', 'Bir sorun oluştu.', 'error');
+                        }
+                    });
                 }
             })
         }
 
         function checkDecrease(id, quantity) {
             if (quantity > 1) {
+                // Adet düşürme işlemi hala yönlendirme ile çalışabilir (veya AJAX yapılabilir)
                 window.location.href = "/Cart/Decrease?productId=" + id;
             } else {
+                // Adet 1 ise silme fonksiyonunu çağır (Artık AJAX çalışacak)
                 deleteFromCart(id);
             }
         }
     </script>
 
-    @if (TempData["Message"] != null)
+    @* Sadece Genel Mesajlar İçin (Silme dışındaki durumlar) *@
+    @if (TempData["UserMessage"] != null)
     {
-        var rawMessage = Html.Raw(TempData["Message"]);
-        var iconType = TempData["Icon"];
-
         <script>
             Swal.fire({
-                icon: '@iconType',
+                icon: '@TempData["UserType"]',
                 title: 'Bilgi',
-                text: '@rawMessage',
+                text: '@Html.Raw(TempData["UserMessage"])',
                 timer: 2000,
-                showConfirmButton: false
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
             });
         </script>
     }

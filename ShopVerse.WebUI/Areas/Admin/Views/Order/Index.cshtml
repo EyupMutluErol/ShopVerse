@@ -94,7 +94,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold text-dark m-0">Sipariş Yönetimi</h3>
         <span class="badge bg-primary rounded-pill px-3 py-2 fs-6 shadow-sm">
-            <i class="fas fa-shopping-bag me-2"></i>@Model.Count Toplam Sipariş
+            <i class="fas fa-shopping-bag me-2"></i>@(Model != null ? Model.Count : 0) Toplam Sipariş
         </span>
     </div>
 
@@ -120,16 +120,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.Count == 0)
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fas fa-box-open fa-3x opacity-25 mb-3"></i>
-                                    <p class="fw-bold">Kriterlere uygun sipariş bulunamadı.</p>
-                                </td>
-                            </tr>
-                        }
-                        else
+                        @if (Model != null && Model.Count > 0)
                         {
                             @foreach (var item in Model)
                             {
@@ -172,35 +163,17 @@
                                             switch (item.OrderStatus)
                                             {
                                                 case OrderStatus.Pending:
-                                                    badgeClass = "badge-pending";
-                                                    statusText = "Beklemede";
-                                                    icon = "fa-clock";
-                                                    break;
+                                                    badgeClass = "badge-pending"; statusText = "Beklemede"; icon = "fa-clock"; break;
                                                 case OrderStatus.Approved:
-                                                    badgeClass = "badge-approved";
-                                                    statusText = "Onaylandı";
-                                                    icon = "fa-check";
-                                                    break;
+                                                    badgeClass = "badge-approved"; statusText = "Onaylandı"; icon = "fa-check"; break;
                                                 case OrderStatus.Shipped:
-                                                    badgeClass = "badge-shipped";
-                                                    statusText = "Kargoda";
-                                                    icon = "fa-shipping-fast";
-                                                    break;
+                                                    badgeClass = "badge-shipped"; statusText = "Kargoda"; icon = "fa-shipping-fast"; break;
                                                 case OrderStatus.Delivered:
-                                                    badgeClass = "badge-delivered";
-                                                    statusText = "Teslim Edildi";
-                                                    icon = "fa-box-open";
-                                                    break;
+                                                    badgeClass = "badge-delivered"; statusText = "Teslim Edildi"; icon = "fa-box-open"; break;
                                                 case OrderStatus.Canceled:
-                                                    badgeClass = "badge-canceled";
-                                                    statusText = "İptal Edildi";
-                                                    icon = "fa-times";
-                                                    break;
+                                                    badgeClass = "badge-canceled"; statusText = "İptal Edildi"; icon = "fa-times"; break;
                                                 case OrderStatus.Refunded:
-                                                    badgeClass = "badge-refunded";
-                                                    statusText = "İade Edildi";
-                                                    icon = "fa-undo";
-                                                    break;
+                                                    badgeClass = "badge-refunded"; statusText = "İade Edildi"; icon = "fa-undo"; break;
                                             }
                                         }
                                         <span class="badge-status @badgeClass">
@@ -216,6 +189,18 @@
                                     </td>
                                 </tr>
                             }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted bg-light">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-shopping-cart fa-3x mb-3 opacity-25"></i>
+                                        <p class="mb-0 fw-bold">Henüz hiç sipariş alınmadı.</p>
+                                        <small>Siparişler gelmeye başladığında burada listelenecek.</small>
+                                    </div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -290,9 +275,9 @@
     <script>
         // Filtre Modalı İçin Tarih Seçici
         flatpickr(".date-filter", {
-            dateFormat: "Y-m-d", // Format veritabanı ile uyumlu olsun diye
+            dateFormat: "Y-m-d",
             locale: "tr",
-            enableTime: false // Genelde filtrede saat kullanılmaz ama istersen true yap
+            enableTime: false
         });
     </script>
 }

@@ -6,30 +6,43 @@ public class ProductUpdateViewModel
 {
     public int Id { get; set; }
 
-    [Required(ErrorMessage = "Ürün adı zorunludur.")]
     [Display(Name = "Ürün Adı")]
+    [Required(ErrorMessage = "Ürün adı zorunludur.")]
+    [MaxLength(200, ErrorMessage = "Ürün adı en fazla 200 karakter olabilir.")]
     public string Name { get; set; }
+
     [Display(Name = "Açıklama")]
+    [Required(ErrorMessage = "Ürün açıklaması zorunludur.")]
+    [MinLength(10, ErrorMessage = "Açıklama en az 10 karakter olmalıdır.")]
     public string Description { get; set; }
 
-    [Required]
     [Display(Name = "Fiyat")]
-    public decimal Price { get; set; }
+    [Required(ErrorMessage = "Fiyat bilgisi zorunludur.")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Fiyat 0'dan büyük olmalıdır.")]
+    public decimal? Price { get; set; }
+    
 
-    [Range(0, 100)]
     [Display(Name = "İndirim Oranı (%)")]
+    [Range(0, 100, ErrorMessage = "0 ile 100 arasında bir değer giriniz.")]
     public int? DiscountRate { get; set; }
 
-    [Required]
     [Display(Name = "Stok Adedi")]
-    public int Stock { get; set; }
+    [Required(ErrorMessage = "Stok bilgisi zorunludur.")]
+    [Range(0, 100000, ErrorMessage = "Geçerli bir stok adedi giriniz.")]
+    public int? Stock { get; set; }
 
-    [Required]
-    public int CategoryId { get; set; }
+    [Display(Name = "Kategori")]
+    [Required(ErrorMessage = "Lütfen bir kategori seçiniz.")]
+    public int? CategoryId { get; set; }
 
+    [Display(Name = "Yeni Görsel Yükle (Opsiyonel)")]
     public IFormFile? ImageFile { get; set; }
-    public string? ExistingImageUrl { get; set; } // Resmi değiştirmezse eskisi kalsın
 
+    public string? ExistingImageUrl { get; set; }
+
+    [Display(Name = "Anasayfada Göster")]
     public bool IsHome { get; set; }
+
+    [Display(Name = "Aktif")]
     public bool IsActive { get; set; }
 }

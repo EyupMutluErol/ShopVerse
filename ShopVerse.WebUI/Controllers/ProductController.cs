@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.Entities.Dtos;
@@ -12,16 +13,28 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
 
-        public ProductController(IProductService productService, ICategoryService categoryService, ICampaignService campaignService, ICouponService couponService)
+        // YENİ EKLENEN SERVİSLER
+        private readonly IFavoriteService _favoriteService;
+        private readonly UserManager<AppUser> _userManager;
+
+        public ProductController(
+            IProductService productService,
+            ICategoryService categoryService,
+            ICampaignService campaignService,
+            ICouponService couponService,
+            IFavoriteService favoriteService,
+            UserManager<AppUser> userManager)
         {
             _productService = productService;
             _categoryService = categoryService;
             _campaignService = campaignService;
             _couponService = couponService;
+            _favoriteService = favoriteService;
+            _userManager = userManager;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder)
+        public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder, bool showDeals = false)
         {
             // 1. Kategorileri Çek
             ViewBag.Categories = await _categoryService.GetAllAsync();
@@ -34,12 +47,9 @@ namespace ShopVerse.WebUI.Controllers
             );
             ViewBag.ActiveCampaigns = activeCampaigns;
 
-
-            // Sadece aktif ve süresi dolmamış kuponları getiriyoruz.
-            // View tarafında (Product/Index.cshtml) bu veriyi kullanarak rozet basacağız.
+            // 3. Aktif Kuponlar
             var activeCoupons = await _couponService.GetAllAsync(x => x.IsActive && x.ExpirationDate >= DateTime.Now);
             ViewBag.ActiveCoupons = activeCoupons;
-            // ============================================================
 
             // 4. Filtreleme İşlemleri
             var filterDto = new ProductFilterDto
@@ -53,12 +63,44 @@ namespace ShopVerse.WebUI.Controllers
 
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
-            // 5. Filtrelerin Ekranda Korunması İçin ViewData
+            // ========================================================================
+            // 5. FIRSAT FİLTRESİ (SHOW DEALS) - YENİ EKLENEN MANTIK
+            // ========================================================================
+            if (showDeals)
+            {
+                // Sadece İndirimi Olan VEYA Kampanyaya Dahil Olanları Filtrele
+                products = products.Where(p =>
+                    p.DiscountRate > 0 || // Kendi indirimi var mı?
+                    activeCampaigns.Any(c => c.TargetCategoryId == p.CategoryId || c.TargetCategoryId == null) // Kampanyası var mı?
+                ).ToList();
+
+                ViewData["IsDealsPage"] = true; // View tarafında başlığı "Günün Fırsatları" yapmak için
+            }
+            // ========================================================================
+
+            // 6. Filtrelerin Ekranda Korunması İçin ViewData
             ViewData["CurrentSearch"] = search;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;
             ViewData["SelectedCategories"] = categoryIds;
             ViewData["SortOrder"] = sortOrder;
+
+            // ============================================================
+            // 7. FAVORİLERİ GETİR
+            // ============================================================
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
+                    ViewBag.FavoriteProductIds = userFavorites.Select(x => x.ProductId).ToList();
+                }
+            }
+            else
+            {
+                ViewBag.FavoriteProductIds = new List<int>();
+            }
 
             return View(products);
         }
@@ -90,7 +132,6 @@ namespace ShopVerse.WebUI.Controllers
             decimal productDiscountPrice = product.Price;
             if (product.DiscountRate > 0)
             {
-                // PriceWithDiscount hesaplı gelmiyorsa: product.Price * (100 - product.DiscountRate) / 100
                 productDiscountPrice = product.PriceWithDiscount;
             }
 
@@ -129,8 +170,25 @@ namespace ShopVerse.WebUI.Controllers
 
             // 5. View'a Veri Taşıma
             ViewBag.FinalPrice = finalPrice;
-            ViewBag.DiscountType = discountType; // View'da hangisini göstereceğimizi bilmek için
-            ViewBag.DiscountRate = discountRate; // Ekrana % kaç yazacağız?
+            ViewBag.DiscountType = discountType;
+            ViewBag.DiscountRate = discountRate;
+
+            // ============================================================
+            // 6. FAVORİ KONTROLÜ
+            // ============================================================
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
+                    ViewBag.FavoriteProductIds = userFavorites.Select(x => x.ProductId).ToList();
+                }
+            }
+            else
+            {
+                ViewBag.FavoriteProductIds = new List<int>();
+            }
 
             return View(product);
         }
