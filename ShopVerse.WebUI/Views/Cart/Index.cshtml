@@ -66,8 +66,7 @@
 
                                             <td class="text-center">
                                                 <div class="btn-group border rounded-pill" role="group">
-                                                    <button type="button"
-                                                            onclick="checkDecrease(@item.Product.Id, @item.Quantity)"
+                                                    <button type="button" onclick="checkDecrease(@item.Product.Id, @item.Quantity)"
                                                             class="btn btn-sm btn-light rounded-start-pill px-3">
                                                         <i class="fas fa-minus small"></i>
                                                     </button>
@@ -121,18 +120,22 @@
                                         <input type="text" name="code" class="form-control" placeholder="Kod Giriniz" required>
                                         <button class="btn btn-dark" type="submit">Uygula</button>
                                     </div>
-                                    @if (TempData["Error"] != null)
-                                    {
-                                        <div class="text-danger small mt-1">
-                                            <i class="fas fa-exclamation-circle me-1"></i>@TempData["Error"]
-                                        </div>
-                                    }
-                                    @if (TempData["Success"] != null)
-                                    {
-                                        <div class="text-success small mt-1">
-                                            <i class="fas fa-check-circle me-1"></i>@TempData["Success"]
-                                        </div>
-                                    }
+
+                                    <div class="mt-2">
+                                        @if (TempData["CouponError"] != null)
+                                        {
+                                            <div class="alert alert-danger py-1 px-2 small mb-0 fw-bold">
+                                                <i class="fas fa-exclamation-circle me-1"></i> @TempData["CouponError"]
+                                            </div>
+                                        }
+
+                                        @if (TempData["CouponSuccess"] != null)
+                                        {
+                                            <div class="alert alert-success py-1 px-2 small mb-0 fw-bold">
+                                                <i class="fas fa-check-circle me-1"></i> @TempData["CouponSuccess"]
+                                            </div>
+                                        }
+                                    </div>
                                 </form>
                             }
                             else
@@ -197,7 +200,6 @@
                             </div>
 
                             @{
-                                // Kargo Dahil Son Fiyat Hesabı
                                 decimal cartTotal = ViewBag.FinalPrice != null ? (decimal)ViewBag.FinalPrice : Model.SubTotal;
                                 decimal shipping = cartTotal >= 500 ? 0 : 39.90m;
                                 decimal grandTotal = cartTotal + shipping;

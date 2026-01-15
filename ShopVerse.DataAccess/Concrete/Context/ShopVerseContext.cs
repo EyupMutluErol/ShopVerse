@@ -45,7 +45,7 @@ public class ShopVerseContext:IdentityDbContext<AppUser,AppRole,string>
             .HasOne(o=>o.AppUser)
             .WithMany()
             .HasForeignKey(o=>o.AppUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.Entity<CartItem>()
             .HasOne(ci => ci.Cart)

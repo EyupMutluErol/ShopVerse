@@ -279,15 +279,12 @@
         </div>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // 1. SEPETE EKLEME (Standart Toast)
+        // 1. SEPETE EKLEME (AJAX - Toast Mesaj)
         function addToCart(productId, quantity = 1) {
             $.ajax({
                 url: '/Cart/AddToCart',
@@ -308,6 +305,7 @@
                             color: '#333'
                         });
 
+                        // Sepet sayısını güncelle
                         var badge = $("#cart-badge-count");
                         if (badge.length) {
                             badge.text(response.cartCount);
@@ -318,25 +316,35 @@
             });
         }
 
-        
-        @if (TempData["OrderSuccess"] != null)
-        {
-                <text>
-                    $(document).ready(function() {
-                        Swal.fire({
-                            title: '@Html.Raw(TempData["OrderSuccess"])',
-                            icon: 'success',
-                            toast: true,               // Artık Popup değil Toast (Sağ üst)
-                            position: 'top-end',       // Sağ üst köşe
-                            showConfirmButton: false,  // Buton yok
-                            timer: 4000,               // 4 saniye görünsün
-                            timerProgressBar: true,    // Süre çubuğu olsun
-                            background: '#fff',        // Beyaz arka plan
-                            color: '#333'              // Siyah yazı
-                        });
-                    });
-                </text>
-        }
+        $(document).ready(function() {
+            var userMsg = '@Html.Raw(TempData["UserMessage"])';
+            var userType = '@TempData["UserType"]'; // "success", "error", "warning"
+
+            if (userMsg && userMsg.length > 0) {
+                Swal.fire({
+                    icon: userType || 'info', // Tip gelmezse info varsay
+                    title: 'Bilgi',
+                    text: userMsg,
+                    toast: true,             // Toast olarak göster (Sağ üst)
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            var orderSuccess = '@Html.Raw(TempData["OrderSuccess"])';
+            if (orderSuccess && orderSuccess.length > 0) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Siparişiniz Alındı!',
+                    text: orderSuccess,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#0072ff'
+                });
+            }
+        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

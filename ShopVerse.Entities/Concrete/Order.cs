@@ -35,7 +35,7 @@ public class Order:BaseEntity
     public string PhoneNumber { get; set; } // Kurye için gerekli
 
     // İlişkiler
-    public string AppUserId { get; set; } // AppUser ID'si string ise bu doğru
-    public AppUser AppUser { get; set; }
+    public string? AppUserId { get; set; } // AppUser ID'si string ise bu doğru
+    public AppUser? AppUser { get; set; }
     public List<OrderDetail> OrderDetails { get; set; }
 }

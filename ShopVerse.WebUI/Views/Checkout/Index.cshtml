@@ -1,59 +1,99 @@
-﻿@using ShopVerse.WebUI.Extensions
-@using ShopVerse.WebUI.Models
+﻿@using ShopVerse.WebUI.Models
 @model CheckoutViewModel
 
 @{
     ViewData["Title"] = "Ödeme ve Sipariş";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    
-
-    var cart = Context.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-    decimal total = cart.Sum(x => x.TotalPrice);
 }
+
+<style>
+    /* Kart girişleri için özel stil */
+    .form-control.is-valid {
+        border-color: #198754;
+        padding-right: calc(1.5em + .75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(.375em + .1875rem) center;
+        background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+    }
+</style>
+
 @if (!ViewData.ModelState.IsValid)
 {
-    <div class="alert alert-danger m-3">
-        <h4>Hata Oluştu! Lütfen aşağıdaki alanları kontrol edin:</h4>
-        <ul>
+    <div class="alert alert-danger m-3 shadow-sm border-0">
+        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Hata Oluştu!</h5>
+        <hr>
+        <ul class="mb-0 small">
             @foreach (var key in ViewData.ModelState.Keys)
             {
                 foreach (var error in ViewData.ModelState[key].Errors)
                 {
-                    <li><strong>@key:</strong> @error.ErrorMessage</li>
+                    <li>@error.ErrorMessage</li>
                 }
             }
         </ul>
     </div>
 }
+
 <div class="container mt-5 mb-5">
     <div class="py-5 text-center">
-        <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
-        <h2>Ödeme Formu</h2>
-        <p class="lead text-muted">Lütfen teslimat ve ödeme bilgilerini eksiksiz doldurunuz.</p>
+        <div class="d-inline-block p-3 rounded-circle bg-light mb-3">
+            <i class="fas fa-credit-card fa-3x text-primary"></i>
+        </div>
+        <h2 class="fw-bold">Güvenli Ödeme</h2>
+        <p class="lead text-muted">Siparişinizi tamamlamak için bilgilerinizi giriniz.</p>
     </div>
 
     <div class="row g-5">
+
         <div class="col-md-5 col-lg-4 order-md-last">
             <h4 class="d-flex justify-content-between align-items-center mb-3">
                 <span class="text-primary">Sepet Özeti</span>
-                <span class="badge bg-primary rounded-pill">@cart.Count</span>
+                <span class="badge bg-primary rounded-pill">@Model.CartItems.Sum(x => x.Quantity)</span>
             </h4>
 
-            <ul class="list-group mb-3 shadow-sm">
-                @foreach (var item in cart)
+            <ul class="list-group mb-3 shadow-sm border-0">
+                @foreach (var item in Model.CartItems)
                 {
                     <li class="list-group-item d-flex justify-content-between lh-sm">
                         <div>
                             <h6 class="my-0">@item.Product.Name</h6>
                             <small class="text-muted">Adet: @item.Quantity</small>
                         </div>
-                        <span class="text-muted">@item.TotalPrice.ToString("C2")</span>
+                        <span class="text-muted">@((item.Quantity * item.SalePrice).ToString("C2"))</span>
                     </li>
                 }
 
+                <li class="list-group-item d-flex justify-content-between bg-light mt-2">
+                    <span>Ara Toplam</span>
+                    <strong>@Model.SubTotal.ToString("C2")</strong>
+                </li>
+
                 <li class="list-group-item d-flex justify-content-between bg-light">
-                    <span class="fw-bold">Toplam Tutar</span>
-                    <strong class="text-primary fs-5">@total.ToString("C2")</strong>
+                    <span>Kargo</span>
+                    @if (Model.ShippingTotal == 0)
+                    {
+                        <span class="text-success fw-bold">Bedava</span>
+                    }
+                    else
+                    {
+                        <span>@Model.ShippingTotal.ToString("C2")</span>
+                    }
+                </li>
+
+                @if (Model.DiscountAmount > 0)
+                {
+                    <li class="list-group-item d-flex justify-content-between bg-light text-success">
+                        <span>
+                            <i class="fas fa-ticket-alt me-1"></i>Kupon İndirimi
+                        </span>
+                        <strong>-@Model.DiscountAmount.ToString("C2")</strong>
+                    </li>
+                }
+
+                <li class="list-group-item d-flex justify-content-between border-primary border-2">
+                    <span class="fw-bold fs-5 text-dark">Toplam Tutar</span>
+                    <strong class="fs-5 text-primary">@Model.GrandTotal.ToString("C2")</strong>
                 </li>
             </ul>
         </div>
@@ -61,23 +101,22 @@
         <div class="col-md-7 col-lg-8">
             <h4 class="mb-3">Teslimat Adresi</h4>
 
-            <form asp-controller="Checkout" asp-action="Index" method="post" class="needs-validation">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-controller="Checkout" asp-action="ProcessPayment" method="post" id="checkoutForm" class="needs-validation">
 
                 <div class="row g-3">
                     <div class="col-12">
                         <label asp-for="FullName" class="form-label">Ad Soyad</label>
-                        <input asp-for="FullName" class="form-control" placeholder="Adınız Soyadınız">
-                        <span asp-validation-for="FullName" class="text-danger"></span>
+                        <input asp-for="FullName" class="form-control" placeholder="Adınız Soyadınız" value="@(Model.User?.Name + " " + Model.User?.Surname)">
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
 
                     <div class="col-12 mb-3">
                         <label class="form-label">Telefon Numarası</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light">+90</span>
-                            <input type="text" asp-for="PhoneNumber" id="phoneInput" class="form-control" placeholder="555 444 33 22" maxlength="13" required />
+                            <input type="text" asp-for="PhoneNumber" id="phoneInput" class="form-control" placeholder="555 444 33 22" maxlength="13" value="@Model.User?.PhoneNumber" required />
                         </div>
-                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                     </div>
 
                     <div class="row mb-3">
@@ -86,69 +125,69 @@
                             <select asp-for="City" id="citySelect" class="form-select" required>
                                 <option value="">İl Seçiniz</option>
                             </select>
-                            <span asp-validation-for="City" class="text-danger"></span>
+                            <span asp-validation-for="City" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">İlçe</label>
                             <select asp-for="District" id="districtSelect" class="form-select" disabled required>
                                 <option value="">Önce İl Seçiniz</option>
                             </select>
-                            <span asp-validation-for="District" class="text-danger"></span>
+                            <span asp-validation-for="District" class="text-danger small"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Açık Adres</label>
                         <textarea asp-for="AddressLine" class="form-control" rows="3" placeholder="Mahalle, Sokak, Kapı No vb."></textarea>
-                        <span asp-validation-for="AddressLine" class="text-danger"></span>
+                        <span asp-validation-for="AddressLine" class="text-danger small"></span>
                     </div>
                 </div>
 
                 <hr class="my-4">
 
                 <h4 class="mb-3 mt-4">Ödeme Bilgileri</h4>
-                <div class="row g-3">
+                <div class="row g-3 bg-light p-3 rounded border">
                     <div class="col-md-6">
-                        <label class="form-label">Kart Üzerindeki İsim</label>
+                        <label class="form-label fw-bold">Kart Üzerindeki İsim</label>
                         <input type="text" asp-for="CardName" class="form-control" placeholder="Ad Soyad" required>
-                        <span asp-validation-for="CardName" class="text-danger"></span>
+                        <span asp-validation-for="CardName" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Kart Numarası</label>
+                        <label class="form-label fw-bold">Kart Numarası</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                            <span class="input-group-text bg-white"><i class="fas fa-credit-card text-muted"></i></span>
                             <input type="text" asp-for="CardNumber" id="cardNumber" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" required>
                         </div>
-                        <span asp-validation-for="CardNumber" class="text-danger"></span>
+                        <span asp-validation-for="CardNumber" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Ay</label>
+                        <label class="form-label fw-bold">Ay</label>
                         <input type="text" asp-for="ExpirationMonth" id="expMonth" class="form-control text-center" placeholder="AA" maxlength="2" required>
-                        <span asp-validation-for="ExpirationMonth" class="text-danger"></span>
+                        <span asp-validation-for="ExpirationMonth" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Yıl</label>
+                        <label class="form-label fw-bold">Yıl</label>
                         <input type="text" asp-for="ExpirationYear" id="expYear" class="form-control text-center" placeholder="YYYY" maxlength="4" required>
-                        <span asp-validation-for="ExpirationYear" class="text-danger"></span>
+                        <span asp-validation-for="ExpirationYear" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">CVV</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">CVV Güvenlik Kodu</label>
                         <div class="input-group">
                             <input type="text" asp-for="Cvv" id="cvv" class="form-control text-center" placeholder="000" maxlength="3" required>
-                            <span class="input-group-text" data-bs-toggle="tooltip" title="Kartın arkasındaki 3 haneli kod"><i class="fas fa-question-circle"></i></span>
+                            <span class="input-group-text bg-white" data-bs-toggle="tooltip" title="Kartın arkasındaki son 3 rakam"><i class="fas fa-question-circle text-muted"></i></span>
                         </div>
-                        <span asp-validation-for="Cvv" class="text-danger"></span>
+                        <span asp-validation-for="Cvv" class="text-danger small"></span>
                     </div>
                 </div>
 
                 <hr class="my-4">
 
-                <button class="w-100 btn btn-success btn-lg py-3 shadow-sm" type="submit">
-                    <i class="fas fa-check-circle me-2"></i> @total.ToString("C2") - Ödemeyi Yap
+                <button class="w-100 btn btn-success btn-lg py-3 shadow-sm fw-bold" type="submit">
+                    <i class="fas fa-lock me-2"></i> @Model.GrandTotal.ToString("C2") Ödemeyi Tamamla
                 </button>
             </form>
         </div>
@@ -158,29 +197,29 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // İL-İLÇE DATASI (Kısaltıldı, sendeki uzun hali kalabilir)
+        // İL-İLÇE DATASI
         const turkeyData = {
-            "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Beşiktaş", "Esenler", "Kadıköy", "Şişli", "Üsküdar"],
-            "Ankara": ["Altındağ", "Çankaya", "Keçiören", "Mamak", "Yenimahalle"],
-            "İzmir": ["Bornova", "Buca", "Karşıyaka", "Konak"],
-            "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım"],
-            "Antalya": ["Alanya", "Kepez", "Muratpaşa"]
+            "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"],
+            "Ankara": ["Akyurt", "Altındağ", "Ayaş", "Bala", "Beypazarı", "Çamlıdere", "Çankaya", "Çubuk", "Elmadağ", "Etimesgut", "Evren", "Gölbaşı", "Güdül", "Haymana", "Kalecik", "Kazancık", "Keçiören", "Kızılcahamam", "Mamak", "Nallıhan", "Polatlı", "Pursaklar", "Sincan", "Şereflikoçhisar", "Yenimahalle"],
+            "İzmir": ["Aliağa", "Balçova", "Bayındır", "Bayraklı", "Bergama", "Beydağ", "Bornova", "Buca", "Çeşme", "Çiğli", "Dikili", "Foça", "Gaziemir", "Güzelbahçe", "Karabağlar", "Karaburun", "Karşıyaka", "Kemalpaşa", "Kınık", "Kiraz", "Konak", "Menderes", "Menemen", "Narlıdere", "Ödemiş", "Seferihisar", "Selçuk", "Tire", "Torbalı", "Urla"]
         };
 
         $(document).ready(function () {
             // --- 1. İL ve İLÇE MANTIĞI ---
             var citySelect = $('#citySelect');
             var districtSelect = $('#districtSelect');
-            var selectedDistrict = '@(Model?.District ?? "")';
+            var selectedCity = '@(Model.User?.City ?? "")'; // Model'den gelen şehir
+            var selectedDistrict = '@(Model.District ?? "")';
 
-            // İlleri doldur (Sendeki uzun listeyi buraya koyabilirsin)
+            // İlleri doldur
             $.each(turkeyData, function(city, districts) {
                 citySelect.append($('<option>', { value: city, text: city }));
             });
 
-            if(citySelect.val()) {
-                populateDistricts(citySelect.val());
-                if(selectedDistrict) districtSelect.val(selectedDistrict);
+            // Eğer kullanıcıda kayıtlı şehir varsa seç
+            if(selectedCity && turkeyData[selectedCity]) {
+                 citySelect.val(selectedCity);
+                 populateDistricts(selectedCity);
             }
 
             citySelect.change(function() {
@@ -201,7 +240,6 @@
 
             // --- 2. FORMATLAMA VE YEŞİL ÇERÇEVE (VALIDATION) ---
 
-            // Yardımcı Fonksiyon: Doğruysa Yeşil, Yanlışsa Normal
             function validateInput(element, isValid) {
                 if (isValid) {
                     $(element).addClass('is-valid').removeClass('is-invalid');
@@ -210,17 +248,15 @@
                 }
             }
 
-            // Kart Numarası (16 hane + boşluklar = 19 karakter)
+            // Kart Numarası
             $('#cardNumber').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 16);
                 var formatted = val.match(/.{1,4}/g)?.join(' ') || val;
                 $(this).val(formatted);
-
-                // Yeşil Çerçeve Kontrolü
                 validateInput(this, val.length === 16);
             });
 
-            // Telefon (10 hane)
+            // Telefon
             $('#phoneInput').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 10);
                 var formatted = val;
@@ -228,19 +264,17 @@
                 if (val.length > 6) formatted = formatted.slice(0, 7) + " " + val.slice(6);
                 if (val.length > 8) formatted = formatted.slice(0, 10) + " " + val.slice(8);
                 $(this).val(formatted);
-
-                // Yeşil Çerçeve Kontrolü
                 validateInput(this, val.length === 10);
             });
 
-            // Ay (2 hane, 01-12 arası)
+            // Ay
             $('#expMonth').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 2);
                 $(this).val(val);
                 validateInput(this, val.length === 2 && parseInt(val) <= 12 && parseInt(val) > 0);
             });
 
-            // Yıl (4 hane, şimdiki yıldan büyük)
+            // Yıl
             $('#expYear').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 4);
                 $(this).val(val);
@@ -248,7 +282,7 @@
                 validateInput(this, val.length === 4 && parseInt(val) >= currentYear);
             });
 
-            // CVV (3 hane)
+            // CVV
             $('#cvv').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 3);
                 $(this).val(val);
@@ -258,8 +292,11 @@
             // FORM GÖNDERİLİRKEN TEMİZLİK
             $('#checkoutForm').on('submit', function() {
                 var phoneInput = $('#phoneInput');
-                phoneInput.val(phoneInput.val().replace(/\s/g, '')); // Telefon boşluklarını sil
-                districtSelect.prop('disabled', false); // İlçe disable ise kaldır
+                // Boşlukları silerek gönder (Backend'de temiz almak için)
+                // phoneInput.val(phoneInput.val().replace(/\s/g, ''));
+                // Not: Eğer maskeli kaydetmek istiyorsan yukarıyı yorum satırı yap
+
+                districtSelect.prop('disabled', false);
                 return true;
             });
         });

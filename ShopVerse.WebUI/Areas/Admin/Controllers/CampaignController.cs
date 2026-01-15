@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
-using ShopVerse.WebUI.Utils; // ImageHelper için gerekli namespace
+using ShopVerse.WebUI.Areas.Admin.Models;
+using ShopVerse.WebUI.Utils; // ImageHelper için namespace
 
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
@@ -13,10 +14,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
     {
         private readonly ICampaignService _campaignService;
         private readonly ICategoryService _categoryService;
-        private readonly ImageHelper _imageHelper; // 1. Helper'ı tanımla
+        private readonly ImageHelper _imageHelper; // Helper Tanımlandı
 
-        // 2. Constructor'a ImageHelper'ı ekle
-        public CampaignController(ICampaignService campaignService, ICategoryService categoryService, ImageHelper imageHelper)
+        public CampaignController(
+            ICampaignService campaignService,
+            ICategoryService categoryService,
+            ImageHelper imageHelper) // Constructor Injection
         {
             _campaignService = campaignService;
             _categoryService = categoryService;
@@ -38,28 +41,46 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Campaign campaign, IFormFile? file)
+        public async Task<IActionResult> Create(CampaignAddViewModel model)
         {
-            // Validasyon temizliği
-            ModelState.Remove("ImageUrl");
-            ModelState.Remove("TargetCategory"); // İlişki hatasını önlemek için
-
             if (ModelState.IsValid)
             {
-                if (file != null)
+                // 1. RESİM YÜKLEME (Helper Kullanarak)
+                string imagePath = "/img/no-image.png"; // Varsayılan görsel
+
+                if (model.ImageFile != null)
                 {
-                    // 3. Helper ile dosya yükleme (Kodlar kısaldı)
-                    campaign.ImageUrl = await _imageHelper.UploadFile(file, "campaigns");
+                    // "campaigns" klasörüne yükle. Helper, klasör yoksa oluşturur.
+                    imagePath = await _imageHelper.UploadFile(model.ImageFile, "campaigns");
                 }
 
+                // 2. MAPPING (ViewModel -> Entity)
+                var campaign = new Campaign
+                {
+                    Title = model.Title,
+                    Description = model.Description,
+                    StartDate = model.StartDate.Value,
+                    EndDate = model.EndDate.Value,
+                    DiscountPercentage = model.DiscountPercentage ?? 0,
+                    TargetCategoryId = model.TargetCategoryId, // Null olabilir
+
+                    ImageUrl = imagePath, // Helper'dan dönen yolu kaydet
+
+                    IsActive = model.IsActive,
+                    CreatedDate = DateTime.Now
+                };
+
+                // 3. KAYIT
                 await _campaignService.AddAsync(campaign);
-                TempData["Success"] = "Kampanya başarıyla oluşturuldu.";
+
+                // 4. BAŞARI MESAJI (Admin Özel Key)
+                TempData["AdminSuccess"] = "Kampanya başarıyla oluşturuldu.";
                 return RedirectToAction("Index");
             }
 
-            var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            return View(campaign);
+            // Validasyon Hatası Varsa Dropdown'ı Tekrar Doldur
+            ViewBag.Categories = new SelectList(await _categoryService.GetAllAsync(), "Id", "Name");
+            return View(model);
         }
 
         [HttpGet]
@@ -70,14 +91,18 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
             var categories = await _categoryService.GetAllAsync();
+            // Dropdown'da mevcut kategoriyi seçili getir
             ViewBag.Categories = new SelectList(categories, "Id", "Name", campaign.TargetCategoryId);
+
             return View(campaign);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(Campaign campaign, IFormFile? file)
         {
+            // Validasyondan ImageUrl ve Navigation Property'yi çıkar
             ModelState.Remove("ImageUrl");
             ModelState.Remove("TargetCategory");
 
@@ -89,14 +114,18 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     return NotFound();
                 }
 
+                // YENİ RESİM VARSA YÜKLE
                 if (file != null)
                 {
-                    // Yeni dosya varsa Helper ile yükle
+                    // Eski resmi sil (Opsiyonel ama iyi olur)
+                    // if (existingCampaign.ImageUrl != "/img/no-image.png") { ... silme kodu ... }
+
+                    // Yeni resmi yükle
                     existingCampaign.ImageUrl = await _imageHelper.UploadFile(file, "campaigns");
                 }
-                // else: Dosya yoksa eskisini koru (zaten existingCampaign içinde var)
+                // else: Dosya yoksa mevcut ImageUrl korunur
 
-                // Diğer alanları güncelle
+                // DİĞER ALANLARI GÜNCELLE
                 existingCampaign.Title = campaign.Title;
                 existingCampaign.Description = campaign.Description;
                 existingCampaign.DiscountPercentage = campaign.DiscountPercentage;
@@ -107,12 +136,14 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
 
                 await _campaignService.UpdateAsync(existingCampaign);
 
-                TempData["Success"] = "Kampanya güncellendi.";
+                TempData["AdminSuccess"] = "Kampanya başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
 
+            // Hata varsa view'ı doldur
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name", campaign.TargetCategoryId);
+
             return View(campaign);
         }
 
@@ -121,22 +152,26 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             var campaign = await _campaignService.GetByIdAsync(id);
             if (campaign != null)
             {
-                // 4. Silme işlemi için yolu ImageHelper formatına göre ayarla
-                if (!string.IsNullOrEmpty(campaign.ImageUrl))
+                // RESİM SİLME İŞLEMİ (Opsiyonel: Varsayılan resmi silme)
+                if (!string.IsNullOrEmpty(campaign.ImageUrl) && !campaign.ImageUrl.Contains("no-image"))
                 {
-                    // ImageUrl artık "/img/campaigns/dosya.jpg" şeklinde geliyor.
-                    // Başındaki "/" işaretini kaldırıp wwwroot ile birleştiriyoruz.
+                    // ImageUrl: "/img/campaigns/resim.jpg"
+                    // Path: "wwwroot/img/campaigns/resim.jpg"
                     var relativePath = campaign.ImageUrl.TrimStart('/');
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+                    var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 
-                    if (System.IO.File.Exists(path))
+                    if (System.IO.File.Exists(fullPath))
                     {
-                        System.IO.File.Delete(path);
+                        System.IO.File.Delete(fullPath);
                     }
                 }
 
                 await _campaignService.DeleteAsync(campaign);
-                TempData["Success"] = "Kampanya silindi.";
+                TempData["AdminSuccess"] = "Kampanya başarıyla silindi.";
+            }
+            else
+            {
+                TempData["AdminError"] = "Kampanya bulunamadı.";
             }
 
             return RedirectToAction("Index");

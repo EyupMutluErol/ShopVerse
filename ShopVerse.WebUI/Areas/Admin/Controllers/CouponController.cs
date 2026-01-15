@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
-using Microsoft.AspNetCore.Identity; // EKLENDİ
-
+using ShopVerse.WebUI.Areas.Admin.Models; // ViewModel namespace'i
 using System;
 using System.Threading.Tasks;
 
@@ -15,16 +16,16 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
     {
         private readonly ICouponService _couponService;
         private readonly ICategoryService _categoryService;
-        private readonly UserManager<AppUser> _userManager; // EKLENDİ
+        private readonly UserManager<AppUser> _userManager;
 
         public CouponController(
             ICouponService couponService,
             ICategoryService categoryService,
-            UserManager<AppUser> userManager) // EKLENDİ
+            UserManager<AppUser> userManager)
         {
             _couponService = couponService;
             _categoryService = categoryService;
-            _userManager = userManager; // ATANDI
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -36,57 +37,54 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            // 1. Kategorileri Çek
-            ViewBag.Categories = await _categoryService.GetAllAsync();
-
-            // 2. YENİ: Üyeleri Çek (Admin olmayan, sadece 'Member' rolündekiler)
-            // Not: Eğer çok fazla üye varsa bu yöntem yavaşlatabilir, select2 veya searchbox gerekebilir.
-            // Şimdilik basit liste olarak alıyoruz.
-            var members = await _userManager.GetUsersInRoleAsync("Member");
-            ViewBag.Users = members;
-
+            await PopulateDropdowns(); // Dropdownları doldur
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Coupon coupon)
+        public async Task<IActionResult> Create(CouponAddViewModel model)
         {
-            // 1. FIX: Eğer seçim yapılmadıysa gelen "" değerini NULL yap.
-            if (string.IsNullOrEmpty(coupon.UserId))
-            {
-                coupon.UserId = null;
-            }
-
-            // 2. FIX: Eğer kategori seçilmediyse gelen 0 veya "" değerini NULL yap.
-            if (coupon.CategoryId == 0)
-            {
-                coupon.CategoryId = null;
-            }
-
-            // 3. FIX: Navigation Property'leri validasyondan çıkar
-            // (Formdan AppUser veya Category nesnesi gelmiyor, sadece ID'leri geliyor, bu yüzden hata verebilir)
-            ModelState.Remove("AppUser");
-            ModelState.Remove("Category");
-
-            // --- Standart İşlemler ---
-            coupon.Code = coupon.Code.ToUpper();
-
-            if (coupon.ExpirationDate < DateTime.Now)
-            {
-                ModelState.AddModelError("ExpirationDate", "Son kullanma tarihi geçmiş olamaz.");
-            }
-
             if (ModelState.IsValid)
             {
+                // 1. ViewModel -> Entity Dönüşümü (Mapping)
+                var coupon = new Coupon
+                {
+                    Code = model.Code.ToUpper(), // Kodları her zaman büyük harf yap
+                    IsPercentage = model.IsPercentage,
+
+                    // ViewModel'de Validasyon olduğu için .Value güvenlidir
+                    DiscountAmount = model.DiscountAmount.Value,
+                    MinCartAmount = model.MinCartAmount.Value,
+                    ExpirationDate = model.ExpirationDate.Value,
+
+                    // Dropdown boş gelirse null olur (Entity'de int? olduğu için sorun yok)
+                    CategoryId = model.CategoryId,
+
+                    // String boş gelirse null olarak kaydet (FK hatası almamak için)
+                    UserId = string.IsNullOrEmpty(model.UserId) ? null : model.UserId,
+
+                    IsActive = model.IsActive,
+                    CreatedDate = DateTime.Now
+                };
+
+                // 2. Ekstra Kontrol: Kod daha önce kullanılmış mı?
+                var existingCoupon = _couponService.GetByCode(coupon.Code);
+                if (existingCoupon != null)
+                {
+                    ModelState.AddModelError("Code", "Bu kupon kodu zaten mevcut.");
+                    await PopulateDropdowns(); // Hata olduğu için dropdownları tekrar doldur
+                    return View(model);
+                }
+
+                // 3. Kayıt
                 await _couponService.AddAsync(coupon);
+                TempData["AdminSuccess"] = "Kupon başarıyla oluşturuldu.";
                 return RedirectToAction("Index");
             }
 
-            // Hata varsa sayfayı tekrar doldur
-            ViewBag.Categories = await _categoryService.GetAllAsync();
-            ViewBag.Users = await _userManager.GetUsersInRoleAsync("Member");
-
-            return View(coupon);
+            // Validasyon hatası varsa (ModelState Invalid)
+            await PopulateDropdowns();
+            return View(model);
         }
 
         public async Task<IActionResult> Delete(int id)
@@ -95,9 +93,25 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             if (value != null)
             {
                 await _couponService.DeleteAsync(value);
-                TempData["Success"] = "Kupon başarıyla silindi.";
+                TempData["AdminSuccess"] = "Kupon başarıyla silindi.";
+            }
+            else
+            {
+                TempData["Error"] = "Kupon bulunamadı.";
             }
             return RedirectToAction("Index");
+        }
+
+        // Dropdown verilerini dolduran yardımcı metot (Kod tekrarını önlemek için)
+        private async Task PopulateDropdowns()
+        {
+            // Kategoriler
+            var categories = await _categoryService.GetAllAsync();
+            ViewBag.Categories = categories;
+
+            // Üyeler (Sadece 'Member' rolündekiler)
+            var members = await _userManager.GetUsersInRoleAsync("Member");
+            ViewBag.Users = members;
         }
     }
 }

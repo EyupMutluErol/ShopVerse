@@ -1,4 +1,4 @@
-﻿@model ShopVerse.Entities.Concrete.Campaign
+﻿@model ShopVerse.WebUI.Areas.Admin.Models.CampaignAddViewModel
 
 @{
     ViewData["Title"] = "Yeni Kampanya";
@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
 <style>
-    /* Varsayılan sayı oklarını gizle */
+    /* Sayı inputundaki okları gizle */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -19,124 +19,144 @@
     input[type=number] {
         -moz-appearance: textfield;
     }
+
+    /* TARİH SEÇİCİ İÇİN ÖZEL STİL */
+    .date-picker {
+        cursor: pointer !important; /* Üzerine gelince el işareti çıksın */
+        background-color: #fff !important; /* Readonly olsa bile beyaz kalsın */
+    }
 </style>
 
 <div class="container mt-4">
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div asp-validation-summary="All" class="alert alert-danger"></div>
-    }
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm border-0 mb-4"></div>
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-success text-white">
-            <h5 class="m-0"><i class="fas fa-plus-circle me-2"></i>Yeni Kampanya Oluştur</h5>
+    <div class="card shadow border-0 rounded-3">
+        <div class="card-header bg-success text-white py-3 rounded-top-3">
+            <h5 class="m-0 fw-bold"><i class="fas fa-plus-circle me-2"></i>Yeni Kampanya Oluştur</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <form asp-action="Create" method="post" enctype="multipart/form-data">
 
                 <div class="row">
                     <div class="col-md-8">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Kampanya Başlığı</label>
-                            <input asp-for="Title" class="form-control" placeholder="Örn: Bahar İndirimi" />
-                            <span asp-validation-for="Title" class="text-danger"></span>
+
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-bold"></label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Örn: Yaz İndirimleri" />
+                            <span asp-validation-for="Title" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Açıklama (Alt Başlık)</label>
-                            <input asp-for="Description" class="form-control" placeholder="Örn: Tüm Telefonlarda geçerli..." />
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Kampanya detaylarını giriniz..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Başlangıç Tarihi</label>
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="StartDate" class="form-label fw-bold"></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
-                                    <input asp-for="StartDate" type="text" class="form-control date-picker" placeholder="Tarih ve Saat Seçin" />
+                                    <input asp-for="StartDate" type="text" class="form-control date-picker" placeholder="Başlangıç Seçin" readonly />
                                 </div>
+                                <span asp-validation-for="StartDate" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Bitiş Tarihi</label>
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="EndDate" class="form-label fw-bold"></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-calendar-check text-danger"></i></span>
-                                    <input asp-for="EndDate" type="text" class="form-control date-picker" placeholder="Tarih ve Saat Seçin" />
+                                    <input asp-for="EndDate" type="text" class="form-control date-picker" placeholder="Bitiş Seçin" readonly />
                                 </div>
+                                <span asp-validation-for="EndDate" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-4 bg-light p-3 rounded">
+                    <div class="col-md-4">
+                        <div class="bg-light p-4 rounded-3 h-100 border">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-danger">İndirim Oranı (%)</label>
-                            <div class="input-group">
-                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
+                            <div class="mb-4">
+                                <label asp-for="DiscountPercentage" class="form-label fw-bold text-danger"></label>
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
 
-                                <input asp-for="DiscountPercentage" type="number" id="discountInput"
-                                       class="form-control text-center fw-bold text-danger fs-5"
-                                       min="1" max="100" value="10" />
+                                    <input asp-for="DiscountPercentage" type="number" id="discountInput"
+                                           class="form-control text-center fw-bold text-danger fs-5"
+                                           min="1" max="100" value="10" />
 
-                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                    <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="DiscountPercentage" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
-                            <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Hedef Kategori</label>
-                            <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
-                                <option value="">Tüm Site (Genel)</option>
-                            </select>
-                            <small class="text-muted">Seçmezseniz genel kampanya olur.</small>
-                        </div>
+                            <div class="mb-4">
+                                <label asp-for="TargetCategoryId" class="form-label fw-bold"></label>
+                                <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                    <option value="">Tüm Site (Genel Kampanya)</option>
+                                </select>
+                                <div class="form-text small mt-1">Belirli bir kategori seçmezseniz genel kampanya olur.</div>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Banner Görseli</label>
-                            <input type="file" name="file" class="form-control" required />
-                        </div>
+                            <div class="mb-4">
+                                <label asp-for="ImageFile" class="form-label fw-bold"></label>
+                                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                                <span asp-validation-for="ImageFile" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
 
-                        <div class="form-check form-switch mt-3">
-                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                            <label class="form-check-label fw-bold">Kampanya Aktif</label>
+                            <div class="form-check form-switch p-3 bg-white border rounded">
+                                <input asp-for="IsActive" class="form-check-input ms-0 me-3" type="checkbox" role="switch" checked style="transform: scale(1.3);" />
+                                <label class="form-check-label fw-bold pt-1" asp-for="IsActive">Kampanya Yayında</label>
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
-                <hr />
+                <hr class="my-4 text-muted opacity-25" />
+
                 <div class="d-flex justify-content-end gap-2">
-                    <a asp-action="Index" class="btn btn-secondary">İptal</a>
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Kaydet</button>
+                    <a asp-action="Index" class="btn btn-secondary px-4 fw-bold">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </a>
+                    <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i>Kampanyayı Kaydet
+                    </button>
                 </div>
+
             </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // 1. Tarih Seçici Ayarları (Flatpickr)
+        // 1. Tarih Seçici Ayarları
         flatpickr(".date-picker", {
-            enableTime: true,       // Saat seçimi aktif
-            dateFormat: "Y-m-d H:i", // Veritabanı formatı (Yıl-Ay-Gün Saat:Dakika)
-            locale: "tr",           // Türkçe dil desteği
-            time_24hr: true,        // 24 saat formatı
-            minDate: "today"        // Geçmiş tarih seçilemesin
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            locale: "tr",
+            time_24hr: true,
+            minDate: "today",
+            allowInput: false,       // Elle yazmayı engelle (Sadece seçim)
+            disableMobile: "true"    // Mobilde native picker yerine flatpickr kullan
         });
 
-        // 2. İndirim Arttır/Azalt Buton Mantığı
+        // 2. İndirim Butonları
         function updateDiscount(amount) {
             var input = document.getElementById("discountInput");
             var currentVal = parseInt(input.value) || 0;
             var newVal = currentVal + amount;
 
-            // 1 ile 100 arasında sınırla
             if (newVal >= 1 && newVal <= 100) {
                 input.value = newVal;
             }

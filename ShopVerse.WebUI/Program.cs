@@ -31,6 +31,7 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     options.Password.RequiredLength = 8;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); 
     options.Lockout.MaxFailedAccessAttempts = 5;
+    options.SignIn.RequireConfirmedAccount = true;
 })
 .AddEntityFrameworkStores<ShopVerseContext>()
 .AddErrorDescriber<TrIdentityErrorDescriber>()

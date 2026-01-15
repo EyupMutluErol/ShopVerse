@@ -22,34 +22,8 @@
         background: white;
     }
 
-    .profile-header-bg {
-        height: 120px;
-        background: var(--blue-gradient);
-        position: relative;
-    }
-
-    .profile-img-container {
-        width: 110px;
-        height: 110px;
-        margin: -55px auto 15px;
-        position: relative;
-        padding: 4px;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .profile-img-lg {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid #f8f9fa;
-    }
-
-
     .custom-nav-pills {
-        background: #e9ecef; 
+        background: #e9ecef;
         padding: 6px;
         border-radius: 50px;
         display: inline-flex;
@@ -57,7 +31,7 @@
     }
 
         .custom-nav-pills .nav-link {
-            color: #495057 !important; 
+            color: #495057 !important;
             background: transparent !important;
             border-radius: 40px;
             padding: 10px 30px;
@@ -68,28 +42,14 @@
 
             .custom-nav-pills .nav-link:hover {
                 background: #dee2e6 !important;
-                color: #000000 !important; 
+                color: #000000 !important;
             }
 
             .custom-nav-pills .nav-link.active {
                 background: var(--blue-primary) !important;
-                color: #ffffff !important; 
+                color: #ffffff !important;
                 box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
             }
-
-    .btn-outline-blue {
-        color: var(--blue-primary);
-        border: 2px solid #e0e0e0;
-        border-radius: 50px;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-
-        .btn-outline-blue:hover {
-            border-color: var(--blue-primary);
-            background: #e3f2fd;
-            color: var(--blue-primary);
-        }
 
     .transition-hover:hover {
         transform: translateY(-3px);
@@ -198,10 +158,8 @@
                                         @foreach (var order in Model.Orders)
                                         {
                                             <div class="card border border-light shadow-sm rounded-3 overflow-hidden transition-hover">
-
                                                 <div class="card-body p-0">
                                                     <div class="p-3 p-md-4 bg-white d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-
                                                         <div class="d-flex align-items-center">
                                                             <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                                                 <i class="fas fa-box text-primary fa-lg"></i>
@@ -266,7 +224,6 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-
                                                             <div class="col-md-6">
                                                                 <div class="bg-white p-3 rounded-3 shadow-sm h-100 border-start border-4 border-success">
                                                                     <h6 class="text-uppercase text-success fw-bold small mb-3">
@@ -322,7 +279,6 @@
                                                                 </tbody>
                                                             </table>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -375,7 +331,7 @@
                                                     <small class="text-muted ms-1"><i class="fas fa-lock me-1"></i>Bu alan güvenlik nedeniyle değiştirilemez.</small>
                                                 </div>
 
-                                                <div class="col-12 mt-5">
+                                                <div class="col-12 mt-4">
                                                     <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm transition-hover">
                                                         <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
                                                     </button>
@@ -385,6 +341,23 @@
                                         </div>
                                     </div>
                                 </form>
+
+                                <div class="row justify-content-center mt-5">
+                                    <div class="col-lg-8">
+                                        <div class="card border border-danger shadow-sm bg-danger bg-opacity-10">
+                                            <div class="card-body p-4">
+                                                <h5 class="fw-bold text-danger mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Tehlikeli Bölge</h5>
+                                                <p class="text-dark small mb-3">
+                                                    Hesabınızı kapatırsanız, bu işlem geri alınamaz. Sipariş geçmişiniz anonim olarak sistemde kalacaktır ancak hesabınıza bir daha erişemezsiniz.
+                                                </p>
+                                                <button onclick="confirmDeleteAccount()" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
+                                                    <i class="fas fa-user-times me-2"></i>Hesabımı Kalıcı Olarak Sil
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                         </div>
@@ -396,6 +369,8 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         function toggleOrder(orderId) {
             var collapseElement = document.getElementById('orderDetails-' + orderId);
@@ -411,6 +386,26 @@
                 bsCollapse.show();
                 document.getElementById('icon-' + orderId).classList.replace('fa-chevron-down', 'fa-chevron-up');
             }
+        }
+
+        // HESAP SİLME ONAY SCRİPTİ
+        function confirmDeleteAccount() {
+            Swal.fire({
+                title: 'Çok Emin misiniz?',
+                text: "Hesabınız kalıcı olarak silinecek! Bu işlem geri alınamaz.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, Hesabımı Sil',
+                cancelButtonText: 'Vazgeç',
+                background: '#fff',
+                focusCancel: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/Profile/DeleteAccount";
+                }
+            })
         }
     </script>
 }

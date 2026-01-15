@@ -37,7 +37,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 var result = await _roleManager.CreateAsync(role);
                 if (result.Succeeded)
                 {
-                    TempData["Success"] = "Rol başarıyla oluşturuldu.";
+                    TempData["AdminSuccess"] = "Rol başarıyla oluşturuldu.";
                 }
                 else
                 {
@@ -81,7 +81,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
 
             if (result.Succeeded)
             {
-                TempData["Success"] = "Rol başarıyla silindi.";
+                TempData["AdminSuccess"] = "Rol başarıyla silindi.";
             }
             else
             {
@@ -109,7 +109,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 var result = await _roleManager.UpdateAsync(role);
                 if (result.Succeeded)
                 {
-                    TempData["Success"] = "Rol başarıyla güncellendi.";
+                    TempData["AdminSuccess"] = "Rol başarıyla güncellendi.";
                 }
                 else
                 {

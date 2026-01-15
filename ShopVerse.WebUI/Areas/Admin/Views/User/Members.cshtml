@@ -36,9 +36,9 @@
                                 <a asp-action="AssignRole" asp-route-id="@user.Id" class="btn btn-sm btn-warning text-dark">
                                     <i class="fas fa-user-tag"></i> Rol Düzenle
                                 </a>
-                                <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('Kullanıcıyı silmek istediğinize emin misiniz?');">
+                                <button onclick="deleteUser('@user.Id')" class="btn btn-sm btn-outline-danger ms-1">
                                     <i class="fas fa-trash"></i>
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     }
@@ -47,3 +47,22 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function deleteUser(id) {
+        Swal.fire({
+            title: 'Üyeyi Sil?',
+            text: "Bu üye kalıcı olarak silinecek!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Evet, Sil'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/Admin/User/Delete/" + id;
+            }
+        })
+    }
+</script>

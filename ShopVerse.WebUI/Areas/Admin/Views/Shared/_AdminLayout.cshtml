@@ -7,7 +7,6 @@
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -56,7 +55,7 @@
 
         .wrapper {
             display: flex;
-            min-height: calc(100vh - 70px); 
+            min-height: calc(100vh - 70px);
         }
 
         .sidebar {
@@ -195,7 +194,7 @@
 
                 <a href="/Admin/Order" class="sidebar-link @(path.StartsWith("/Admin/Order") ? "active" : "")">
                     <i class="fas fa-shopping-cart"></i> Siparişler
-                    @if (ViewBag.PendingOrders > 0)
+                    @if (ViewBag.PendingOrders != null && (int)ViewBag.PendingOrders > 0)
                     {
                         <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.7rem;">@ViewBag.PendingOrders</span>
                     }
@@ -222,8 +221,33 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        var adminSuccess = '@Html.Raw(TempData["AdminSuccess"])';
+        if (adminSuccess && adminSuccess.length > 0) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: adminSuccess,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+
+        var adminError = '@Html.Raw(TempData["AdminError"])';
+        if (adminError && adminError.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: adminError
+            });
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

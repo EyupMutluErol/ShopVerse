@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Http; // Session işlemleri için
-using Microsoft.AspNetCore.Identity; // Kullanıcı yönetimi için
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Extensions;
 using ShopVerse.WebUI.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace ShopVerse.WebUI.Controllers
 {
@@ -17,129 +14,147 @@ namespace ShopVerse.WebUI.Controllers
         private readonly IProductService _productService;
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
-        private readonly UserManager<AppUser> _userManager; // 1. YENİ EKLENEN
+        private readonly UserManager<AppUser> _userManager;
 
-        // Constructor'ı güncelliyoruz: UserManager eklendi
         public CartController(
             IProductService productService,
             ICampaignService campaignService,
             ICouponService couponService,
-            UserManager<AppUser> userManager) // 2. PARAMETRE OLARAK GELDİ
+            UserManager<AppUser> userManager)
         {
             _productService = productService;
             _campaignService = campaignService;
             _couponService = couponService;
-            _userManager = userManager; // 3. ATAMA YAPILDI
+            _userManager = userManager;
         }
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var cart = GetCartFromSession();
-
-            // 1. Sepet Toplamını Hesapla (SalePrice üzerinden)
-            decimal totalPrice = cart.Sum(x => x.Quantity * x.SalePrice);
-            decimal discountAmount = 0;
-            decimal finalPrice = totalPrice;
-
-            // 2. KUPON KONTROLÜ: Session'da kayıtlı kupon var mı?
             var appliedCouponCode = HttpContext.Session.GetString("AppliedCoupon");
 
+            // --- 1. KUPON VARSA: KAMPANYALARI İPTAL ET (NORMAL FİYATA DÖN) ---
             if (!string.IsNullOrEmpty(appliedCouponCode))
             {
-                // Business katmanındaki isimlendirme standardına göre TGetByCode kullanıyoruz
+                // Kupon uygulandığı için tüm ürünleri indirimsiz (Base Price) fiyatına çekiyoruz.
+                foreach (var item in cart)
+                {
+                    item.SalePrice = item.Product.Price;
+                }
+            }
+            else
+            {
+                // --- 2. KUPON YOKSA: KAMPANYALARI UYGULA ---
+                var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
+
+                foreach (var item in cart)
+                {
+                    var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null);
+
+                    // DÜZELTME: Değişken ismi 'itemPrice' yapıldı (CS0136 Hatası Çözümü)
+                    decimal itemPrice = item.Product.Price;
+
+                    // Kampanya İndirimi
+                    if (campaign != null)
+                    {
+                        decimal campaignPrice = item.Product.Price - (item.Product.Price * campaign.DiscountPercentage / 100);
+                        itemPrice = campaignPrice;
+                    }
+
+                    // Ürün Özel İndirimi
+                    if (item.Product.DiscountRate > 0)
+                    {
+                        // Müşteri için en avantajlı fiyatı seç
+                        itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                    }
+
+                    item.SalePrice = itemPrice;
+                }
+            }
+
+            // --- 3. TOPLAMLARI HESAPLA ---
+            decimal totalPrice = cart.Sum(x => x.Quantity * x.SalePrice);
+            decimal discountAmount = 0;
+
+            // Bu değişken artık döngü dışındaki scope'ta olduğu için hata vermez
+            decimal finalPrice = totalPrice;
+
+            // --- 4. KUPON İNDİRİMİNİ UYGULA ---
+            if (!string.IsNullOrEmpty(appliedCouponCode))
+            {
                 var coupon = _couponService.GetByCode(appliedCouponCode);
 
-                // Kupon hala geçerli mi ve sepet tutarı minimum limiti karşılıyor mu?
                 if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && totalPrice >= coupon.MinCartAmount)
                 {
                     if (coupon.IsPercentage)
                     {
-                        // Yüzde İndirimi
                         discountAmount = totalPrice * (coupon.DiscountAmount / 100);
                     }
                     else
                     {
-                        // Tutar İndirimi
                         discountAmount = coupon.DiscountAmount;
                     }
 
-                    // İndirim sepet tutarından büyükse, sepet 0 TL olsun (Eksiye düşmesin)
                     if (discountAmount > totalPrice) discountAmount = totalPrice;
-
                     finalPrice = totalPrice - discountAmount;
 
-                    // View'a gönderilecek veriler
                     ViewBag.CouponCode = coupon.Code;
                     ViewBag.DiscountAmount = discountAmount;
                 }
                 else
                 {
-                    // Şartlar artık sağlanmıyorsa kuponu düşür
+                    // Şartlar sağlanmıyorsa kuponu düşür
                     HttpContext.Session.Remove("AppliedCoupon");
                 }
             }
 
-            // Fiyatları View'a taşı
             ViewBag.TotalPrice = totalPrice;
             ViewBag.FinalPrice = finalPrice;
 
-            var cartViewModel = new CartViewModel
-            {
-                CartItems = cart
-            };
-            return View(cartViewModel);
+            return View(new CartViewModel { CartItems = cart });
         }
 
-        // --- GÜNCELLENEN: KUPON UYGULAMA METODU ---
         [HttpPost]
-        public async Task<IActionResult> ApplyCoupon(string code) // Async yapıldı
+        public async Task<IActionResult> ApplyCoupon(string code)
         {
             if (string.IsNullOrEmpty(code))
             {
-                TempData["Error"] = "Lütfen bir kod giriniz.";
+                TempData["CouponError"] = "Lütfen bir kod giriniz.";
                 return RedirectToAction("Index");
             }
 
             var coupon = _couponService.GetByCode(code.ToUpper());
             var cart = GetCartFromSession();
-            decimal totalPrice = cart.Sum(x => x.Quantity * x.SalePrice);
 
-            // 1. Kupon var mı, aktif mi, süresi dolmuş mu?
+            // Kupon limiti kontrolü için HAM FİYAT (Normal Fiyat) toplamına bakmalıyız.
+            decimal rawTotalPrice = cart.Sum(x => x.Quantity * x.Product.Price);
+
             if (coupon == null || !coupon.IsActive || coupon.ExpirationDate < DateTime.Now)
             {
-                TempData["Error"] = "Geçersiz veya süresi dolmuş kupon kodu.";
+                TempData["CouponError"] = "Geçersiz veya süresi dolmuş kupon kodu.";
                 return RedirectToAction("Index");
             }
 
-            // ============================================================
-            // 2. YENİ: KULLANICI KONTROLÜ (User Specific Check)
-            // ============================================================
-
-            // Eğer kupon bir kullanıcıya özelse (UserId doluysa)
             if (coupon.UserId != null)
             {
                 var user = await _userManager.GetUserAsync(User);
                 string currentUserId = user != null ? user.Id : null;
 
-                // Giriş yapmamışsa veya ID'ler eşleşmiyorsa
                 if (string.IsNullOrEmpty(currentUserId) || coupon.UserId != currentUserId)
                 {
-                    TempData["Error"] = "Bu kupon size ait değil veya kullanmak için giriş yapmalısınız.";
+                    TempData["CouponError"] = "Bu kupon size ait değil.";
                     return RedirectToAction("Index");
                 }
             }
-            // ============================================================
 
-            // 3. Minimum sepet tutarı kontrolü
-            if (totalPrice < coupon.MinCartAmount)
+            if (rawTotalPrice < coupon.MinCartAmount)
             {
-                TempData["Error"] = $"Bu kuponu kullanmak için sepet tutarınız en az {coupon.MinCartAmount:C2} olmalıdır.";
+                TempData["CouponError"] = $"Bu kuponu kullanmak için (indirimsiz) sepet tutarınız en az {coupon.MinCartAmount:C2} olmalıdır.";
                 return RedirectToAction("Index");
             }
 
-            // 4. Başarılıysa Session'a kaydet
             HttpContext.Session.SetString("AppliedCoupon", coupon.Code);
-            TempData["Success"] = "Kupon başarıyla uygulandı!";
+            TempData["CouponSuccess"] = "Kupon başarıyla uygulandı! (Kampanyalı fiyatlar devre dışı bırakıldı)";
 
             return RedirectToAction("Index");
         }
@@ -147,7 +162,7 @@ namespace ShopVerse.WebUI.Controllers
         public IActionResult RemoveCoupon()
         {
             HttpContext.Session.Remove("AppliedCoupon");
-            TempData["Success"] = "Kupon kaldırıldı.";
+            TempData["CouponSuccess"] = "Kupon kaldırıldı.";
             return RedirectToAction("Index");
         }
 
@@ -160,50 +175,26 @@ namespace ShopVerse.WebUI.Controllers
                 return Json(new { success = false, message = "Ürün bulunamadı." });
             }
 
-            // ============================================================
-            // FİYAT HESAPLAMA MANTIĞI (En İyi Fiyat Stratejisi)
-            // ============================================================
-
-            // 1. Aktif Kampanyaları Çek
-            var activeCampaigns = await _campaignService.GetAllAsync(x =>
-                x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now
-            );
-
-            // 2. Bu ürüne uygun kampanya var mı?
+            // Sepete eklerken varsayılan en iyi fiyatı hesapla (Index metodunda tekrar kontrol edilecek)
+            var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
             var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null);
 
-            // 3. Kampanyalı Fiyat
             decimal campaignPrice = product.Price;
             if (campaign != null)
-            {
                 campaignPrice = product.Price - (product.Price * campaign.DiscountPercentage / 100);
-            }
 
-            // 4. Ürün İndirimli Fiyat
             decimal productDiscountPrice = product.Price;
             if (product.DiscountRate > 0)
-            {
                 productDiscountPrice = product.PriceWithDiscount;
-            }
 
-            // 5. KARŞILAŞTIRMA: Hangisi daha ucuzsa onu seç
             decimal finalPrice = product.Price;
-
             if (campaign != null && product.DiscountRate > 0)
-            {
                 finalPrice = Math.Min(campaignPrice, productDiscountPrice);
-            }
             else if (campaign != null)
-            {
                 finalPrice = campaignPrice;
-            }
             else if (product.DiscountRate > 0)
-            {
                 finalPrice = productDiscountPrice;
-            }
-            // ============================================================
 
-            // SEPET İŞLEMLERİ
             var cart = GetCartFromSession();
             var existingItem = cart.FirstOrDefault(x => x.Product.Id == productId);
 
@@ -223,7 +214,6 @@ namespace ShopVerse.WebUI.Controllers
             }
 
             SaveCartToSession(cart);
-
             int cartCount = cart.Sum(x => x.Quantity);
 
             return Json(new { success = true, message = "Ürün sepete eklendi.", cartCount = cartCount });
@@ -239,8 +229,9 @@ namespace ShopVerse.WebUI.Controllers
                 cart.Remove(itemToRemove);
                 SaveCartToSession(cart);
 
-                TempData["Icon"] = "success";
-                TempData["Message"] = "Ürün başarıyla silindi.";
+                // Genel UI Mesajı (SweetAlert için)
+                TempData["UserMessage"] = "Ürün başarıyla silindi.";
+                TempData["UserType"] = "success";
             }
             return RedirectToAction("Index");
         }
@@ -274,8 +265,8 @@ namespace ShopVerse.WebUI.Controllers
                 {
                     cart.Remove(item);
                     SaveCartToSession(cart);
-                    TempData["Icon"] = "success";
-                    TempData["Message"] = "Ürün başarıyla silindi.";
+                    TempData["UserMessage"] = "Ürün sepetten çıkarıldı.";
+                    TempData["UserType"] = "success";
                 }
             }
             return RedirectToAction("Index");

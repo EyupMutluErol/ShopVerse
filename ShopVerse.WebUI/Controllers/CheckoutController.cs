@@ -6,6 +6,10 @@ using ShopVerse.Entities.Concrete;
 using ShopVerse.Entities.Enums;
 using ShopVerse.WebUI.Extensions;
 using ShopVerse.WebUI.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ShopVerse.WebUI.Controllers
 {
@@ -14,29 +18,139 @@ namespace ShopVerse.WebUI.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IOrderService _orderService;
+        private readonly ICouponService _couponService;
+        private readonly ICampaignService _campaignService; // 1. EKLENDİ
 
-        public CheckoutController(UserManager<AppUser> userManager, IOrderService orderService)
+        public CheckoutController(
+            UserManager<AppUser> userManager,
+            IOrderService orderService,
+            ICouponService couponService,
+            ICampaignService campaignService) // 2. EKLENDİ
         {
             _userManager = userManager;
             _orderService = orderService;
+            _couponService = couponService;
+            _campaignService = campaignService; // ATANDI
+        }
+
+        // --- Fiyat Hesaplama Yardımcı Metodu (Async Oldu) ---
+        private async Task<CheckoutViewModel> CalculateOrderTotalsAsync(List<CartItemModel> cart)
+        {
+            // Session'da Kupon Var mı?
+            var appliedCouponCode = HttpContext.Session.GetString("AppliedCoupon");
+
+            // --- MANTIK BAŞLANGICI: CartController ile Aynı Olmalı ---
+
+            // 1. Durum: Kupon VARSA -> Kampanyaları İptal Et, Normal Fiyata Dön
+            if (!string.IsNullOrEmpty(appliedCouponCode))
+            {
+                foreach (var item in cart)
+                {
+                    item.SalePrice = item.Product.Price; // İndirimsiz Fiyat
+                }
+            }
+            // 2. Durum: Kupon YOKSA -> Kampanyaları Uygula
+            else
+            {
+                var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
+
+                foreach (var item in cart)
+                {
+                    var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null);
+                    decimal itemPrice = item.Product.Price;
+
+                    // Kampanya İndirimi
+                    if (campaign != null)
+                    {
+                        itemPrice = item.Product.Price - (item.Product.Price * campaign.DiscountPercentage / 100);
+                    }
+
+                    // Ürün Özel İndirimi (DiscountRate)
+                    if (item.Product.DiscountRate > 0)
+                    {
+                        itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                    }
+
+                    item.SalePrice = itemPrice;
+                }
+            }
+            // --- MANTIK BİTİŞİ ---
+
+            // Artık SalePrice değerleri doğru (Ya kampanya ya normal). Hesaplamaya geçebiliriz.
+            decimal subTotal = cart.Sum(x => x.Quantity * x.SalePrice);
+            decimal discountAmount = 0;
+            decimal shippingPrice = (subTotal >= 500) ? 0 : 39.90m;
+
+            // Kupon İndirimini Hesapla (Eğer kupon varsa)
+            if (!string.IsNullOrEmpty(appliedCouponCode))
+            {
+                var coupon = _couponService.GetByCode(appliedCouponCode);
+
+                // Kupon geçerlilik kontrolü (Limit vs.)
+                if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && subTotal >= coupon.MinCartAmount)
+                {
+                    if (coupon.IsPercentage)
+                    {
+                        discountAmount = subTotal * (coupon.DiscountAmount / 100);
+                    }
+                    else
+                    {
+                        discountAmount = coupon.DiscountAmount;
+                    }
+
+                    if (discountAmount > subTotal) discountAmount = subTotal;
+                }
+                else
+                {
+                    // Şartlar sağlanmıyorsa kuponu sessizce düşür (Güvenlik)
+                    HttpContext.Session.Remove("AppliedCoupon");
+                    // Not: Sayfa yenilenirse Else bloğu çalışıp kampanyalı fiyatlara döner.
+                }
+            }
+
+            decimal grandTotal = (subTotal - discountAmount) + shippingPrice;
+
+            return new CheckoutViewModel
+            {
+                CartItems = cart,
+                SubTotal = subTotal,
+                DiscountAmount = discountAmount,
+                ShippingTotal = shippingPrice,
+                GrandTotal = grandTotal
+            };
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
             if (cart.Count == 0)
             {
-                TempData["Icon"] = "error";
-                TempData["Message"] = "Sepetiniz boş, sipariş veremezsiniz";
+                TempData["UserType"] = "error";
+                TempData["UserMessage"] = "Sepetiniz boş, sipariş veremezsiniz";
                 return RedirectToAction("Index", "Cart");
             }
-            return View();
+
+            // 1. Hesaplamaları Yap (Async çağrı)
+            var model = await CalculateOrderTotalsAsync(cart);
+
+            // 2. Kullanıcı Bilgilerini Doldur
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                model.User = user;
+                model.FullName = user.Name + " " + user.Surname;
+                model.PhoneNumber = user.PhoneNumber;
+                model.City = user.City;
+                // AppUser'da olmayan alanlar kaldırıldı
+            }
+
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Index(CheckoutViewModel model)
+        public async Task<IActionResult> ProcessPayment(CheckoutViewModel inputModel)
         {
             var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
@@ -44,6 +158,9 @@ namespace ShopVerse.WebUI.Controllers
             {
                 return RedirectToAction("Index", "Cart");
             }
+
+            // GÜVENLİK: Fiyatları sunucu tarafında tekrar hesapla!
+            var calculatedModel = await CalculateOrderTotalsAsync(cart);
 
             if (ModelState.IsValid)
             {
@@ -57,16 +174,15 @@ namespace ShopVerse.WebUI.Controllers
                     AppUserId = user.Id,
 
                     // Formdan gelen adres bilgileri
-                    FullName = model.FullName,
-                    AddressLine = model.AddressLine,
-                    City = model.City,
-                    District = model.District,
-                    PhoneNumber = model.PhoneNumber,
+                    FullName = inputModel.FullName,
+                    AddressLine = inputModel.AddressLine,
+                    City = inputModel.City,
+                    District = inputModel.District,
+                    PhoneNumber = inputModel.PhoneNumber,
 
-                    // Sepet toplamı (Model içindeki hesaplanmış indirimli toplamı alır)
-                    TotalPrice = cart.Sum(x => x.TotalPrice),
+                    // ÖNEMLİ: Veritabanına sunucuda hesaplanan GÜVENLİ tutarı yazıyoruz
+                    TotalPrice = calculatedModel.GrandTotal,
 
-                    // Detaylar listesi
                     OrderDetails = new List<OrderDetail>()
                 };
 
@@ -75,37 +191,52 @@ namespace ShopVerse.WebUI.Controllers
                     order.OrderDetails.Add(new OrderDetail
                     {
                         ProductId = item.Product.Id,
-                        // ÖNEMLİ GÜNCELLEME 1: İndirimli fiyatı veritabanına kaydediyoruz
-                        Price = item.Product.PriceWithDiscount,
+                        // Veritabanına o anki geçerli (indirimli veya normal) birim fiyatı yaz
+                        Price = item.SalePrice,
                         Quantity = item.Quantity
                     });
                 }
 
-                // ÖNEMLİ GÜNCELLEME 2: Stok hatasını yakalamak için Try-Catch bloğu
                 try
                 {
-                    // OrderManager içindeki stok düşme mantığı burada çalışacak
+                    // --- ÖDEME ENTEGRASYONU BURADA YAPILIR ---
+                    // calculatedModel.GrandTotal tutarı çekilir.
+
                     await _orderService.AddAsync(order);
 
-                    HttpContext.Session.Remove("Cart"); // Sepeti temizle
+                    // Başarılıysa Temizlik
+                    HttpContext.Session.Remove("Cart");
+                    HttpContext.Session.Remove("AppliedCoupon");
 
-                    TempData["Icon"] = "success";
-                    TempData["OrderSuccess"] = "Siparişiniz başarıyla oluşturuldu!";
+                    // Sipariş Başarılı Mesajı (Layout'ta özel olarak yakalanıyor)
+                    TempData["OrderSuccess"] = "Siparişiniz başarıyla oluşturuldu! Sipariş numaranız: " + order.OrderNumber;
 
                     return RedirectToAction("Index", "Profile");
                 }
                 catch (Exception ex)
                 {
-                    // Eğer OrderManager "Stok yetersiz" hatası fırlatırsa buraya düşer
-                    TempData["Icon"] = "error";
-                    TempData["Message"] = ex.Message; // "X ürünü için stok yetersiz" mesajını gösterir
+                    TempData["UserType"] = "error";
+                    TempData["UserMessage"] = "Sipariş oluşturulurken bir hata oluştu: " + ex.Message;
 
-                    // Kullanıcıyı sayfada tutuyoruz ki hatayı görsün
-                    return View(model);
+                    // Hata durumunda modeli tekrar doldur
+                    inputModel.CartItems = calculatedModel.CartItems;
+                    inputModel.SubTotal = calculatedModel.SubTotal;
+                    inputModel.DiscountAmount = calculatedModel.DiscountAmount;
+                    inputModel.ShippingTotal = calculatedModel.ShippingTotal;
+                    inputModel.GrandTotal = calculatedModel.GrandTotal;
+
+                    return View("Index", inputModel);
                 }
             }
 
-            return View(model);
+            // Validasyon hatası varsa verileri geri yükle
+            inputModel.CartItems = calculatedModel.CartItems;
+            inputModel.SubTotal = calculatedModel.SubTotal;
+            inputModel.DiscountAmount = calculatedModel.DiscountAmount;
+            inputModel.ShippingTotal = calculatedModel.ShippingTotal;
+            inputModel.GrandTotal = calculatedModel.GrandTotal;
+
+            return View("Index", inputModel);
         }
     }
 }

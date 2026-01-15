@@ -148,6 +148,18 @@
             color: #e65100;
             text-decoration: underline;
         }
+
+    .validation-summary-errors ul, .validation-summary-valid ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Eğer validation-summary-errors sınıfı yoksa text-danger içindeki ul'yi hedefler */
+    .text-danger ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
 </style>
 
 <div class="container d-flex align-items-center justify-content-center py-5" style="min-height: 90vh;">
@@ -178,6 +190,7 @@
                 }
 
                 <form asp-controller="Account" asp-action="Login" method="post">
+
                     <input type="hidden" name="ReturnUrl" value="@Context.Request.Query["returnUrl"]" />
 
                     <div class="form-group-custom">

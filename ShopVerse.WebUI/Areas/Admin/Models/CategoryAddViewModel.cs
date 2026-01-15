@@ -9,6 +9,7 @@ public class CategoryAddViewModel
     public string Name { get; set; }
 
     [Display(Name = "Açıklama")]
+    [Required(ErrorMessage = "Lütfen açıklama alanını boş bırakmayınız.")]
     public string Description { get; set; }
     public IFormFile? ImageFile { get; set; }
 }

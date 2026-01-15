@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Onay Bekleniyor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-sm d-inline-block p-5 rounded-4">
+        <div class="mb-4 text-warning">
+            <i class="fas fa-envelope-open-text fa-5x"></i>
+        </div>
+        <h2 class="fw-bold mb-3">Son Bir Adım Kaldı!</h2>
+        <p class="lead mb-4">
+            Kaydınızı tamamlamak için e-posta adresinize bir doğrulama bağlantısı gönderdik.<br>
+            Lütfen gelen kutunuzu (ve gerekiyorsa spam klasörünü) kontrol edip hesabınızı onaylayın.
+        </p>
+        <a href="/Account/Login" class="btn btn-outline-dark rounded-pill px-4">Giriş Ekranına Dön</a>
+    </div>
+</div>

@@ -13,9 +13,14 @@
             <h3 class="fw-bold text-dark m-0">Sipariş Detayı</h3>
             <p class="text-muted small m-0">Sipariş No: <span class="fw-bold text-primary">#@Model.OrderNumber</span></p>
         </div>
-        <a href="/Admin/Order" class="btn btn-outline-secondary rounded-pill px-4">
-            <i class="fas fa-arrow-left me-2"></i>Listeye Dön
-        </a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-4" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Yazdır
+            </button>
+            <a href="/Admin/Order" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i>Listeye Dön
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -105,50 +110,94 @@
                         {
                             <div class="badge bg-warning text-dark p-3 rounded-circle mb-2"><i class="fas fa-clock fa-2x"></i></div>
                             <h4 class="fw-bold text-warning">Beklemede</h4>
- }
+                        }
                         else if (Model.OrderStatus == OrderStatus.Approved)
                         {
                             <div class="badge bg-success p-3 rounded-circle mb-2"><i class="fas fa-check fa-2x"></i></div>
                             <h4 class="fw-bold text-success">Onaylandı</h4>
- }
+                        }
                         else if (Model.OrderStatus == OrderStatus.Shipped)
                         {
                             <div class="badge bg-primary p-3 rounded-circle mb-2"><i class="fas fa-shipping-fast fa-2x"></i></div>
                             <h4 class="fw-bold text-primary">Kargoda</h4>
- }
+                        }
                         else if (Model.OrderStatus == OrderStatus.Delivered)
                         {
                             <div class="badge bg-success p-3 rounded-circle mb-2"><i class="fas fa-box-open fa-2x"></i></div>
                             <h4 class="fw-bold text-success">Teslim Edildi</h4>
- }
-                        else
+                        }
+                        else if (Model.OrderStatus == OrderStatus.Canceled)
                         {
                             <div class="badge bg-danger p-3 rounded-circle mb-2"><i class="fas fa-times fa-2x"></i></div>
                             <h4 class="fw-bold text-danger">İptal Edildi</h4>
- }
+                        }
+                        else
+                        {
+                            <div class="badge bg-secondary p-3 rounded-circle mb-2"><i class="fas fa-undo fa-2x"></i></div>
+                            <h4 class="fw-bold text-secondary">@Model.OrderStatus</h4>
+                        }
 
                         <small class="text-muted">Son Güncelleme: @DateTime.Now.ToString("dd.MM.yyyy")</small>
                     </div>
 
-                    <form asp-action="ChangeStatus" method="post">
-                        <input type="hidden" name="orderId" value="@Model.Id" />
-
-                        <div class="form-floating mb-3 text-start">
-                            <select name="orderStatus" class="form-select border-2 shadow-sm" id="statusSelect">
-                                <!option value="@OrderStatus.Pending" @(Model.OrderStatus == OrderStatus.Pending ? "selected" : "")>Beklemede</!option>
-                                <!option value="@OrderStatus.Approved" @(Model.OrderStatus == OrderStatus.Approved ? "selected" : "")>Onaylandı</!option>
-                                <!option value="@OrderStatus.Shipped" @(Model.OrderStatus == OrderStatus.Shipped ? "selected" : "")>Kargoya Verildi</!option>
-                                <!option value="@OrderStatus.Delivered" @(Model.OrderStatus == OrderStatus.Delivered ? "selected" : "")>Teslim Edildi</!option>
-                                <!option value="@OrderStatus.Canceled" @(Model.OrderStatus == OrderStatus.Canceled ? "selected" : "")>İptal Edildi</!option>
-                                <!option value="@OrderStatus.Refunded" @(Model.OrderStatus == OrderStatus.Refunded ? "selected" : "")>İade Edildi</!option>
-                            </select>
-                            <label for="statusSelect">Yeni Durum Seçin</label>
+                    @if (Model.OrderStatus == OrderStatus.Delivered || Model.OrderStatus == OrderStatus.Canceled)
+                    {
+                        <div class="alert alert-secondary small mb-0">
+                            <i class="fas fa-lock me-1"></i>
+                            Bu sipariş tamamlandığı veya iptal edildiği için durumu değiştirilemez.
                         </div>
+                    }
+                    else
+                    {
+                        <form asp-action="ChangeStatus" method="post">
+                            <input type="hidden" name="orderId" value="@Model.Id" />
 
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm transition-btn">
-                            <i class="fas fa-save me-2"></i>Güncelle
-                        </button>
-                    </form>
+                            <div class="form-floating mb-3 text-start">
+                                <select name="orderStatus" class="form-select border-2 shadow-sm" id="statusSelect">
+                                    
+                                    @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                                    {
+                                        // 1. ADIM: İsimleri Türkçeleştir
+                                        string statusTr = status switch
+                                        {
+                                            OrderStatus.Pending => "Beklemede",
+                                            OrderStatus.Approved => "Onaylandı",
+                                            OrderStatus.Shipped => "Kargoya Verildi",
+                                            OrderStatus.Delivered => "Teslim Edildi",
+                                            OrderStatus.Canceled => "İptal Edildi",
+                                            OrderStatus.Refunded => "İade Edildi",
+                                            _ => status.ToString()
+                                        };
+
+                                        // 2. ADIM: Geriye dönük durumları tespit et
+                                        bool isBackwards = (int)status < (int)Model.OrderStatus;
+                                        
+                                        // "İptal" hariç geriye dönükleri engelle
+                                        bool shouldDisable = isBackwards && status != OrderStatus.Canceled;
+                                        
+                                        // Seçili olan
+                                        bool isSelected = status == Model.OrderStatus;
+
+                                        // Engelli stil
+                                        string style = shouldDisable ? "color: #aaa; background-color: #f9f9f9;" : "font-weight: 500;";
+
+                                        <!option value="@status" @(isSelected ? "selected" : "") @(shouldDisable ? "disabled" : "") style="@style">
+                                            @statusTr </!option>
+                                    }
+
+                                </select>
+                                <label for="statusSelect">Yeni Durum Seçin</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm transition-btn">
+                                <i class="fas fa-save me-2"></i>Durumu Güncelle
+                            </button>
+                        </form>
+                        
+                        <div class="text-muted mt-2" style="font-size: 0.75rem;">
+                            <i class="fas fa-info-circle me-1"></i> Güvenlik gereği geçmiş aşamalar seçilemez.
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -162,8 +211,9 @@
                             <i class="fas fa-user fa-lg"></i>
                         </div>
                         <div>
-                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Müşteri ID</small>
-                            <span class="fw-bold text-dark text-break">@Model.AppUserId</span>
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Müşteri</small>
+                            <span class="fw-bold text-dark">@(string.IsNullOrEmpty(Model.FullName) ? "Kayıtsız Kullanıcı" : Model.FullName)</span>
+                            <div class="small text-muted text-break" style="font-size: 0.8rem;">@Model.AppUserId</div>
                         </div>
                     </div>
 
@@ -176,9 +226,22 @@
                     <div class="p-3 bg-light rounded-3 border border-dashed">
                         <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem;"><i class="fas fa-map-marker-alt me-1"></i> Teslimat Adresi</small>
                         <p class="mb-0 small text-dark fw-medium">
-                            Örnek Mahallesi, Teknoloji Caddesi, No: 123
-                            <br /> Kadıköy / İSTANBUL
+                            @if(!string.IsNullOrEmpty(Model.AddressLine))
+                            {
+                                @Model.AddressLine <br />
+                                <strong>@Model.District / @Model.City</strong>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Adres bilgisi girilmemiş.</span>
+                            }
                         </p>
+                        @if(!string.IsNullOrEmpty(Model.PhoneNumber))
+                        {
+                            <div class="mt-2 pt-2 border-top">
+                                <small class="text-muted"><i class="fas fa-phone me-1"></i> @Model.PhoneNumber</small>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
