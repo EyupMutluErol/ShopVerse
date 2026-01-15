@@ -7,6 +7,19 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
+<style>
+    /* Standart input oklarını gizleme (Chrome, Safari, Edge, Opera) */
+    .no-spinners::-webkit-outer-spin-button,
+    .no-spinners::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Firefox için */
+    .no-spinners {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="card shadow border-0">
         <div class="card-header bg-primary text-white">
@@ -38,12 +51,30 @@
                             <label class="form-label fw-bold">Kapsam (Hangi Kategori?)</label>
                             <select asp-for="CategoryId" class="form-select">
                                 <option value="">Tüm Mağazada Geçerli (Genel Kupon)</option>
-                                @foreach (var cat in ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>)
+                                @if (ViewBag.Categories != null)
                                 {
-                                    <option value="@cat.Id">Sadece @cat.Name Kategorisinde</option>
+                                    @foreach (var cat in ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>)
+                                    {
+                                        <option value="@cat.Id">Sadece @cat.Name Kategorisinde</option>
+                                    }
                                 }
                             </select>
                             <small class="text-muted">Seçim yapmazsanız kupon tüm ürünlerde geçerli olur.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-primary">Özel Kullanıcı Tanımla (Opsiyonel)</label>
+                            <select asp-for="UserId" class="form-select border-primary">
+                                <option value="">-- Herkes Kullanabilir (Genel) --</option>
+                                @if (ViewBag.Users != null)
+                                {
+                                    @foreach (var user in ViewBag.Users as IList<AppUser>)
+                                    {
+                                        <option value="@user.Id">@user.Name @user.Surname (@user.Email)</option>
+                                    }
+                                }
+                            </select>
+                            <small class="text-muted">Birini seçerseniz, kuponu <strong>sadece o kişi</strong> kullanabilir.</small>
                         </div>
                     </div>
 
@@ -56,9 +87,20 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold" id="discountLabel">İndirim Tutarı (TL)</label>
+
                             <div class="input-group">
-                                <span class="input-group-text bg-white" id="currencySymbol">₺</span>
-                                <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control fw-bold fs-5 text-primary" required />
+                                <span class="input-group-text bg-white fw-bold" id="currencySymbol">₺</span>
+
+                                <button type="button" class="btn btn-outline-secondary" onclick="updateDiscountValue(-1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                <input asp-for="DiscountAmount" type="number" step="0.01" id="discountInput"
+                                       class="form-control fw-bold fs-5 text-primary text-center no-spinners" required />
+
+                                <button type="button" class="btn btn-outline-secondary" onclick="updateDiscountValue(1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -90,10 +132,10 @@
             dateFormat: "Y-m-d H:i",
             locale: "tr",
             time_24hr: true,
-            minDate: "today" // Geçmiş tarih seçilemesin
+            minDate: "today"
         });
 
-        // Yüzde/Tutar Switch Mantığı
+        // 1. Yüzde/Tutar Gösterim Mantığı
         var switchBtn = document.getElementById("isPercentageSwitch");
         var label = document.getElementById("discountLabel");
         var symbol = document.getElementById("currencySymbol");
@@ -111,6 +153,21 @@
         }
 
         switchBtn.addEventListener("change", toggleType);
-        toggleType(); // Sayfa yüklendiğinde çalışsın
+        toggleType();
+
+        // 2. Artırma/Azaltma Buton Mantığı
+        function updateDiscountValue(change) {
+            var input = document.getElementById("discountInput");
+            var currentVal = parseFloat(input.value) || 0;
+            var newVal = currentVal + change;
+
+            // Negatif olmasın
+            if (newVal < 0) newVal = 0;
+
+            // Eğer Yüzde seçiliyse 100'ü geçmesin
+            if (switchBtn.checked && newVal > 100) newVal = 100;
+
+            input.value = newVal;
+        }
     </script>
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
+using ShopVerse.Entities.Concrete;
 using ShopVerse.Entities.Dtos;
 using ShopVerse.WebUI.Models;
 using System.Diagnostics;
@@ -15,15 +17,17 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICategoryService _categoryService;
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
+        private readonly UserManager<AppUser> _userManager;
 
 
-        public HomeController(ILogger<HomeController> logger,IProductService productService, ICategoryService categoryService, ICampaignService campaignService, ICouponService couponService)
+        public HomeController(ILogger<HomeController> logger,IProductService productService, ICategoryService categoryService, ICampaignService campaignService, ICouponService couponService, UserManager<AppUser> userManager)
         {
             _logger = logger;
             _productService = productService;
             _categoryService = categoryService;
             _campaignService = campaignService;
             _couponService = couponService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder)
@@ -52,13 +56,26 @@ namespace ShopVerse.WebUI.Controllers
             );
 
             // ============================================================
-            // 5. YENÝ: AKTÝF KUPONLARI GETÝR (ViewBag'e Atýyoruz)
+            // 5. GÜNCELLENEN: KÝÞÝYE ÖZEL KUPONLARI GETÝR
             // ============================================================
-            // Sadece aktif ve tarihi geçmemiþ kuponlarý çekiyoruz.
-            var activeCoupons = await _couponService.GetAllAsync(x => x.IsActive && x.ExpirationDate >= DateTime.Now);
 
-            // View tarafýnda ürün kartlarýnda kontrol etmek için ViewBag'e atýyoruz
+            // A. Giriþ yapmýþ kullanýcýyý bul (Yoksa null döner)
+            var user = await _userManager.GetUserAsync(User);
+            string? currentUserId = user?.Id;
+
+            // B. Sorguyu güncelle: 
+            // - Aktif olacak
+            // - Süresi dolmamýþ olacak
+            // - VE (UserId boþ olacak [Genel] VEYA UserId benim ID'm olacak [Özel])
+            var activeCoupons = await _couponService.GetAllAsync(x =>
+                x.IsActive &&
+                x.ExpirationDate >= DateTime.Now &&
+                (x.UserId == null || x.UserId == currentUserId)
+            );
+
+            // View tarafýnda banner alanýnda göstermek için ViewBag'e atýyoruz
             ViewBag.ActiveCoupons = activeCoupons;
+            // ============================================================
 
             // 6. ViewModel Oluþturma
             var model = new HomeViewModel

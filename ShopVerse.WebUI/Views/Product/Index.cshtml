@@ -6,8 +6,8 @@
     var categories = ViewBag.Categories as List<ShopVerse.Entities.Concrete.Category>;
     var activeCampaigns = ViewBag.ActiveCampaigns as List<ShopVerse.Entities.Concrete.Campaign>;
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
-    // Controller'dan gelen aktif kuponlar (Cast işlemi yaparak alıyoruz)
-    var activeCoupons = ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>;
+    // Kupon değişkenini artık View içinde kullanmayacağız ama Controller'dan geliyor olabilir,
+    // o yüzden tanımlı kalsa da olur veya silebilirsin. Şimdilik temiz kalsın.
 }
 
 <div class="container py-4">
@@ -108,7 +108,7 @@
                     @foreach (var item in Model)
                     {
                         // -----------------------------------------------------------
-                        // EN İYİ FİYAT MANTIĞI & KUPON KONTROLÜ
+                        // EN İYİ FİYAT MANTIĞI
                         // -----------------------------------------------------------
 
                         // 1. Kampanya Fiyatı
@@ -160,10 +160,6 @@
                             showProductDiscountLabel = true;
                         }
 
-                        // 4. KUPON KONTROLÜ (YENİ)
-                        // Kategoriye özel veya genel kupon var mı?
-                        var applicableCoupon = activeCoupons?.FirstOrDefault(c => c.CategoryId == null || c.CategoryId == item.CategoryId);
-
                         // -----------------------------------------------------------
 
                         <div class="col-md-6 col-lg-4">
@@ -186,21 +182,6 @@
                                     else
                                     {
                                         <span class="badge bg-success shadow-sm" style="font-size: 0.7rem;">YENİ</span>
-                                    }
-
-                                    @if (applicableCoupon != null)
-                                    {
-                                        <span class="badge bg-dark text-warning border border-warning shadow-sm" style="font-size: 0.75rem;">
-                                            <i class="fas fa-ticket-alt me-1"></i>
-                                            @if (applicableCoupon.CategoryId == null)
-                                            {
-                                                <span>Fırsat: @applicableCoupon.Code</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@applicableCoupon.Code</span>
-                                            }
-                                        </span>
                                     }
 
                                 </div>

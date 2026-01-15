@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http; // Session işlemleri için
+using Microsoft.AspNetCore.Identity; // Kullanıcı yönetimi için
+using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
+using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Extensions;
 using ShopVerse.WebUI.Models;
-using Microsoft.AspNetCore.Http; // Session işlemleri için
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace ShopVerse.WebUI.Controllers
 {
@@ -15,13 +17,19 @@ namespace ShopVerse.WebUI.Controllers
         private readonly IProductService _productService;
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
+        private readonly UserManager<AppUser> _userManager; // 1. YENİ EKLENEN
 
-        // Constructor'a ICouponService eklendi
-        public CartController(IProductService productService, ICampaignService campaignService, ICouponService couponService)
+        // Constructor'ı güncelliyoruz: UserManager eklendi
+        public CartController(
+            IProductService productService,
+            ICampaignService campaignService,
+            ICouponService couponService,
+            UserManager<AppUser> userManager) // 2. PARAMETRE OLARAK GELDİ
         {
             _productService = productService;
             _campaignService = campaignService;
             _couponService = couponService;
+            _userManager = userManager; // 3. ATAMA YAPILDI
         }
 
         public ActionResult Index()
@@ -38,6 +46,7 @@ namespace ShopVerse.WebUI.Controllers
 
             if (!string.IsNullOrEmpty(appliedCouponCode))
             {
+                // Business katmanındaki isimlendirme standardına göre TGetByCode kullanıyoruz
                 var coupon = _couponService.GetByCode(appliedCouponCode);
 
                 // Kupon hala geçerli mi ve sepet tutarı minimum limiti karşılıyor mu?
@@ -65,10 +74,8 @@ namespace ShopVerse.WebUI.Controllers
                 }
                 else
                 {
-                    // Şartlar artık sağlanmıyorsa (örn: ürün çıkarıldı ve limit altına düştü) kuponu düşür
+                    // Şartlar artık sağlanmıyorsa kuponu düşür
                     HttpContext.Session.Remove("AppliedCoupon");
-                    // İsteğe bağlı: Kullanıcıya bilgi verilebilir
-                    // TempData["Error"] = "Sepet tutarı değiştiği için kupon kaldırıldı.";
                 }
             }
 
@@ -83,9 +90,9 @@ namespace ShopVerse.WebUI.Controllers
             return View(cartViewModel);
         }
 
-        // --- YENİ EKLENEN: KUPON UYGULAMA METODU ---
+        // --- GÜNCELLENEN: KUPON UYGULAMA METODU ---
         [HttpPost]
-        public IActionResult ApplyCoupon(string code)
+        public async Task<IActionResult> ApplyCoupon(string code) // Async yapıldı
         {
             if (string.IsNullOrEmpty(code))
             {
@@ -104,21 +111,39 @@ namespace ShopVerse.WebUI.Controllers
                 return RedirectToAction("Index");
             }
 
-            // 2. Minimum sepet tutarı kontrolü
+            // ============================================================
+            // 2. YENİ: KULLANICI KONTROLÜ (User Specific Check)
+            // ============================================================
+
+            // Eğer kupon bir kullanıcıya özelse (UserId doluysa)
+            if (coupon.UserId != null)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                string currentUserId = user != null ? user.Id : null;
+
+                // Giriş yapmamışsa veya ID'ler eşleşmiyorsa
+                if (string.IsNullOrEmpty(currentUserId) || coupon.UserId != currentUserId)
+                {
+                    TempData["Error"] = "Bu kupon size ait değil veya kullanmak için giriş yapmalısınız.";
+                    return RedirectToAction("Index");
+                }
+            }
+            // ============================================================
+
+            // 3. Minimum sepet tutarı kontrolü
             if (totalPrice < coupon.MinCartAmount)
             {
                 TempData["Error"] = $"Bu kuponu kullanmak için sepet tutarınız en az {coupon.MinCartAmount:C2} olmalıdır.";
                 return RedirectToAction("Index");
             }
 
-            // 3. Başarılıysa Session'a kaydet
+            // 4. Başarılıysa Session'a kaydet
             HttpContext.Session.SetString("AppliedCoupon", coupon.Code);
             TempData["Success"] = "Kupon başarıyla uygulandı!";
 
             return RedirectToAction("Index");
         }
 
-        // --- YENİ EKLENEN: KUPON KALDIRMA METODU ---
         public IActionResult RemoveCoupon()
         {
             HttpContext.Session.Remove("AppliedCoupon");
@@ -158,8 +183,6 @@ namespace ShopVerse.WebUI.Controllers
             decimal productDiscountPrice = product.Price;
             if (product.DiscountRate > 0)
             {
-                // Eğer entity'de hesaplı geliyorsa: product.PriceWithDiscount
-                // Gelmiyorsa manuel hesap: product.Price * (100 - product.DiscountRate) / 100;
                 productDiscountPrice = product.PriceWithDiscount;
             }
 
@@ -168,7 +191,6 @@ namespace ShopVerse.WebUI.Controllers
 
             if (campaign != null && product.DiscountRate > 0)
             {
-                // İkisi de varsa en ucuzunu al
                 finalPrice = Math.Min(campaignPrice, productDiscountPrice);
             }
             else if (campaign != null)
@@ -188,7 +210,6 @@ namespace ShopVerse.WebUI.Controllers
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
-                // Mevcut ürünün fiyatını da güncel en iyi fiyata çekelim (Kampanya yeni gelmiş olabilir)
                 existingItem.SalePrice = finalPrice;
             }
             else
@@ -197,7 +218,7 @@ namespace ShopVerse.WebUI.Controllers
                 {
                     Product = product,
                     Quantity = quantity,
-                    SalePrice = finalPrice // Hesaplanan fiyatı buraya atıyoruz
+                    SalePrice = finalPrice
                 });
             }
 
@@ -221,8 +242,6 @@ namespace ShopVerse.WebUI.Controllers
                 TempData["Icon"] = "success";
                 TempData["Message"] = "Ürün başarıyla silindi.";
             }
-            // Ürün silinince sepet tutarı değişeceği için kuponu tekrar kontrol etmek gerekebilir.
-            // Index metodu her açılışta bunu kontrol ettiği için sorun olmaz.
             return RedirectToAction("Index");
         }
 

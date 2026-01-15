@@ -3,6 +3,9 @@
     ViewData["Title"] = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
+
+    // Controller'dan gelen Aktif (Kişiye Özel veya Genel) Kuponlar
+    var activeCoupons = ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -311,6 +314,7 @@
     <div class="container h-100">
         <div id="announcementCarousel" class="carousel slide h-100" data-bs-ride="carousel">
             <div class="carousel-inner h-100">
+
                 <div class="carousel-item active h-100">
                     <div class="announcement-text">
                         <i class="fas fa-truck"></i>
@@ -323,12 +327,38 @@
                         <span>14:00'a kadar sipariş ver <strong>AYNI GÜN KARGO</strong></span>
                     </div>
                 </div>
-                <div class="carousel-item h-100">
-                    <div class="announcement-text">
-                        <i class="fas fa-gift"></i>
-                        <span>İlk siparişine özel <strong>%10 İNDİRİM KODU: MERHABA10</strong></span>
-                    </div>
-                </div>
+
+                @if (activeCoupons != null && activeCoupons.Any())
+                {
+                    foreach (var coupon in activeCoupons)
+                    {
+                        // Kupon linki: Kategoriye özelse o kategoriye, değilse tüm ürünlere
+                        string link = coupon.CategoryId != null
+                        ? $"/Product/Index?categoryIds={coupon.CategoryId}"
+                        : "/Product/Index";
+
+                        <div class="carousel-item h-100">
+                            <div class="announcement-text">
+                                <i class="fas fa-gift"></i>
+                                <span class="me-1">Sana Özel Fırsat: <strong>@coupon.Code</strong> koduyla</span>
+
+                                @if (coupon.IsPercentage)
+                                {
+                                    <strong>%@coupon.DiscountAmount.ToString("0") İndirim!</strong>
+                                }
+                                else
+                                {
+                                    <strong>@coupon.DiscountAmount.ToString("C0") İndirim!</strong>
+                                }
+
+                                <a href="@link" class="ms-3 text-dark text-decoration-underline small fw-bold">
+                                    Hemen Kullan <i class="fas fa-angle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+
             </div>
         </div>
     </div>
@@ -416,6 +446,12 @@
                     @for (int i = 0; i < Model.ActiveCampaigns.Count; i++)
                     {
                         var camp = Model.ActiveCampaigns[i];
+
+                        // Kampanya Linki: Kampanyanın hedef kategorisine yönlendir
+                        string campaignLink = camp.TargetCategoryId != null
+                        ? $"/Product/Index?categoryIds={camp.TargetCategoryId}"
+                        : "/Product/Index";
+
                         <div class="carousel-item @(i == 0 ? "active" : "")">
 
                             <img src="@camp.ImageUrl" class="slider-bg-img" alt="@camp.Title">
@@ -428,7 +464,7 @@
                                 }
                                 <h1 class="display-4 fw-bold mb-3">@camp.Title</h1>
 
-                                <a href="#products-list" class="slider-cta-btn">İncele</a>
+                                <a href="@campaignLink" class="slider-cta-btn">İncele</a>
                             </div>
                         </div>
                     }
@@ -441,7 +477,7 @@
                             <span class="badge bg-warning text-dark mb-3 px-3 py-2">HOŞ GELDİNİZ</span>
                             <h1 class="display-4 fw-bold mb-3">ShopVerse Dünyası</h1>
                             <p class="lead mb-4">Aradığınız tüm ürünler en uygun fiyatlarla burada.</p>
-                            <a href="#products-list" class="slider-cta-btn">Alışverişe Başla</a>
+                            <a href="/Product/Index" class="slider-cta-btn">Alışverişe Başla</a>
                         </div>
                     </div>
                 }
@@ -471,11 +507,7 @@
             <div class="row g-4">
                 @foreach (var item in Model.FeaturedProducts)
                 {
-                    // -----------------------------------------------------------
-                    // EN İYİ FİYAT MANTIĞI & KUPON KONTROLÜ
-                    // -----------------------------------------------------------
-
-                    // 1. Kampanya Fiyatı
+                    // EN İYİ FİYAT MANTIĞI
                     ShopVerse.Entities.Concrete.Campaign? campaign = null;
                     decimal campaignPrice = item.Price;
 
@@ -488,14 +520,12 @@
                         }
                     }
 
-                    // 2. Ürün İndirimi Fiyatı
                     decimal productDiscountPrice = item.Price;
                     if (item.DiscountRate > 0)
                     {
                         productDiscountPrice = item.PriceWithDiscount;
                     }
 
-                    // 3. Karşılaştırma
                     decimal finalPrice = item.Price;
                     bool showCampaignLabel = false;
                     bool showProductDiscountLabel = false;
@@ -524,13 +554,6 @@
                         showProductDiscountLabel = true;
                     }
 
-                    // 4. KUPON KONTROLÜ (YENİ)
-                    // ViewBag'den gelen kupon listesini kontrol et
-                    var applicableCoupon = (ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>)
-                    ?.FirstOrDefault(c => c.CategoryId == null || c.CategoryId == item.CategoryId);
-
-                    // -----------------------------------------------------------
-
                     <div class="col-lg-3 col-md-6 col-sm-12">
                         <div class="card product-card h-100 position-relative">
 
@@ -550,21 +573,6 @@
                                 else
                                 {
                                     <span class="badge bg-success shadow-sm">YENİ</span>
-                                }
-
-                                @if (applicableCoupon != null)
-                                {
-                                    <span class="badge bg-dark text-warning border border-warning shadow-sm" title="Bu üründe kupon kullanabilirsin!">
-                                        <i class="fas fa-ticket-alt me-1"></i>
-                                        @if (applicableCoupon.CategoryId == null)
-                                        {
-                                            <span>Fırsat: @applicableCoupon.Code</span>
-                                        }
-                                        else
-                                        {
-                                            <span>@applicableCoupon.Code</span>
-                                        }
-                                    </span>
                                 }
                             </div>
 

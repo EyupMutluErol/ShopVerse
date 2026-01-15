@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopVerse.DataAccess.Concrete.Context;
 
@@ -11,9 +12,11 @@ using ShopVerse.DataAccess.Concrete.Context;
 namespace ShopVerse.DataAccess.Migrations
 {
     [DbContext(typeof(ShopVerseContext))]
-    partial class ShopVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20260114092950_AddUserToCoupon")]
+    partial class AddUserToCoupon
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -400,6 +403,7 @@ namespace ShopVerse.DataAccess.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AppUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("CategoryId")
@@ -433,8 +437,8 @@ namespace ShopVerse.DataAccess.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -735,7 +739,9 @@ namespace ShopVerse.DataAccess.Migrations
                 {
                     b.HasOne("ShopVerse.Entities.Concrete.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("AppUserId");
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ShopVerse.Entities.Concrete.Category", "Category")
                         .WithMany()
