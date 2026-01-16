@@ -64,30 +64,38 @@ namespace ShopVerse.WebUI.Controllers
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
             // ========================================================================
-            // 5. FIRSAT FİLTRESİ (SHOW DEALS) - YENİ EKLENEN MANTIK
+            // 5. GÜNCELLENEN MANTIK (İŞLEVSELLİK DÜZELTİLDİ)
             // ========================================================================
+
+            // KURAL: Mağaza (Tüm Ürünler) sayfasında bir ürünün görünmesi için 
+            // SADECE 'IsActive (Satışta)' olması yeterlidir. 
+            // IsHome kapalı olsa bile burada listelenmelidir.
+            products = products.Where(p => p.IsActive).ToList();
+
+            // Not: Buradaki 'if (!hasAnyFilter)' bloğunu kaldırdık. 
+            // Çünkü burası anasayfa değil, tüm ürünlerin listelendiği mağaza sayfası.
+            // ========================================================================
+
+            // 6. FIRSAT FİLTRESİ (SHOW DEALS)
             if (showDeals)
             {
-                // Sadece İndirimi Olan VEYA Kampanyaya Dahil Olanları Filtrele
                 products = products.Where(p =>
-                    p.DiscountRate > 0 || // Kendi indirimi var mı?
-                    activeCampaigns.Any(c => c.TargetCategoryId == p.CategoryId || c.TargetCategoryId == null) // Kampanyası var mı?
+                    p.DiscountRate > 0 ||
+                    activeCampaigns.Any(c => c.TargetCategoryId == p.CategoryId || c.TargetCategoryId == null)
                 ).ToList();
 
-                ViewData["IsDealsPage"] = true; // View tarafında başlığı "Günün Fırsatları" yapmak için
+                ViewData["IsDealsPage"] = true;
             }
-            // ========================================================================
 
-            // 6. Filtrelerin Ekranda Korunması İçin ViewData
+            // 7. Filtrelerin Ekranda Korunması İçin ViewData
             ViewData["CurrentSearch"] = search;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;
             ViewData["SelectedCategories"] = categoryIds;
             ViewData["SortOrder"] = sortOrder;
+            ViewData["ShowDeals"] = showDeals;
 
-            // ============================================================
-            // 7. FAVORİLERİ GETİR
-            // ============================================================
+            // 8. FAVORİLERİ GETİR
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);

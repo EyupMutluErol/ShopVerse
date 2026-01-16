@@ -59,6 +59,26 @@ namespace ShopVerse.WebUI.Controllers
             // 3. Filtrelenmiþ Ürünleri Getir
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
+            // ============================================================
+            // BUTONLARI ÝÞLEVSEL HALE GETÝREN KISIM (GÜNCELLENDÝ)
+            // ============================================================
+
+            // A. Güvenlik: Sadece 'Satýþta (IsActive)' olan ürünler her zaman gösterilmeli.
+            products = products.Where(x => x.IsActive).ToList();
+
+            // B. Mantýk: Kullanýcý filtreleme YAPMIYORSA sadece 'Anasayfada Göster (IsHome)' olanlarý getir.
+            // Eðer filtreleme yapýyorsa (arama, kategori seçimi vb.), tüm aktif ürünleri listele.
+            bool isUserFiltering = (categoryIds != null && categoryIds.Any()) ||
+                                   minPrice.HasValue ||
+                                   maxPrice.HasValue ||
+                                   !string.IsNullOrEmpty(search);
+
+            if (!isUserFiltering)
+            {
+                products = products.Where(x => x.IsHome).ToList();
+            }
+            // ============================================================
+
             // 4. Aktif Kampanyalarý Getir
             var activeCampaigns = await _campaignService.GetAllAsync(x =>
                   x.IsActive &&
@@ -66,40 +86,26 @@ namespace ShopVerse.WebUI.Controllers
                   x.EndDate >= DateTime.Now
             );
 
-            // ============================================================
-            // 5. GÜNCELLENEN: KÝÞÝYE ÖZEL KUPONLARI GETÝR
-            // ============================================================
-
-            // A. Giriþ yapmýþ kullanýcýyý bul (Yoksa null döner)
+            // 5. KÝÞÝYE ÖZEL KUPONLARI GETÝR
             var user = await _userManager.GetUserAsync(User);
             string? currentUserId = user?.Id;
 
-            // B. Sorguyu güncelle: 
-            // - Aktif olacak
-            // - Süresi dolmamýþ olacak
-            // - VE (UserId boþ olacak [Genel] VEYA UserId benim ID'm olacak [Özel])
             var activeCoupons = await _couponService.GetAllAsync(x =>
                 x.IsActive &&
                 x.ExpirationDate >= DateTime.Now &&
                 (x.UserId == null || x.UserId == currentUserId)
             );
 
-            // View tarafýnda banner alanýnda göstermek için ViewBag'e atýyoruz
             ViewBag.ActiveCoupons = activeCoupons;
 
-            // ============================================================
-            // 6. FAVORÝLERÝ GETÝR (YENÝ EKLENEN KISIM)
-            // ============================================================
+            // 6. FAVORÝLERÝ GETÝR
             if (user != null)
             {
-                // Giriþ yapmýþsa favorilerini çekiyoruz
                 var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
-                // Sadece ProductId'leri liste olarak View'a gönderiyoruz
                 ViewBag.FavoriteProductIds = userFavorites.Select(x => x.ProductId).ToList();
             }
             else
             {
-                // Giriþ yapmamýþsa boþ liste gönderiyoruz (Hata almamak için)
                 ViewBag.FavoriteProductIds = new List<int>();
             }
 

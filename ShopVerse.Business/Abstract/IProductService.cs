@@ -10,4 +10,6 @@ public interface IProductService:IGenericService<Product>
     int GetProductCount();
     List<Product> GetCriticalStock(int threshold = 20);
     List<BestSellerDto> GetBestSellers(int count = 5);
+    Task<List<Product>> GetActiveProductsAsync();
+    Task<List<Product>> GetHomeProductsAsync();
 }

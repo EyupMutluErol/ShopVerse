@@ -111,4 +111,16 @@ public class ProductManager : GenericManager<Product>, IProductService
     {
         return _productRepository.GetBestSellers(count);
     }
+
+    public async Task<List<Product>> GetActiveProductsAsync()
+    {
+        var allProducts = await _productRepository.GetAllAsync();
+        return allProducts.Where(x => !x.IsDeleted && x.IsActive).ToList();
+    }
+
+    public async Task<List<Product>> GetHomeProductsAsync()
+    {
+        var allProducts = await _productRepository.GetAllAsync();
+        return allProducts.Where(x => !x.IsDeleted && x.IsActive && x.IsHome).ToList();
+    }
 }
