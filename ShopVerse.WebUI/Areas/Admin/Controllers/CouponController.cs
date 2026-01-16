@@ -30,16 +30,22 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
+        // ============================================================
+        // LİSTELEME (INDEX)
+        // ============================================================
         public async Task<IActionResult> Index()
         {
             var values = await _couponService.GetAllAsync();
             return View(values);
         }
 
+        // ============================================================
+        // EKLEME (CREATE)
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await PopulateDropdowns(); // Dropdownları SelectList formatında doldur
+            await PopulateDropdowns();
             return View();
         }
 
@@ -48,7 +54,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. ViewModel -> Entity Dönüşümü
                 var coupon = new Coupon
                 {
                     Code = model.Code.ToUpper(),
@@ -57,7 +62,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     MinCartAmount = model.MinCartAmount ?? 0,
                     ExpirationDate = model.ExpirationDate ?? DateTime.Now.AddDays(7),
 
-                    // Yeni eklenen alanlar
+                    // Yeni Alanlar
                     MinProductPrice = model.MinProductPrice,
                     MaxProductPrice = model.MaxProductPrice,
                     CategoryId = model.CategoryId,
@@ -67,22 +72,92 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     CreatedDate = DateTime.Now
                 };
 
-                // 2. Ekstra Kontrol: Kod daha önce kullanılmış mı?
-                // Not: Servisinizde GetByCode yoksa bu kontrolü kaldırabilir veya ekleyebilirsiniz.
-                // var existingCoupon = _couponService.GetByCode(coupon.Code);
-                // if (existingCoupon != null) ...
+                // Kod kontrolü (Opsiyonel: Aynı kod var mı?)
+                // var existing = _couponService.GetByCode(coupon.Code);
+                // if(existing != null) { ... }
 
-                // 3. Kayıt
                 await _couponService.AddAsync(coupon);
                 TempData["AdminSuccess"] = "Kupon başarıyla oluşturuldu.";
                 return RedirectToAction("Index");
             }
 
-            // Validasyon hatası varsa dropdownları tekrar doldur
             await PopulateDropdowns();
             return View(model);
         }
 
+        // ============================================================
+        // GÜNCELLEME (UPDATE) - YENİ EKLENEN KISIM
+        // ============================================================
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            var coupon = await _couponService.GetByIdAsync(id);
+            if (coupon == null)
+            {
+                return NotFound();
+            }
+
+            // Entity -> ViewModel Dönüşümü
+            var model = new CouponUpdateViewModel
+            {
+                Id = coupon.Id,
+                Code = coupon.Code,
+                DiscountAmount = coupon.DiscountAmount,
+                IsPercentage = coupon.IsPercentage,
+                MinCartAmount = coupon.MinCartAmount,
+                ExpirationDate = coupon.ExpirationDate,
+                IsActive = coupon.IsActive,
+
+                // İlişkiler ve Kısıtlamalar
+                CategoryId = coupon.CategoryId,
+                UserId = coupon.UserId,
+                MinProductPrice = coupon.MinProductPrice,
+                MaxProductPrice = coupon.MaxProductPrice
+            };
+
+            await PopulateDropdowns(); // Dropdown verilerini hazırla
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Update(CouponUpdateViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var coupon = await _couponService.GetByIdAsync(model.Id);
+                if (coupon == null)
+                {
+                    return NotFound();
+                }
+
+                // Verileri Güncelle
+                coupon.Code = model.Code.ToUpper();
+                coupon.DiscountAmount = model.DiscountAmount ?? 0;
+                coupon.IsPercentage = model.IsPercentage;
+                coupon.MinCartAmount = model.MinCartAmount ?? 0;
+                coupon.ExpirationDate = model.ExpirationDate ?? DateTime.Now.AddDays(7);
+                coupon.IsActive = model.IsActive;
+
+                coupon.CategoryId = model.CategoryId;
+                coupon.UserId = string.IsNullOrEmpty(model.UserId) ? null : model.UserId;
+                coupon.MinProductPrice = model.MinProductPrice;
+                coupon.MaxProductPrice = model.MaxProductPrice;
+
+                // Güncelleme Tarihi (Entity'de varsa)
+                // coupon.UpdatedDate = DateTime.Now; 
+
+                await _couponService.UpdateAsync(coupon);
+                TempData["AdminSuccess"] = "Kupon başarıyla güncellendi.";
+                return RedirectToAction("Index");
+            }
+
+            await PopulateDropdowns();
+            return View(model);
+        }
+
+        // ============================================================
+        // SİLME (DELETE)
+        // ============================================================
         public async Task<IActionResult> Delete(int id)
         {
             var value = await _couponService.GetByIdAsync(id);
@@ -99,26 +174,16 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         }
 
         // ================================================================
-        // ÖNEMLİ DÜZELTME: Dropdown Doldurma Yardımcısı
+        // YARDIMCI METOT (DROPDOWN)
         // ================================================================
         private async Task PopulateDropdowns()
         {
-            // 1. Kategoriler: List<Category> yerine SelectList'e çeviriyoruz
+            // 1. Kategoriler (SelectList Olarak)
             var categories = await _categoryService.GetAllAsync();
-
-            // ViewBag.Categories artık "IEnumerable<SelectListItem>" türünde olacak
-            // "Id": Value (Arka planda tutulan değer)
-            // "Name": Text (Ekranda görünen metin)
             ViewBag.Categories = new SelectList(categories, "Id", "Name");
 
-            // 2. Üyeler
-            // Not: UserManager.Users IQueryable döner, .ToList() ile çekiyoruz.
-            // Eğer rol bazlı çekmek isterseniz GetUsersInRoleAsync kullanabilirsiniz.
+            // 2. Üyeler (Liste Olarak - View'da foreach ile dönülüyor)
             var users = _userManager.Users.ToList();
-
-            // Eğer View tarafında foreach ile dönecekseniz List olarak kalabilir,
-            // ama asp-items kullanacaksanız bunu da SelectList yapmalısınız.
-            // Sizin View kodunuzda 'foreach' olduğu için List olarak bırakıyorum:
             ViewBag.Users = users;
         }
     }
