@@ -25,8 +25,6 @@
         --blue-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     }
 
-    /* ... Diğer CSS kodları aynen kalıyor ... */
-
     .top-announcement-strip {
         background-color: #f9ca24;
         color: #2d3436;
@@ -155,18 +153,15 @@
         }
 
     @@keyframes slideDown {
-        from
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
 
-    {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .category-grid {
@@ -511,13 +506,21 @@
             <div class="row g-4">
                 @foreach (var item in Model.FeaturedProducts)
                 {
-                    // EN İYİ FİYAT MANTIĞI
+                    // -----------------------------------------------------------
+                    // EN İYİ FİYAT MANTIĞI (GÜNCELLENMİŞ KISIM)
+                    // -----------------------------------------------------------
                     ShopVerse.Entities.Concrete.Campaign? campaign = null;
                     decimal campaignPrice = item.Price;
 
                     if (Model.ActiveCampaigns != null)
                     {
-                        campaign = Model.ActiveCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null);
+                        // SORUNU ÇÖZEN KRİTİK DEĞİŞİKLİK BURADA:
+                        campaign = Model.ActiveCampaigns.FirstOrDefault(c =>
+                        (c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
+                        (c.MinProductPrice == null || item.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
+                        (c.MaxProductPrice == null || item.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                        );
+
                         if (campaign != null)
                         {
                             campaignPrice = item.Price - (item.Price * campaign.DiscountPercentage / 100);
@@ -534,6 +537,7 @@
                     bool showCampaignLabel = false;
                     bool showProductDiscountLabel = false;
 
+                    // Kampanya ve Ürün İndirimi Karşılaştırması
                     if (campaign != null && item.DiscountRate > 0)
                     {
                         if (campaignPrice < productDiscountPrice)
@@ -560,6 +564,8 @@
 
                     // FAVORİ KONTROLÜ
                     bool isFav = favList != null && favList.Contains(item.Id);
+
+                    // -----------------------------------------------------------
 
                     <div class="col-lg-3 col-md-6 col-sm-12">
                         <div class="card product-card h-100 position-relative">

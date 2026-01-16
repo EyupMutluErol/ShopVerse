@@ -38,4 +38,7 @@ public class CampaignUpdateViewModel
     public string? CurrentImageUrl { get; set; }
 
     public bool IsActive { get; set; }
+
+    public decimal? MinProductPrice { get; set; }
+    public decimal? MaxProductPrice { get; set; }
 }

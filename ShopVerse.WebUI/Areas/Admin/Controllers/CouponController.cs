@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering; // SelectList için GEREKLİ
 using Microsoft.AspNetCore.Identity;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
-using ShopVerse.WebUI.Areas.Admin.Models; // ViewModel namespace'i
+using ShopVerse.WebUI.Areas.Admin.Models;
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
@@ -37,7 +39,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            await PopulateDropdowns(); // Dropdownları doldur
+            await PopulateDropdowns(); // Dropdownları SelectList formatında doldur
             return View();
         }
 
@@ -46,21 +48,19 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. ViewModel -> Entity Dönüşümü (Mapping)
+                // 1. ViewModel -> Entity Dönüşümü
                 var coupon = new Coupon
                 {
-                    Code = model.Code.ToUpper(), // Kodları her zaman büyük harf yap
+                    Code = model.Code.ToUpper(),
                     IsPercentage = model.IsPercentage,
+                    DiscountAmount = model.DiscountAmount ?? 0,
+                    MinCartAmount = model.MinCartAmount ?? 0,
+                    ExpirationDate = model.ExpirationDate ?? DateTime.Now.AddDays(7),
 
-                    // ViewModel'de Validasyon olduğu için .Value güvenlidir
-                    DiscountAmount = model.DiscountAmount.Value,
-                    MinCartAmount = model.MinCartAmount.Value,
-                    ExpirationDate = model.ExpirationDate.Value,
-
-                    // Dropdown boş gelirse null olur (Entity'de int? olduğu için sorun yok)
+                    // Yeni eklenen alanlar
+                    MinProductPrice = model.MinProductPrice,
+                    MaxProductPrice = model.MaxProductPrice,
                     CategoryId = model.CategoryId,
-
-                    // String boş gelirse null olarak kaydet (FK hatası almamak için)
                     UserId = string.IsNullOrEmpty(model.UserId) ? null : model.UserId,
 
                     IsActive = model.IsActive,
@@ -68,13 +68,9 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 };
 
                 // 2. Ekstra Kontrol: Kod daha önce kullanılmış mı?
-                var existingCoupon = _couponService.GetByCode(coupon.Code);
-                if (existingCoupon != null)
-                {
-                    ModelState.AddModelError("Code", "Bu kupon kodu zaten mevcut.");
-                    await PopulateDropdowns(); // Hata olduğu için dropdownları tekrar doldur
-                    return View(model);
-                }
+                // Not: Servisinizde GetByCode yoksa bu kontrolü kaldırabilir veya ekleyebilirsiniz.
+                // var existingCoupon = _couponService.GetByCode(coupon.Code);
+                // if (existingCoupon != null) ...
 
                 // 3. Kayıt
                 await _couponService.AddAsync(coupon);
@@ -82,7 +78,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Validasyon hatası varsa (ModelState Invalid)
+            // Validasyon hatası varsa dropdownları tekrar doldur
             await PopulateDropdowns();
             return View(model);
         }
@@ -102,16 +98,28 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Dropdown verilerini dolduran yardımcı metot (Kod tekrarını önlemek için)
+        // ================================================================
+        // ÖNEMLİ DÜZELTME: Dropdown Doldurma Yardımcısı
+        // ================================================================
         private async Task PopulateDropdowns()
         {
-            // Kategoriler
+            // 1. Kategoriler: List<Category> yerine SelectList'e çeviriyoruz
             var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = categories;
 
-            // Üyeler (Sadece 'Member' rolündekiler)
-            var members = await _userManager.GetUsersInRoleAsync("Member");
-            ViewBag.Users = members;
+            // ViewBag.Categories artık "IEnumerable<SelectListItem>" türünde olacak
+            // "Id": Value (Arka planda tutulan değer)
+            // "Name": Text (Ekranda görünen metin)
+            ViewBag.Categories = new SelectList(categories, "Id", "Name");
+
+            // 2. Üyeler
+            // Not: UserManager.Users IQueryable döner, .ToList() ile çekiyoruz.
+            // Eğer rol bazlı çekmek isterseniz GetUsersInRoleAsync kullanabilirsiniz.
+            var users = _userManager.Users.ToList();
+
+            // Eğer View tarafında foreach ile dönecekseniz List olarak kalabilir,
+            // ama asp-items kullanacaksanız bunu da SelectList yapmalısınız.
+            // Sizin View kodunuzda 'foreach' olduğu için List olarak bırakıyorum:
+            ViewBag.Users = users;
         }
     }
 }

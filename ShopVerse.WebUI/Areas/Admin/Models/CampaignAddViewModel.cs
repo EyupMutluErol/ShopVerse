@@ -35,4 +35,7 @@ public class CampaignAddViewModel
     public IFormFile ImageFile { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public decimal? MinProductPrice { get; set; }
+    public decimal? MaxProductPrice { get; set; }
 }

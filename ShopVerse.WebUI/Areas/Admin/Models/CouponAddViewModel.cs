@@ -37,4 +37,7 @@ public class CouponAddViewModel
 
     [Display(Name = "Aktiflik Durumu")]
     public bool IsActive { get; set; } = true;
+
+    public decimal? MinProductPrice { get; set; }
+    public decimal? MaxProductPrice { get; set; }
 }

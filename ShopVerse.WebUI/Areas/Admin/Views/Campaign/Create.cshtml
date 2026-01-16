@@ -43,13 +43,13 @@
 
                         <div class="mb-4">
                             <label asp-for="Title" class="form-label fw-bold"></label>
-                            <input asp-for="Title" class="form-control form-control-lg" />
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Örn: Yaz Sonu İndirimleri" />
                             <span asp-validation-for="Title" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="mb-4">
                             <label asp-for="Description" class="form-label fw-bold"></label>
-                            <textarea asp-for="Description" class="form-control" rows="3" ></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Kampanya detaylarını buraya yazınız..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
@@ -69,6 +69,28 @@
                                     <input asp-for="EndDate" type="text" class="form-control date-picker" placeholder="Bitiş Seçin" readonly />
                                 </div>
                                 <span asp-validation-for="EndDate" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-light border rounded mb-3">
+                            <h6 class="fw-bold text-muted mb-3"><i class="fas fa-tags me-2"></i>Fiyat Kısıtlamaları (Opsiyonel)</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MinProductPrice" class="form-label fw-bold small">Min. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MinProductPrice" type="number" class="form-control" placeholder="Boş bırakılabilir" step="0.01" />
+                                    </div>
+                                    <div class="form-text x-small text-muted mt-1" style="font-size: 0.75rem;">Bu fiyattan <u>düşük</u> ürünlere indirim uygulanmaz.</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MaxProductPrice" class="form-label fw-bold small">Max. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MaxProductPrice" type="number" class="form-control" placeholder="Boş bırakılabilir" step="0.01" />
+                                    </div>
+                                    <div class="form-text x-small text-muted mt-1" style="font-size: 0.75rem;">Bu fiyattan <u>yüksek</u> ürünlere indirim uygulanmaz.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -147,8 +169,8 @@
             locale: "tr",
             time_24hr: true,
             minDate: "today",
-            allowInput: false,       // Elle yazmayı engelle (Sadece seçim)
-            disableMobile: "true"    // Mobilde native picker yerine flatpickr kullan
+            allowInput: false,
+            disableMobile: "true"
         });
 
         // 2. İndirim Butonları

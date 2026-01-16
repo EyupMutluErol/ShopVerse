@@ -79,6 +79,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -123,7 +125,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Admin oluþturulurken bir hata meydana geldi.");
     }
 }
-
 
 
 app.Run();

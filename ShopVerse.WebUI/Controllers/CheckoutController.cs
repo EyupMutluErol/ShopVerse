@@ -19,27 +19,27 @@ namespace ShopVerse.WebUI.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IOrderService _orderService;
         private readonly ICouponService _couponService;
-        private readonly ICampaignService _campaignService; // 1. EKLENDİ
+        private readonly ICampaignService _campaignService;
 
         public CheckoutController(
             UserManager<AppUser> userManager,
             IOrderService orderService,
             ICouponService couponService,
-            ICampaignService campaignService) // 2. EKLENDİ
+            ICampaignService campaignService)
         {
             _userManager = userManager;
             _orderService = orderService;
             _couponService = couponService;
-            _campaignService = campaignService; // ATANDI
+            _campaignService = campaignService;
         }
 
-        // --- Fiyat Hesaplama Yardımcı Metodu (Async Oldu) ---
+        // --- Fiyat Hesaplama Yardımcı Metodu (GÜNCELLENDİ) ---
         private async Task<CheckoutViewModel> CalculateOrderTotalsAsync(List<CartItemModel> cart)
         {
             // Session'da Kupon Var mı?
             var appliedCouponCode = HttpContext.Session.GetString("AppliedCoupon");
 
-            // --- MANTIK BAŞLANGICI: CartController ile Aynı Olmalı ---
+            // --- MANTIK BAŞLANGICI: CartController ile BİREBİR Aynı Olmalı ---
 
             // 1. Durum: Kupon VARSA -> Kampanyaları İptal Et, Normal Fiyata Dön
             if (!string.IsNullOrEmpty(appliedCouponCode))
@@ -52,11 +52,20 @@ namespace ShopVerse.WebUI.Controllers
             // 2. Durum: Kupon YOKSA -> Kampanyaları Uygula
             else
             {
+                // Aktif kampanyaları çek
                 var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
 
                 foreach (var item in cart)
                 {
-                    var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null);
+                    // ========================================================================
+                    // GÜNCELLENEN KISIM: Fiyat Aralığı Kontrolü Eklendi
+                    // ========================================================================
+                    var campaign = activeCampaigns.FirstOrDefault(c =>
+                        (c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
+                        (c.MinProductPrice == null || item.Product.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
+                        (c.MaxProductPrice == null || item.Product.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                    );
+
                     decimal itemPrice = item.Product.Price;
 
                     // Kampanya İndirimi
@@ -68,7 +77,15 @@ namespace ShopVerse.WebUI.Controllers
                     // Ürün Özel İndirimi (DiscountRate)
                     if (item.Product.DiscountRate > 0)
                     {
-                        itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                        // Hem kampanya hem ürün indirimi varsa en uygun olanı seç
+                        if (campaign != null)
+                        {
+                            itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                        }
+                        else
+                        {
+                            itemPrice = item.Product.PriceWithDiscount;
+                        }
                     }
 
                     item.SalePrice = itemPrice;
@@ -76,7 +93,7 @@ namespace ShopVerse.WebUI.Controllers
             }
             // --- MANTIK BİTİŞİ ---
 
-            // Artık SalePrice değerleri doğru (Ya kampanya ya normal). Hesaplamaya geçebiliriz.
+            // Hesaplamalar
             decimal subTotal = cart.Sum(x => x.Quantity * x.SalePrice);
             decimal discountAmount = 0;
             decimal shippingPrice = (subTotal >= 500) ? 0 : 39.90m;
@@ -86,8 +103,11 @@ namespace ShopVerse.WebUI.Controllers
             {
                 var coupon = _couponService.GetByCode(appliedCouponCode);
 
-                // Kupon geçerlilik kontrolü (Limit vs.)
-                if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && subTotal >= coupon.MinCartAmount)
+                // Kupon için de indirimsiz (ham) sepet tutarını kontrol edelim
+                decimal rawTotal = cart.Sum(x => x.Quantity * x.Product.Price);
+
+                // Kupon geçerlilik kontrolü
+                if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && rawTotal >= coupon.MinCartAmount)
                 {
                     if (coupon.IsPercentage)
                     {
@@ -104,7 +124,7 @@ namespace ShopVerse.WebUI.Controllers
                 {
                     // Şartlar sağlanmıyorsa kuponu sessizce düşür (Güvenlik)
                     HttpContext.Session.Remove("AppliedCoupon");
-                    // Not: Sayfa yenilenirse Else bloğu çalışıp kampanyalı fiyatlara döner.
+                    // Not: Bu durumda sonraki istekte fiyatlar tekrar hesaplanacaktır.
                 }
             }
 
@@ -143,7 +163,7 @@ namespace ShopVerse.WebUI.Controllers
                 model.FullName = user.Name + " " + user.Surname;
                 model.PhoneNumber = user.PhoneNumber;
                 model.City = user.City;
-                // AppUser'da olmayan alanlar kaldırıldı
+                // Adres bilgileri IdentityUser'da yoksa boş gelebilir, kullanıcı doldurmalı
             }
 
             return View(model);
@@ -159,7 +179,7 @@ namespace ShopVerse.WebUI.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            // GÜVENLİK: Fiyatları sunucu tarafında tekrar hesapla!
+            // GÜVENLİK: Fiyatları sunucu tarafında tekrar hesapla! (Manipülasyonu önlemek için)
             var calculatedModel = await CalculateOrderTotalsAsync(cart);
 
             if (ModelState.IsValid)
@@ -208,7 +228,7 @@ namespace ShopVerse.WebUI.Controllers
                     HttpContext.Session.Remove("Cart");
                     HttpContext.Session.Remove("AppliedCoupon");
 
-                    // Sipariş Başarılı Mesajı (Layout'ta özel olarak yakalanıyor)
+                    // Sipariş Başarılı Mesajı
                     TempData["OrderSuccess"] = "Siparişiniz başarıyla oluşturuldu! Sipariş numaranız: " + order.OrderNumber;
 
                     return RedirectToAction("Index", "Profile");

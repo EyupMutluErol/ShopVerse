@@ -64,7 +64,9 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     TargetCategoryId = model.TargetCategoryId,
                     ImageUrl = imagePath,
                     IsActive = model.IsActive,
-                    CreatedDate = DateTime.Now
+                    CreatedDate = DateTime.Now,
+                    MinProductPrice = model.MinProductPrice,
+                    MaxProductPrice = model.MaxProductPrice
                 };
 
                 // 3. KAYIT
@@ -103,7 +105,9 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 DiscountPercentage = campaign.DiscountPercentage,
                 TargetCategoryId = campaign.TargetCategoryId,
                 IsActive = campaign.IsActive,
-                CurrentImageUrl = campaign.ImageUrl // Mevcut resmi View'da göstermek için
+                CurrentImageUrl = campaign.ImageUrl,
+                MinProductPrice = campaign.MinProductPrice,
+                MaxProductPrice = campaign.MaxProductPrice
             };
 
             var categories = await _categoryService.GetAllAsync();
@@ -143,6 +147,8 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 existingCampaign.DiscountPercentage = model.DiscountPercentage ?? 0;
                 existingCampaign.TargetCategoryId = model.TargetCategoryId;
                 existingCampaign.IsActive = model.IsActive;
+                existingCampaign.MinProductPrice = model.MinProductPrice;
+                existingCampaign.MaxProductPrice = model.MaxProductPrice;
 
                 // 4. Güncelle
                 await _campaignService.UpdateAsync(existingCampaign);

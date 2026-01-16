@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopVerse.DataAccess.Concrete.Context;
 
@@ -11,9 +12,11 @@ using ShopVerse.DataAccess.Concrete.Context;
 namespace ShopVerse.DataAccess.Migrations
 {
     [DbContext(typeof(ShopVerseContext))]
-    partial class ShopVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20260116171539_AddPriceLimitsToCampaignAndCoupon")]
+    partial class AddPriceLimitsToCampaignAndCoupon
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -14,8 +14,6 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
         private readonly UserManager<AppUser> _userManager;
-
-        // YENİ EKLENEN SERVİS
         private readonly IFavoriteService _favoriteService;
 
         public CartController(
@@ -23,13 +21,13 @@ namespace ShopVerse.WebUI.Controllers
             ICampaignService campaignService,
             ICouponService couponService,
             UserManager<AppUser> userManager,
-            IFavoriteService favoriteService) // Constructor Injection
+            IFavoriteService favoriteService)
         {
             _productService = productService;
             _campaignService = campaignService;
             _couponService = couponService;
             _userManager = userManager;
-            _favoriteService = favoriteService; // Atama
+            _favoriteService = favoriteService;
         }
 
         public async Task<IActionResult> Index()
@@ -40,7 +38,6 @@ namespace ShopVerse.WebUI.Controllers
             // --- 1. KUPON VARSA: KAMPANYALARI İPTAL ET (NORMAL FİYATA DÖN) ---
             if (!string.IsNullOrEmpty(appliedCouponCode))
             {
-                // Kupon uygulandığı için tüm ürünleri indirimsiz (Base Price) fiyatına çekiyoruz.
                 foreach (var item in cart)
                 {
                     item.SalePrice = item.Product.Price;
@@ -49,11 +46,20 @@ namespace ShopVerse.WebUI.Controllers
             else
             {
                 // --- 2. KUPON YOKSA: KAMPANYALARI UYGULA ---
+                // Aktif ve süresi dolmamış kampanyaları çek
                 var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
 
                 foreach (var item in cart)
                 {
-                    var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null);
+                    // ========================================================================
+                    // SORUNU ÇÖZEN KISIM (GÜNCELLENDİ)
+                    // Sadece kategoriye değil, FİYAT ARALIĞINA da bakıyoruz.
+                    // ========================================================================
+                    var campaign = activeCampaigns.FirstOrDefault(c =>
+                        (c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
+                        (c.MinProductPrice == null || item.Product.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
+                        (c.MaxProductPrice == null || item.Product.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                    );
 
                     decimal itemPrice = item.Product.Price;
 
@@ -64,11 +70,18 @@ namespace ShopVerse.WebUI.Controllers
                         itemPrice = campaignPrice;
                     }
 
-                    // Ürün Özel İndirimi
+                    // Ürün Özel İndirimi (Varsa karşılaştırıp en düşüğünü al)
                     if (item.Product.DiscountRate > 0)
                     {
-                        // Müşteri için en avantajlı fiyatı seç
-                        itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                        // Eğer hem kampanya hem ürün indirimi varsa, müşteri için en ucuzunu seç
+                        if (campaign != null)
+                        {
+                            itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
+                        }
+                        else
+                        {
+                            itemPrice = item.Product.PriceWithDiscount;
+                        }
                     }
 
                     item.SalePrice = itemPrice;
@@ -85,7 +98,10 @@ namespace ShopVerse.WebUI.Controllers
             {
                 var coupon = _couponService.GetByCode(appliedCouponCode);
 
-                if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && totalPrice >= coupon.MinCartAmount)
+                // Sepetin ham tutarı (indirimsiz) limit kontrolü için
+                decimal rawTotal = cart.Sum(x => x.Quantity * x.Product.Price);
+
+                if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && rawTotal >= coupon.MinCartAmount)
                 {
                     if (coupon.IsPercentage)
                     {
@@ -104,7 +120,7 @@ namespace ShopVerse.WebUI.Controllers
                 }
                 else
                 {
-                    // Şartlar sağlanmıyorsa kuponu düşür
+                    // Şartlar sağlanmıyorsa (örn: ürün silince limit altına düşüldüyse) kuponu düşür
                     HttpContext.Session.Remove("AppliedCoupon");
                 }
             }
@@ -113,7 +129,7 @@ namespace ShopVerse.WebUI.Controllers
             ViewBag.FinalPrice = finalPrice;
 
             // ============================================================
-            // 5. FAVORİ KONTROLÜ (YENİ EKLENEN KISIM)
+            // 5. FAVORİ KONTROLÜ
             // ============================================================
             if (User.Identity.IsAuthenticated)
             {
@@ -128,6 +144,9 @@ namespace ShopVerse.WebUI.Controllers
             {
                 ViewBag.FavoriteProductIds = new List<int>();
             }
+
+            // Değişen fiyatları Session'a geri kaydet (Önemli: Fiyat güncellemeleri kalıcı olsun)
+            SaveCartToSession(cart);
 
             return View(new CartViewModel { CartItems = cart });
         }
@@ -167,12 +186,15 @@ namespace ShopVerse.WebUI.Controllers
 
             if (rawTotalPrice < coupon.MinCartAmount)
             {
-                TempData["CouponError"] = $"Bu kuponu kullanmak için (indirimsiz) sepet tutarınız en az {coupon.MinCartAmount:C2} olmalıdır.";
+                TempData["CouponError"] = $"Bu kuponu kullanmak için sepet tutarınız en az {coupon.MinCartAmount:C2} olmalıdır.";
                 return RedirectToAction("Index");
             }
 
+            // Kategori veya Fiyat Aralığı kısıtlaması varsa (Kupon için)
+            // Bu gelişmiş bir özellik, şimdilik sadece sepet tutarına bakıyoruz.
+
             HttpContext.Session.SetString("AppliedCoupon", coupon.Code);
-            TempData["CouponSuccess"] = "Kupon başarıyla uygulandı! (Kampanyalı fiyatlar devre dışı bırakıldı)";
+            TempData["CouponSuccess"] = "Kupon başarıyla uygulandı! (Diğer kampanyalar devre dışı bırakıldı)";
 
             return RedirectToAction("Index");
         }
@@ -193,9 +215,14 @@ namespace ShopVerse.WebUI.Controllers
                 return Json(new { success = false, message = "Ürün bulunamadı." });
             }
 
-            // Sepete eklerken varsayılan en iyi fiyatı hesapla (Index metodunda tekrar kontrol edilecek)
+            // --- SEPETE EKLERKEN DE FİYAT KONTROLÜ (GÜNCELLENDİ) ---
             var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
-            var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null);
+
+            var campaign = activeCampaigns.FirstOrDefault(c =>
+                (c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null) &&
+                (c.MinProductPrice == null || product.Price >= c.MinProductPrice) &&  // EKLENDİ
+                (c.MaxProductPrice == null || product.Price <= c.MaxProductPrice)     // EKLENDİ
+            );
 
             decimal campaignPrice = product.Price;
             if (campaign != null)
@@ -206,6 +233,8 @@ namespace ShopVerse.WebUI.Controllers
                 productDiscountPrice = product.PriceWithDiscount;
 
             decimal finalPrice = product.Price;
+
+            // En düşük fiyatı belirle
             if (campaign != null && product.DiscountRate > 0)
                 finalPrice = Math.Min(campaignPrice, productDiscountPrice);
             else if (campaign != null)
@@ -219,7 +248,7 @@ namespace ShopVerse.WebUI.Controllers
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
-                existingItem.SalePrice = finalPrice;
+                existingItem.SalePrice = finalPrice; // Güncel fiyatı bas
             }
             else
             {
@@ -247,9 +276,9 @@ namespace ShopVerse.WebUI.Controllers
                 cart.Remove(itemToRemove);
                 SaveCartToSession(cart);
 
-                // Genel UI Mesajı (SweetAlert için)
-                TempData["UserMessage"] = "Ürün başarıyla silindi.";
-                TempData["UserType"] = "success";
+                // AJAX ile çağrılmıyorsa TempData kullan (Index'e yönlenince mesaj çıksın)
+                // Ancak AJAX kullanıyorsanız Index view'ında TempData kontrolü yapmanız gerek.
+                // TempData["UserMessage"] = "Ürün silindi."; 
             }
             return RedirectToAction("Index");
         }
@@ -283,8 +312,6 @@ namespace ShopVerse.WebUI.Controllers
                 {
                     cart.Remove(item);
                     SaveCartToSession(cart);
-                    TempData["UserMessage"] = "Ürün sepetten çıkarıldı.";
-                    TempData["UserType"] = "success";
                 }
             }
             return RedirectToAction("Index");

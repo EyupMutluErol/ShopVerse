@@ -84,13 +84,11 @@
                     @if (isDealsPage)
                     {
                         <i class="fas fa-fire text-danger me-2"></i>
-                    
                         <span class="text-danger">Günün Fırsatları</span>
                     }
                     else
                     {
                         <i class="fas fa-box-open text-primary me-2"></i>
-                    
                         <span>Tüm Ürünler</span>
                     }
                 </h4>
@@ -134,7 +132,7 @@
                     @foreach (var item in Model)
                     {
                         // -----------------------------------------------------------
-                        // EN İYİ FİYAT MANTIĞI
+                        // EN İYİ FİYAT MANTIĞI (GÜNCELLENMİŞ KISIM)
                         // -----------------------------------------------------------
 
                         ShopVerse.Entities.Concrete.Campaign? campaign = null;
@@ -142,7 +140,13 @@
 
                         if (activeCampaigns != null)
                         {
-                            campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null);
+                            // YENİ MANTIK: Kategori + Fiyat Aralığı Kontrolü
+                            campaign = activeCampaigns.FirstOrDefault(c =>
+                            (c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
+                            (c.MinProductPrice == null || item.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
+                            (c.MaxProductPrice == null || item.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                            );
+
                             if (campaign != null)
                             {
                                 campaignPrice = item.Price - (item.Price * campaign.DiscountPercentage / 100);
@@ -159,6 +163,7 @@
                         bool showCampaignLabel = false;
                         bool showProductDiscountLabel = false;
 
+                        // En düşük fiyatı belirleme
                         if (campaign != null && item.DiscountRate > 0)
                         {
                             if (campaignPrice < productDiscountPrice)

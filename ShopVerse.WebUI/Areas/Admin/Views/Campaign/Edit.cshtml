@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_orange.css">
 
 <style>
+    /* Sayı inputundaki okları gizle */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -19,17 +20,23 @@
     input[type=number] {
         -moz-appearance: textfield;
     }
+
+    /* TARİH SEÇİCİ İÇİN ÖZEL STİL */
+    .date-picker {
+        cursor: pointer !important;
+        background-color: #fff !important;
+    }
 </style>
 
 <div class="container mt-4">
 
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm border-0 mb-4"></div>
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="m-0"><i class="fas fa-edit me-2"></i>Kampanyayı Düzenle: @Model.Title</h5>
+    <div class="card shadow border-0 rounded-3">
+        <div class="card-header bg-warning text-dark py-3 rounded-top-3">
+            <h5 class="m-0 fw-bold"><i class="fas fa-edit me-2"></i>Kampanyayı Düzenle: @Model.Title</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <form asp-action="Edit" method="post" enctype="multipart/form-data">
 
                 <input type="hidden" asp-for="Id" />
@@ -37,97 +44,127 @@
 
                 <div class="row">
                     <div class="col-md-8">
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label asp-for="Title" class="form-label fw-bold"></label>
-                            <input asp-for="Title" class="form-control" />
-                            <span asp-validation-for="Title" class="text-danger small fw-bold"></span>
+                            <input asp-for="Title" class="form-control form-control-lg" />
+                            <span asp-validation-for="Title" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label asp-for="Description" class="form-label fw-bold"></label>
-                            <input asp-for="Description" class="form-control" />
-                            <span asp-validation-for="Description" class="text-danger small fw-bold"></span>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label asp-for="StartDate" class="form-label fw-bold"></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-warning"></i></span>
                                     <input asp-for="StartDate" type="text" class="form-control date-picker"
                                            value="@(Model.StartDate.HasValue? Model.StartDate.Value.ToString("yyyy-MM-dd HH:mm") : "")" />
                                 </div>
-                                <span asp-validation-for="StartDate" class="text-danger small fw-bold"></span>
+                                <span asp-validation-for="StartDate" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label asp-for="EndDate" class="form-label fw-bold"></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-calendar-check text-warning"></i></span>
                                     <input asp-for="EndDate" type="text" class="form-control date-picker"
                                            value="@(Model.EndDate.HasValue? Model.EndDate.Value.ToString("yyyy-MM-dd HH:mm") : "")" />
                                 </div>
-                                <span asp-validation-for="EndDate" class="text-danger small fw-bold"></span>
+                                <span asp-validation-for="EndDate" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-light border rounded mb-3">
+                            <h6 class="fw-bold text-muted mb-3"><i class="fas fa-tags me-2"></i>Fiyat Kısıtlamaları (Opsiyonel)</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MinProductPrice" class="form-label fw-bold small">Min. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MinProductPrice" type="number" class="form-control" placeholder="Boş bırakılabilir" step="0.01" />
+                                    </div>
+                                    <div class="form-text x-small text-muted mt-1" style="font-size: 0.75rem;">Bu fiyattan <u>düşük</u> ürünlere indirim uygulanmaz.</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MaxProductPrice" class="form-label fw-bold small">Max. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MaxProductPrice" type="number" class="form-control" placeholder="Boş bırakılabilir" step="0.01" />
+                                    </div>
+                                    <div class="form-text x-small text-muted mt-1" style="font-size: 0.75rem;">Bu fiyattan <u>yüksek</u> ürünlere indirim uygulanmaz.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-4 bg-light p-3 rounded">
+                    <div class="col-md-4">
+                        <div class="bg-light p-4 rounded-3 h-100 border">
 
-                        <div class="mb-3 text-center">
-                            <label class="form-label fw-bold d-block">Mevcut Görsel</label>
-                            @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
-                            {
-                                <img src="@Model.CurrentImageUrl" class="img-thumbnail shadow-sm" style="max-height: 150px; object-fit: cover;" alt="Kampanya Görseli" />
-                            }
-                            else
-                            {
-                                <div class="alert alert-secondary py-2 small">Görsel Yok</div>
-                            }
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ImageFile" class="form-label fw-bold"></label>
-                            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
-                            <small class="text-muted">Değiştirmek istemiyorsanız boş bırakın.</small>
-                            <span asp-validation-for="ImageFile" class="text-danger small fw-bold"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="DiscountPercentage" class="form-label fw-bold text-danger"></label>
-                            <div class="input-group">
-                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-
-                                <input asp-for="DiscountPercentage" type="number" id="discountInput"
-                                       class="form-control text-center fw-bold text-danger fs-5"
-                                       min="1" max="100" />
-
-                                <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="mb-4 text-center">
+                                <label class="form-label fw-bold d-block">Mevcut Görsel</label>
+                                @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
+                                {
+                                    <img src="@Model.CurrentImageUrl" class="img-thumbnail shadow-sm bg-white" style="max-height: 150px; object-fit: cover;" alt="Kampanya Görseli" />
+                                }
+                                else
+                                {
+                                    <div class="alert alert-secondary py-2 small">Görsel Yok</div>
+                                }
                             </div>
-                            <span asp-validation-for="DiscountPercentage" class="text-danger small fw-bold"></span>
-                        </div>
 
-                        <div class="mb-3">
-                            <label asp-for="TargetCategoryId" class="form-label fw-bold"></label>
-                            <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
-                                <option value="">Tüm Site (Genel)</option>
-                            </select>
-                        </div>
+                            <div class="mb-4">
+                                <label asp-for="ImageFile" class="form-label fw-bold"></label>
+                                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                                <small class="text-muted d-block mt-1">Değiştirmek istemiyorsanız boş bırakın.</small>
+                                <span asp-validation-for="ImageFile" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
 
-                        <div class="form-check form-switch mt-3">
-                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                            <label class="form-check-label fw-bold">Aktif</label>
+                            <div class="mb-4">
+                                <label asp-for="DiscountPercentage" class="form-label fw-bold text-danger"></label>
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(-1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+
+                                    <input asp-for="DiscountPercentage" type="number" id="discountInput"
+                                           class="form-control text-center fw-bold text-danger fs-5"
+                                           min="1" max="100" />
+
+                                    <button class="btn btn-outline-secondary bg-white" type="button" onclick="updateDiscount(1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="DiscountPercentage" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="TargetCategoryId" class="form-label fw-bold"></label>
+                                <select asp-for="TargetCategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                    <option value="">Tüm Site (Genel)</option>
+                                </select>
+                                <div class="form-text small mt-1">Belirli bir kategori seçmezseniz genel kampanya olur.</div>
+                            </div>
+
+                            <div class="form-check form-switch p-3 bg-white border rounded">
+                                <input asp-for="IsActive" class="form-check-input ms-0 me-3" type="checkbox" role="switch" style="transform: scale(1.3);" />
+                                <label class="form-check-label fw-bold pt-1" asp-for="IsActive">Kampanya Aktif</label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <hr />
+                <hr class="my-4 text-muted opacity-25" />
+
                 <div class="d-flex justify-content-end gap-2">
-                    <a asp-action="Index" class="btn btn-secondary">İptal</a>
-                    <button type="submit" class="btn btn-warning fw-bold"><i class="fas fa-save me-2"></i>Değişiklikleri Kaydet</button>
+                    <a asp-action="Index" class="btn btn-secondary px-4 fw-bold">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </a>
+                    <button type="submit" class="btn btn-warning px-5 fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                    </button>
                 </div>
             </form>
         </div>
@@ -135,6 +172,8 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 
@@ -143,7 +182,9 @@
             enableTime: true,
             dateFormat: "Y-m-d H:i",
             locale: "tr",
-            time_24hr: true
+            time_24hr: true,
+            allowInput: false,
+            disableMobile: "true"
         });
 
         function updateDiscount(amount) {
@@ -156,7 +197,4 @@
             }
         }
     </script>
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
 }

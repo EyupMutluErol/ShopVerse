@@ -13,7 +13,7 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICampaignService _campaignService;
         private readonly ICouponService _couponService;
 
-        // YENİ EKLENEN SERVİSLER
+        // FAVORİ VE KULLANICI SERVİSLERİ
         private readonly IFavoriteService _favoriteService;
         private readonly UserManager<AppUser> _userManager;
 
@@ -64,24 +64,32 @@ namespace ShopVerse.WebUI.Controllers
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
             // ========================================================================
-            // 5. GÜNCELLENEN MANTIK (İŞLEVSELLİK DÜZELTİLDİ)
+            // 5. TEMEL FİLTRELER
             // ========================================================================
 
-            // KURAL: Mağaza (Tüm Ürünler) sayfasında bir ürünün görünmesi için 
-            // SADECE 'IsActive (Satışta)' olması yeterlidir. 
-            // IsHome kapalı olsa bile burada listelenmelidir.
+            // KURAL: Mağaza sayfasında ürünün görünmesi için 'IsActive' olması yeterlidir.
             products = products.Where(p => p.IsActive).ToList();
 
-            // Not: Buradaki 'if (!hasAnyFilter)' bloğunu kaldırdık. 
-            // Çünkü burası anasayfa değil, tüm ürünlerin listelendiği mağaza sayfası.
             // ========================================================================
-
-            // 6. FIRSAT FİLTRESİ (SHOW DEALS)
+            // 6. FIRSAT FİLTRESİ (SHOW DEALS) - GÜNCELLENDİ (FİYAT ARALIĞI KONTROLÜ)
+            // ========================================================================
             if (showDeals)
             {
                 products = products.Where(p =>
+                    // A) Ürünün kendi özel indirimi var mı?
                     p.DiscountRate > 0 ||
-                    activeCampaigns.Any(c => c.TargetCategoryId == p.CategoryId || c.TargetCategoryId == null)
+
+                    // B) Ürün aktif bir kampanyaya uyuyor mu?
+                    activeCampaigns.Any(c =>
+                        // 1. Kategori Tutuyor mu?
+                        (c.TargetCategoryId == p.CategoryId || c.TargetCategoryId == null) &&
+
+                        // 2. Min Fiyat Tutuyor mu? (Kampanyada limit varsa kontrol et)
+                        (c.MinProductPrice == null || p.Price >= c.MinProductPrice) &&
+
+                        // 3. Max Fiyat Tutuyor mu?
+                        (c.MaxProductPrice == null || p.Price <= c.MaxProductPrice)
+                    )
                 ).ToList();
 
                 ViewData["IsDealsPage"] = true;
@@ -95,7 +103,7 @@ namespace ShopVerse.WebUI.Controllers
             ViewData["SortOrder"] = sortOrder;
             ViewData["ShowDeals"] = showDeals;
 
-            // 8. FAVORİLERİ GETİR
+            // 8. FAVORİLERİ GETİR (Kalp ikonları için)
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -127,8 +135,18 @@ namespace ShopVerse.WebUI.Controllers
                 x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now
             );
 
-            // 2. Bu ürüne uygun kampanya var mı?
-            var campaign = activeCampaigns.FirstOrDefault(c => c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null);
+            // ========================================================================
+            // 2. KAMPANYA EŞLEŞTİRME - GÜNCELLENDİ (FİYAT ARALIĞI KONTROLÜ)
+            // ========================================================================
+            var campaign = activeCampaigns.FirstOrDefault(c =>
+                // Kategori Eşleşmesi
+                (c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null) &&
+
+                // Fiyat Sınırları Eşleşmesi
+                (c.MinProductPrice == null || product.Price >= c.MinProductPrice) &&
+                (c.MaxProductPrice == null || product.Price <= c.MaxProductPrice)
+            );
+
 
             // 3. Fiyat Hesaplamaları
             decimal campaignPrice = product.Price;
@@ -148,6 +166,7 @@ namespace ShopVerse.WebUI.Controllers
             string discountType = "None"; // None, Campaign, ProductDiscount
             int discountRate = 0;
 
+            // Hem Kampanya Hem Ürün İndirimi Varsa
             if (campaign != null && product.DiscountRate > 0)
             {
                 if (campaignPrice < productDiscountPrice)
@@ -163,12 +182,14 @@ namespace ShopVerse.WebUI.Controllers
                     discountRate = (int)product.DiscountRate;
                 }
             }
+            // Sadece Kampanya Varsa
             else if (campaign != null)
             {
                 finalPrice = campaignPrice;
                 discountType = "Campaign";
                 discountRate = campaign.DiscountPercentage;
             }
+            // Sadece Ürün İndirimi Varsa
             else if (product.DiscountRate > 0)
             {
                 finalPrice = productDiscountPrice;
@@ -180,6 +201,12 @@ namespace ShopVerse.WebUI.Controllers
             ViewBag.FinalPrice = finalPrice;
             ViewBag.DiscountType = discountType;
             ViewBag.DiscountRate = discountRate;
+
+            // Eğer kampanya uygulandıysa detaylarını gönderelim (İsim vs. göstermek için)
+            if (discountType == "Campaign")
+            {
+                ViewBag.AppliedCampaignTitle = campaign.Title;
+            }
 
             // ============================================================
             // 6. FAVORİ KONTROLÜ

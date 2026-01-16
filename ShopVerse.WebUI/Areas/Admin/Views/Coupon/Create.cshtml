@@ -1,4 +1,5 @@
-﻿@model ShopVerse.WebUI.Areas.Admin.Models.CouponAddViewModel
+﻿@using ShopVerse.WebUI.Areas.Admin.Models
+@model CouponAddViewModel
 
 @{
     ViewData["Title"] = "Yeni Kupon Oluştur";
@@ -9,7 +10,7 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
 <style>
-    /* Hide default spin buttons on number inputs for cleaner UI */
+    /* Sayı inputlarındaki okları gizle */
     .no-spinners::-webkit-outer-spin-button,
     .no-spinners::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -19,7 +20,8 @@
     .no-spinners {
         -moz-appearance: textfield;
     }
-    /* Pointer cursor for date inputs */
+
+    /* Tarih seçici imleci */
     .date-picker {
         cursor: pointer !important;
         background-color: #fff !important;
@@ -38,91 +40,131 @@
             <form asp-action="Create" method="post">
 
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-7">
 
-                        <div class="mb-4">
-                            <label asp-for="Code" class="form-label fw-bold"></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-barcode text-muted"></i></span>
-                                <input asp-for="Code" class="form-control text-uppercase fw-bold" />
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Code" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-barcode text-muted"></i></span>
+                                    <input asp-for="Code" class="form-control text-uppercase fw-bold" placeholder="Örn: YAZ2026" />
+                                </div>
+                                <span asp-validation-for="Code" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
-                            <span asp-validation-for="Code" class="text-danger small fw-bold mt-1 d-block"></span>
-                            <small class="text-muted">Kod otomatik olarak büyük harfe çevrilir.</small>
-                        </div>
 
-                        <div class="mb-4">
-                            <label asp-for="ExpirationDate" class="form-label fw-bold"></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
-                                <input asp-for="ExpirationDate" type="text" class="form-control date-picker" placeholder="Tarih Seçiniz" readonly />
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="ExpirationDate" class="form-label fw-bold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
+                                    <input asp-for="ExpirationDate" type="text" class="form-control date-picker" placeholder="Tarih Seçiniz" readonly />
+                                </div>
+                                <span asp-validation-for="ExpirationDate" class="text-danger small fw-bold mt-1 d-block"></span>
                             </div>
-                            <span asp-validation-for="ExpirationDate" class="text-danger small fw-bold mt-1 d-block"></span>
                         </div>
 
-                        <div class="mb-4">
-                            <label asp-for="MinCartAmount" class="form-label fw-bold"></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white">₺</span>
-                                <input asp-for="MinCartAmount" type="number" step="0.01" class="form-control no-spinners" />
+                        <div class="p-3 bg-light border rounded mb-4">
+                            <h6 class="fw-bold text-muted mb-3"><i class="fas fa-users-cog me-2"></i>Hedefleme Ayarları</h6>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CategoryId" class="form-label fw-bold small">Kategori Kısıtlaması</label>
+                                    <select asp-for="CategoryId" class="form-select border-secondary" asp-items="ViewBag.Categories">
+                                        <option value="">Tüm Kategorilerde Geçerli</option>
+                                    </select>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Sadece seçilen kategorideki ürünlere uygulanır.</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small">Özel Kullanıcı (Opsiyonel)</label>
+                                    <select name="UserId" class="form-select border-secondary">
+                                        <option value="">Herkes Kullanabilir</option>
+                                        @if (ViewBag.Users != null)
+                                        {
+                                            @foreach (var user in ViewBag.Users as IList<ShopVerse.Entities.Concrete.AppUser>)
+                                            {
+                                                <option value="@user.Id">@user.Name @user.Surname (@user.Email)</option>
+                                            }
+                                        }
+                                    </select>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Sadece seçilen kişi kullanabilir.</small>
+                                </div>
                             </div>
-                            <span asp-validation-for="MinCartAmount" class="text-danger small fw-bold mt-1 d-block"></span>
-                            <small class="text-muted">Alt limit yoksa 0 bırakın.</small>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-primary">Özel Kullanıcı Tanımla (Opsiyonel)</label>
-                            <select name="UserId" class="form-select border-primary">
-                                <option value=""> Herkes Kullanabilir (Genel) </option>
-                                @if (ViewBag.Users != null)
-                                {
-                                    @foreach (var user in ViewBag.Users as IList<ShopVerse.Entities.Concrete.AppUser>)
-                                    {
-                                        <option value="@user.Id">@user.Name @user.Surname (@user.Email)</option>
-                                    }
-                                }
-                            </select>
-                            <small class="text-muted">Birini seçerseniz, kuponu <strong>sadece o kişi</strong> kullanabilir.</small>
+                        <div class="p-3 bg-light border rounded mb-3">
+                            <h6 class="fw-bold text-muted mb-3"><i class="fas fa-lira-sign me-2"></i>Tutar Kısıtlamaları</h6>
+
+                            <div class="mb-3">
+                                <label asp-for="MinCartAmount" class="form-label fw-bold small">Sepet Alt Limiti</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white">₺</span>
+                                    <input asp-for="MinCartAmount" type="number" step="0.01" class="form-control no-spinners" placeholder="0" />
+                                </div>
+                                <div class="form-text x-small text-muted" style="font-size: 0.75rem;">Toplam sepet tutarı bu rakamın altındaysa kupon çalışmaz.</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MinProductPrice" class="form-label fw-bold small">Min. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MinProductPrice" type="number" step="0.01" class="form-control no-spinners" placeholder="Boş bırakılabilir" />
+                                    </div>
+                                    <div class="form-text x-small text-muted" style="font-size: 0.7rem;">Bu fiyattan <u>düşük</u> ürünlere indirim yapma.</div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label asp-for="MaxProductPrice" class="form-label fw-bold small">Max. Ürün Fiyatı</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">₺</span>
+                                        <input asp-for="MaxProductPrice" type="number" step="0.01" class="form-control no-spinners" placeholder="Boş bırakılabilir" />
+                                    </div>
+                                    <div class="form-text x-small text-muted" style="font-size: 0.7rem;">Bu fiyattan <u>pahalı</u> ürünlere indirim yapma.</div>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
 
-                    <div class="col-md-6 bg-light p-4 rounded-3 h-100 border">
+                    <div class="col-md-5">
+                        <div class="bg-light p-4 rounded-3 h-100 border">
 
-                        <div class="form-check form-switch mb-4 p-3 bg-white border rounded">
-                            <input asp-for="IsPercentage" class="form-check-input ms-0 me-3" type="checkbox" id="isPercentageSwitch" style="transform: scale(1.3);" />
-                            <label class="form-check-label fw-bold pt-1" for="isPercentageSwitch">Yüzdelik İndirim Uygula (%)</label>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" id="discountLabel">İndirim Tutarı (TL)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white fw-bold" id="currencySymbol">₺</span>
-
-                                <button type="button" class="btn btn-outline-secondary bg-white" onclick="updateDiscountValue(-1)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-
-                                <input asp-for="DiscountAmount" type="number" step="0.01" id="discountInput"
-                                       class="form-control fw-bold fs-5 text-primary text-center no-spinners" />
-
-                                <button type="button" class="btn btn-outline-secondary bg-white" onclick="updateDiscountValue(1)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="form-check form-switch mb-4 p-3 bg-white border rounded">
+                                <input asp-for="IsPercentage" class="form-check-input ms-0 me-3" type="checkbox" id="isPercentageSwitch" style="transform: scale(1.3);" />
+                                <label class="form-check-label fw-bold pt-1" for="isPercentageSwitch">Yüzdelik İndirim Uygula (%)</label>
                             </div>
-                            <span asp-validation-for="DiscountAmount" class="text-danger small fw-bold mt-1 d-block"></span>
-                        </div>
 
-                        <div class="form-check form-switch mt-4 p-3 bg-white border rounded">
-                            <input asp-for="IsActive" class="form-check-input ms-0 me-3" type="checkbox" role="switch" checked style="transform: scale(1.3);" />
-                            <label class="form-check-label fw-bold pt-1" asp-for="IsActive">Kupon Kullanıma Açık</label>
-                        </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" id="discountLabel">İndirim Tutarı (TL)</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white fw-bold" id="currencySymbol">₺</span>
 
+                                    <button type="button" class="btn btn-outline-secondary bg-white" onclick="updateDiscountValue(-1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+
+                                    <input asp-for="DiscountAmount" type="number" step="0.01" id="discountInput"
+                                           class="form-control fw-bold fs-4 text-primary text-center no-spinners" />
+
+                                    <button type="button" class="btn btn-outline-secondary bg-white" onclick="updateDiscountValue(1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="DiscountAmount" class="text-danger small fw-bold mt-1 d-block"></span>
+                            </div>
+
+                            <div class="form-check form-switch mt-5 p-3 bg-white border rounded">
+                                <input asp-for="IsActive" class="form-check-input ms-0 me-3" type="checkbox" role="switch" checked style="transform: scale(1.3);" />
+                                <label class="form-check-label fw-bold pt-1" asp-for="IsActive">Kupon Kullanıma Açık</label>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
                 <hr class="my-4 text-muted opacity-25" />
 
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="/Admin/Coupon/Index" class="btn btn-secondary px-4 fw-bold">
+                    <a asp-action="Index" class="btn btn-secondary px-4 fw-bold">
                         <i class="fas fa-times me-2"></i>İptal
                     </a>
                     <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
@@ -142,18 +184,18 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // 1. Date Picker Configuration
+        // 1. Tarih Seçici
         flatpickr(".date-picker", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
             locale: "tr",
             time_24hr: true,
             minDate: "today",
-            allowInput: false, // Prevent manual typing
+            allowInput: false,
             disableMobile: "true"
         });
 
-        // 2. Discount Type Logic (Percentage vs Amount)
+        // 2. İndirim Tipi Mantığı (Yüzde mi Tutar mı?)
         var switchBtn = document.getElementById("isPercentageSwitch");
         var label = document.getElementById("discountLabel");
         var symbol = document.getElementById("currencySymbol");
@@ -164,7 +206,8 @@
                 label.innerText = "İndirim Oranı (%)";
                 symbol.innerText = "%";
                 symbol.classList.add("text-primary");
-                // Limit input to 100 if switching to percentage
+
+                // Yüzde seçilirse 100'ü geçemesin
                 if (parseFloat(input.value) > 100) input.value = 100;
             } else {
                 label.innerText = "İndirim Tutarı (TL)";
@@ -174,20 +217,20 @@
         }
 
         switchBtn.addEventListener("change", toggleType);
-        toggleType(); // Run on load
+        toggleType(); // Sayfa yüklendiğinde çalıştır
 
-        // 3. Increment/Decrement Logic
+        // 3. Artır/Azalt Butonları
         function updateDiscountValue(change) {
             var currentVal = parseFloat(input.value) || 0;
             var newVal = currentVal + change;
 
-            // Prevent negative values
+            // Negatif olamaz
             if (newVal < 0) newVal = 0;
 
-            // Cap at 100 if Percentage is selected
+            // Yüzde ise 100'ü geçemez
             if (switchBtn.checked && newVal > 100) newVal = 100;
 
-            // Round to 2 decimal places for cleaner display
+            // 2 ondalık basamak yuvarlama
             input.value = Math.round(newVal * 100) / 100;
         }
     </script>
