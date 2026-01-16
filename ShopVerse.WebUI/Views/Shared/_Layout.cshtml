@@ -8,53 +8,67 @@
 @inject ICategoryService CategoryService
 
 @{
-    // Kategorileri veritabanından çekiyoruz
     var categories = await CategoryService.GetAllAsync();
 }
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ShopVerse</title>
 
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <style>
-        /* --- GENEL AYARLAR --- */
+        /* --- CSS DEĞİŞKENLERİ --- */
         :root {
-            --primary-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-            --navbar-bg: #ffffff; /* Modern görünüm için beyaz arka plan */
+            --navbar-bg: #ffffff;
             --body-bg: #ffffff;
-            --text-dark: #333333;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #f0f0f0;
+        }
+
+        /* KOYU MOD DEĞİŞKENLERİ */
+        [data-bs-theme="dark"] {
+            --navbar-bg: #1c1c1e;
+            --body-bg: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --border-color: #333333;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--body-bg);
+            background-color: var(--body-bg) !important;
+            color: var(--text-color) !important;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* --- NAVBAR TASARIMI --- */
+        /* --- NAVBAR --- */
         .navbar-custom {
-            background: var(--navbar-bg);
-            padding: 10px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-bottom: 1px solid #f0f0f0;
-            transition: all 0.3s ease;
+            background: var(--navbar-bg) !important;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
         }
 
         .navbar-brand {
             font-weight: 800;
             font-size: 1.5rem;
-            letter-spacing: -0.5px;
             color: #0072ff !important;
             display: flex;
             align-items: center;
@@ -62,90 +76,75 @@
         }
 
         .nav-link {
-            color: #555 !important;
+            color: var(--text-color) !important;
             font-weight: 600;
-            font-size: 0.95rem;
-            margin: 0 4px;
             padding: 8px 15px !important;
             border-radius: 50px;
             transition: all 0.2s;
         }
 
-            .nav-link:hover, .nav-link.active {
+            .nav-link:hover {
                 color: #0072ff !important;
-                background: rgba(0, 114, 255, 0.05);
+                background: rgba(0, 114, 255, 0.1);
             }
 
-        /* Özel İkon Butonları (Sepet, Profil vb.) */
+        /* --- İKON BUTONLARI --- */
         .nav-icon-btn {
-            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             width: 42px;
             height: 42px;
-            background: #f8f9fa;
             border-radius: 50%;
-            color: #333;
             transition: all 0.3s;
             text-decoration: none;
-            border: 1px solid #e9ecef;
+            cursor: pointer;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
         }
 
             .nav-icon-btn:hover {
-                background: #0072ff;
+                background: #0072ff !important;
                 color: white !important;
+                border-color: #0072ff !important;
                 transform: translateY(-2px);
-                box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
-                border-color: #0072ff;
             }
 
-        .nav-profile-img {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border: 2px solid #e9ecef;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-
+        /* --- DROPDOWN & KARTLAR --- */
         .dropdown-menu {
-            border: none;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border-radius: 12px;
-            margin-top: 10px;
-            padding: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
 
         .dropdown-item {
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 500;
-            color: #555;
+            color: var(--text-color);
         }
 
             .dropdown-item:hover {
-                background-color: #e3f2fd;
+                background-color: rgba(0, 114, 255, 0.1);
                 color: #0072ff;
             }
 
-        /* Animasyonlar */
-        .animate-slide {
-            animation: slideIn 0.2s ease-out;
-        }
-        @@keyframes slideIn {
-            from
-
-        {
-            opacity: 0;
-            transform: translateY(10px);
+        [data-bs-theme="dark"] .bg-light {
+            background-color: #2c2c2c !important;
         }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
+        [data-bs-theme="dark"] .card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
         }
 
+        [data-bs-theme="dark"] .table {
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #fff;
         }
 
         /* Footer Link Hover */
@@ -161,6 +160,14 @@
         main {
             flex: 1;
         }
+
+        .nav-profile-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -172,21 +179,16 @@
                 <i class="fas fa-shopping-bag"></i> ShopVerse
             </a>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon" style="filter: invert(var(--invert-value));"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
-
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 align-items-lg-center">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">Anasayfa</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Anasayfa</a></li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Kategoriler
-                        </a>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Kategoriler</a>
                         <ul class="dropdown-menu animate-slide border-0 shadow-lg">
                             <li><a class="dropdown-item fw-bold text-primary" href="/Product/Index">Tüm Kategoriler</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -200,22 +202,20 @@
                         </ul>
                     </li>
 
+                    <li class="nav-item"><a class="nav-link" asp-controller="Product" asp-action="Index">Tüm Ürünler</a></li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Product" asp-action="Index">Tüm Ürünler</a>
+                        <a class="nav-link text-danger" href="/Product/Index?showDeals=true"><i class="fas fa-fire me-1"></i> Fırsatlar</a>
                     </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="/Product/Index?showDeals=true">
-                            <i class="fas fa-fire me-1"></i> Fırsatlar
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="About">Hakkımızda</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">Hakkımızda</a></li>
                 </ul>
 
                 <ul class="navbar-nav ms-auto align-items-center gap-3">
+
+                    <li class="nav-item">
+                        <button class="nav-icon-btn border-0" id="themeToggle" title="Temayı Değiştir">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
+                    </li>
 
                     <li class="nav-item position-relative">
                         <a class="nav-icon-btn" asp-controller="Cart" asp-action="Index" title="Sepetim">
@@ -231,58 +231,42 @@
 
                         if (User.IsInRole("Admin"))
                         {
-                            // --- ADMIN İSE ---
-                            // Sadece Admin Butonu ve Çıkış Butonu gösterilir. Profil Gizlenir.
                             <li class="nav-item d-flex align-items-center gap-2">
-                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
-                                   class="btn btn-sm btn-dark fw-bold rounded-pill px-4 shadow-sm d-flex align-items-center">
-                                    <i class="fas fa-user-shield me-2"></i>Admin Paneline Git
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-sm btn-dark fw-bold rounded-pill px-4 shadow-sm d-flex align-items-center">
+                                    <i class="fas fa-user-shield me-2"></i>Admin
                                 </a>
-
-                                <a asp-controller="Account" asp-action="Logout"
-                                   class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                   style="width: 34px; height: 34px;" title="Çıkış Yap">
+                                <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 34px; height: 34px;">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </a>
                             </li>
                         }
                         else
                         {
-                            // --- NORMAL KULLANICI İSE ---
-                            // Profil Dropdown Menüsü Gösterilir
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                     @if (currentUser != null && !string.IsNullOrEmpty(currentUser.ImageUrl))
                                     {
                                         <img src="/userimages/@currentUser.ImageUrl" class="nav-profile-img">
                                     }
                                     else
                                     {
-                                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px; border: 2px solid #e9ecef;">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px; border: 2px solid var(--border-color);">
                                             @displayName.Substring(0, 1).ToUpper()
                                         </div>
                                     }
-                                    <span class="d-none d-lg-inline text-dark small fw-bold">@displayName</span>
+                                    <span class="d-none d-lg-inline small fw-bold">@displayName</span>
                                 </a>
-
-                                <ul class="dropdown-menu dropdown-menu-end animate-slide p-2" aria-labelledby="userDropdown">
-                                    <li>
-                                        <div class="px-3 py-2 border-bottom mb-2">
-                                            <small class="text-muted d-block" style="font-size: 0.75rem;">Hesap</small>
-                                            <span class="fw-bold text-dark">@displayName</span>
-                                        </div>
-                                    </li>
-                                    <li><a class="dropdown-item rounded" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-circle me-2 text-muted"></i>Profilim</a></li>
-                                    <li><a class="dropdown-item rounded" asp-controller="Favorite" asp-action="Index"><i class="fas fa-heart me-2 text-muted"></i>Favorilerim</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end animate-slide p-2">
+                                    <li><a class="dropdown-item rounded" asp-controller="Profile" asp-action="Index"><i class="fas fa-user-circle me-2"></i>Profilim</a></li>
+                                    <li><a class="dropdown-item rounded" asp-controller="Favorite" asp-action="Index"><i class="fas fa-heart me-2"></i>Favorilerim</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item rounded text-danger" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
+                                    <li><a class="dropdown-item rounded text-danger" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış</a></li>
                                 </ul>
                             </li>
                         }
                     }
                     else
                     {
-                        // --- GİRİŞ YAPMAMIŞSA ---
                         <li class="nav-item d-flex align-items-center gap-2">
                             <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm fw-bold rounded-pill px-4">Giriş</a>
                             <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm fw-bold rounded-pill px-4 text-white">Kayıt</a>
@@ -361,6 +345,43 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // --- TEMA VE IKON YÖNETİMİ (JavaScript) ---
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+
+            // 1. Mevcut temayı kontrol et ve İKONU güncelle
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            updateIcon(currentTheme);
+
+            // 2. Butona tıklayınca
+            toggleBtn.addEventListener('click', function () {
+                const htmlElement = document.documentElement;
+                let current = htmlElement.getAttribute('data-bs-theme');
+                let newTheme = current === 'dark' ? 'light' : 'dark';
+
+                // Temayı uygula
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+
+                // İkonu güncelle
+                updateIcon(newTheme);
+            });
+
+            function updateIcon(theme) {
+                if (theme === 'dark') {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                    themeIcon.style.color = "#f9ca24"; // Güneş
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                    themeIcon.style.color = "#333"; // Ay
+                }
+            }
+        });
+
+        // --- SEPET VE FAVORİ İŞLEMLERİ ---
         function addToCart(productId, quantity = 1) {
             $.ajax({
                 url: '/Cart/AddToCart',
@@ -369,23 +390,12 @@
                 success: function (response) {
                     if (response.success) {
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Sepete Eklendi',
-                            text: 'Ürün sepetinize eklendi.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            background: '#fff',
-                            color: '#333'
+                            icon: 'success', title: 'Sepete Eklendi', text: 'Ürün sepetinize eklendi.',
+                            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+                            timerProgressBar: true
                         });
-
                         var badge = $("#cart-badge-count");
-                        if (badge.length) {
-                            badge.text(response.cartCount);
-                            badge.removeClass("d-none");
-                        }
+                        if (badge.length) { badge.text(response.cartCount); badge.removeClass("d-none"); }
                     }
                 }
             });
@@ -393,90 +403,31 @@
 
         function toggleFavorite(productId, btnElement) {
             $.ajax({
-                url: '/Favorite/Toggle',
-                type: 'POST',
-                data: { productId: productId },
+                url: '/Favorite/Toggle', type: 'POST', data: { productId: productId },
                 success: function (response) {
                     if (response.success) {
                         var icon = $(btnElement).find('i');
-
-                        if (response.isFavorited) {
-                            icon.removeClass('far').addClass('fas text-danger');
-                        } else {
+                        if (response.isFavorited) { icon.removeClass('far').addClass('fas text-danger'); }
+                        else {
                             icon.removeClass('fas text-danger').addClass('far');
                             if (window.location.pathname.toLowerCase().includes("/favorite")) {
                                 $(btnElement).closest('.col').fadeOut(300, function() { $(this).remove(); });
-
-                                var countBadge = $(".badge.bg-secondary.rounded-pill");
-                                if(countBadge.length) {
-                                    countBadge.text(response.count + " Ürün");
-                                }
                             }
                         }
-
-                        const Toast = Swal.mixin({
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 2000,
-                            timerProgressBar: false
-                        });
-
-                        Toast.fire({
-                            icon: response.isFavorited ? 'success' : 'info',
-                            title: response.isFavorited ? 'Favorilere Eklendi' : 'Favorilerden Çıkarıldı'
-                        });
-
+                        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                        Toast.fire({ icon: response.isFavorited ? 'success' : 'info', title: response.isFavorited ? 'Favorilere Eklendi' : 'Çıkarıldı' });
                     } else {
-                        Swal.fire({
-                            title: 'Giriş Yapmalısınız',
-                            text: response.message,
-                            icon: 'warning',
-                            confirmButtonText: 'Giriş Yap',
-                            showCancelButton: true,
-                            cancelButtonText: 'İptal',
-                            confirmButtonColor: '#0072ff'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = '/Account/Login';
-                            }
-                        });
+                        Swal.fire({ title: 'Giriş Yapmalısınız', icon: 'warning', confirmButtonText: 'Giriş Yap', showCancelButton: true }).then((r) => { if(r.isConfirmed) window.location.href = '/Account/Login'; });
                     }
-                },
-                error: function () {
-                    Swal.fire('Hata', 'Bir sorun oluştu.', 'error');
                 }
             });
         }
 
         $(document).ready(function() {
             var userMsg = '@Html.Raw(TempData["UserMessage"])';
-            var userType = '@TempData["UserType"]';
-
-            if (userMsg && userMsg.length > 0) {
-                Swal.fire({
-                    icon: userType || 'info',
-                    title: 'Bilgi',
-                    text: userMsg,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
-
+            if (userMsg) { Swal.fire({ icon: '@TempData["UserType"]' || 'info', title: 'Bilgi', text: userMsg, toast: true, position: 'top-end', timer: 3000, showConfirmButton: false }); }
             var orderSuccess = '@Html.Raw(TempData["OrderSuccess"])';
-            if (orderSuccess && orderSuccess.length > 0) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Siparişiniz Alındı!',
-                    text: orderSuccess,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Tamam',
-                    confirmButtonColor: '#0072ff'
-                });
-            }
+            if (orderSuccess) { Swal.fire({ icon: 'success', title: 'Sipariş Alındı!', text: orderSuccess, confirmButtonText: 'Tamam', confirmButtonColor: '#0072ff' }); }
         });
     </script>
 
