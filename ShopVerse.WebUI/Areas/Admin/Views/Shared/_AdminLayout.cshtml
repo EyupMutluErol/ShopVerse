@@ -194,10 +194,10 @@
 
                 <a href="/Admin/Order" class="sidebar-link @(path.StartsWith("/Admin/Order") ? "active" : "")">
                     <i class="fas fa-shopping-cart"></i> Siparişler
-                    @if (ViewBag.PendingOrders != null && (int)ViewBag.PendingOrders > 0)
-                    {
-                        <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.7rem;">@ViewBag.PendingOrders</span>
-                    }
+
+                    <span class="ms-auto">
+                        @await Component.InvokeAsync("_AdminNotification")
+                    </span>
                 </a>
 
                 <div class="sidebar-header mt-3">Kullanıcılar</div>

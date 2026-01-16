@@ -1,4 +1,5 @@
-﻿using ShopVerse.Entities.Concrete;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Models;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -42,6 +43,7 @@ namespace ShopVerse.WebUI.Models
         // --- GÖSTERİM ALANLARI (Output) ---
 
         public List<CartItemModel> CartItems { get; set; } = new List<CartItemModel>();
+        [ValidateNever]
         public AppUser User { get; set; }
 
         public decimal SubTotal { get; set; }

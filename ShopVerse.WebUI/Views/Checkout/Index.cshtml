@@ -2,206 +2,376 @@
 @model CheckoutViewModel
 
 @{
-    ViewData["Title"] = "Ödeme ve Sipariş";
+    ViewData["Title"] = "Güvenli Ödeme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    /* Kart girişleri için özel stil */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    /* Kredi Kartı Kutusu */
+    .credit-card-box {
+        background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+        border-radius: 15px;
+        padding: 30px;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+        .credit-card-box label {
+            color: #adb5bd;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .credit-card-box .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+        }
+
+            .credit-card-box .form-control:focus {
+                background: rgba(255, 255, 255, 0.25);
+                border-color: #fff;
+                box-shadow: none;
+                color: #fff;
+            }
+
+            .credit-card-box .form-control::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+            }
+
+    /* Sağ Taraf - Sipariş Özeti (Sticky) */
+    .summary-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        background: #fff;
+        position: sticky;
+        top: 20px;
+    }
+
+    .summary-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        padding: 15px 20px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    /* --- VALIDATION IKON AYARLARI (DÜZELTİLDİ) --- */
     .form-control.is-valid {
         border-color: #198754;
-        padding-right: calc(1.5em + .75rem);
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
-        background-position: right calc(.375em + .1875rem) center;
+        /* İkonu en sağa yasla */
+        background-position: right 5px center !important;
         background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+    }
+
+    /* Kart içindeki inputlarda yeşil tik çakışmasını önle */
+    .credit-card-box .form-control.is-valid {
+        padding-right: 30px !important; /* İkon için yer aç */
+        text-align: left !important; /* Yazıyı sola yasla */
+        padding-left: 10px !important;
     }
 </style>
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger m-3 shadow-sm border-0">
-        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Hata Oluştu!</h5>
-        <hr>
-        <ul class="mb-0 small">
-            @foreach (var key in ViewData.ModelState.Keys)
-            {
-                foreach (var error in ViewData.ModelState[key].Errors)
+<div class="container py-5">
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+            <h6 class="alert-heading fw-bold"><i class="fas fa-exclamation-circle me-2"></i>Lütfen aşağıdaki hataları düzeltiniz:</h6>
+            <ul class="mb-0 small ps-3">
+                @foreach (var key in ViewData.ModelState.Keys)
                 {
-                    <li>@error.ErrorMessage</li>
-                }
-            }
-        </ul>
-    </div>
-}
-
-<div class="container mt-5 mb-5">
-    <div class="py-5 text-center">
-        <div class="d-inline-block p-3 rounded-circle bg-light mb-3">
-            <i class="fas fa-credit-card fa-3x text-primary"></i>
-        </div>
-        <h2 class="fw-bold">Güvenli Ödeme</h2>
-        <p class="lead text-muted">Siparişinizi tamamlamak için bilgilerinizi giriniz.</p>
-    </div>
-
-    <div class="row g-5">
-
-        <div class="col-md-5 col-lg-4 order-md-last">
-            <h4 class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-primary">Sepet Özeti</span>
-                <span class="badge bg-primary rounded-pill">@Model.CartItems.Sum(x => x.Quantity)</span>
-            </h4>
-
-            <ul class="list-group mb-3 shadow-sm border-0">
-                @foreach (var item in Model.CartItems)
-                {
-                    <li class="list-group-item d-flex justify-content-between lh-sm">
-                        <div>
-                            <h6 class="my-0">@item.Product.Name</h6>
-                            <small class="text-muted">Adet: @item.Quantity</small>
-                        </div>
-                        <span class="text-muted">@((item.Quantity * item.SalePrice).ToString("C2"))</span>
-                    </li>
-                }
-
-                <li class="list-group-item d-flex justify-content-between bg-light mt-2">
-                    <span>Ara Toplam</span>
-                    <strong>@Model.SubTotal.ToString("C2")</strong>
-                </li>
-
-                <li class="list-group-item d-flex justify-content-between bg-light">
-                    <span>Kargo</span>
-                    @if (Model.ShippingTotal == 0)
+                    foreach (var error in ViewData.ModelState[key].Errors)
                     {
-                        <span class="text-success fw-bold">Bedava</span>
+                        <li>@error.ErrorMessage</li>
                     }
-                    else
-                    {
-                        <span>@Model.ShippingTotal.ToString("C2")</span>
-                    }
-                </li>
-
-                @if (Model.DiscountAmount > 0)
-                {
-                    <li class="list-group-item d-flex justify-content-between bg-light text-success">
-                        <span>
-                            <i class="fas fa-ticket-alt me-1"></i>Kupon İndirimi
-                        </span>
-                        <strong>-@Model.DiscountAmount.ToString("C2")</strong>
-                    </li>
                 }
-
-                <li class="list-group-item d-flex justify-content-between border-primary border-2">
-                    <span class="fw-bold fs-5 text-dark">Toplam Tutar</span>
-                    <strong class="fs-5 text-primary">@Model.GrandTotal.ToString("C2")</strong>
-                </li>
             </ul>
         </div>
+    }
 
-        <div class="col-md-7 col-lg-8">
-            <h4 class="mb-3">Teslimat Adresi</h4>
+    <form asp-controller="Checkout" asp-action="ProcessPayment" method="post" id="checkoutForm" class="needs-validation" novalidate>
+        <div class="row g-4">
 
-            <form asp-controller="Checkout" asp-action="ProcessPayment" method="post" id="checkoutForm" class="needs-validation">
+            <div class="col-lg-8">
 
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label asp-for="FullName" class="form-label">Ad Soyad</label>
-                        <input asp-for="FullName" class="form-control" placeholder="Adınız Soyadınız" value="@(Model.User?.Name + " " + Model.User?.Surname)">
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                <div class="card shadow-sm border-0 mb-4 rounded-3">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-map-marker-alt me-2"></i>Teslimat Bilgileri</h5>
                     </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="FullName" class="form-control" placeholder="Ad Soyad" value="@(Model.User?.Name != null ? Model.User.Name + " " + Model.User.Surname : "")">
+                                    <label asp-for="FullName">Ad Soyad</label>
+                                </div>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
 
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Telefon Numarası</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">+90</span>
-                            <input type="text" asp-for="PhoneNumber" id="phoneInput" class="form-control" placeholder="555 444 33 22" maxlength="13" value="@Model.User?.PhoneNumber" required />
-                        </div>
-                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                    </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" asp-for="PhoneNumber" id="phoneInput" class="form-control" placeholder="555 444 33 22" maxlength="13" value="@Model.User?.PhoneNumber" />
+                                    <label asp-for="PhoneNumber">Telefon Numarası</label>
+                                </div>
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Şehir</label>
-                            <select asp-for="City" id="citySelect" class="form-select" required>
-                                <option value="">İl Seçiniz</option>
-                            </select>
-                            <span asp-validation-for="City" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">İlçe</label>
-                            <select asp-for="District" id="districtSelect" class="form-select" disabled required>
-                                <option value="">Önce İl Seçiniz</option>
-                            </select>
-                            <span asp-validation-for="District" class="text-danger small"></span>
-                        </div>
-                    </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="City" id="citySelect" class="form-select" required>
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                    <label asp-for="City">Şehir</label>
+                                </div>
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Açık Adres</label>
-                        <textarea asp-for="AddressLine" class="form-control" rows="3" placeholder="Mahalle, Sokak, Kapı No vb."></textarea>
-                        <span asp-validation-for="AddressLine" class="text-danger small"></span>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="District" id="districtSelect" class="form-select" disabled required>
+                                        <option value="">Önce İl Seçiniz</option>
+                                    </select>
+                                    <label asp-for="District">İlçe</label>
+                                </div>
+                                <span asp-validation-for="District" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea asp-for="AddressLine" class="form-control" style="height: 100px" placeholder="Adres"></textarea>
+                                    <label asp-for="AddressLine">Açık Adres (Mahalle, Sokak, No vb.)</label>
+                                </div>
+                                <span asp-validation-for="AddressLine" class="text-danger small"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <hr class="my-4">
-
-                <h4 class="mb-3 mt-4">Ödeme Bilgileri</h4>
-                <div class="row g-3 bg-light p-3 rounded border">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Kart Üzerindeki İsim</label>
-                        <input type="text" asp-for="CardName" class="form-control" placeholder="Ad Soyad" required>
-                        <span asp-validation-for="CardName" class="text-danger small"></span>
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-credit-card me-2"></i>Ödeme Yöntemi</h5>
                     </div>
+                    <div class="card-body p-4">
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Kart Numarası</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-credit-card text-muted"></i></span>
-                            <input type="text" asp-for="CardNumber" id="cardNumber" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                        <div class="credit-card-box">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <i class="fas fa-sim-card fa-2x text-warning"></i>
+                                <i class="fab fa-cc-mastercard fa-2x text-white opacity-75"></i>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label d-block mb-1">Kart Numarası</label>
+                                <input type="text" asp-for="CardNumber" id="cardNumber" class="form-control form-control-lg border-0" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                <span asp-validation-for="CardNumber" class="text-danger small bg-white px-1 rounded mt-1 d-inline-block"></span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Kart Üzerindeki İsim</label>
+                                    <input type="text" asp-for="CardName" class="form-control text-uppercase" placeholder="AD SOYAD" required>
+                                    <span asp-validation-for="CardName" class="text-danger small bg-white px-1 rounded mt-1 d-inline-block"></span>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label">SKT (Ay/Yıl)</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="text" asp-for="ExpirationMonth" id="expMonth" class="form-control px-2" placeholder="AA" maxlength="2" required>
+                                        <input type="text" asp-for="ExpirationYear" id="expYear" class="form-control px-2" placeholder="YYYY" maxlength="4" required>
+                                    </div>
+                                    <span asp-validation-for="ExpirationMonth" class="text-danger small bg-white px-1 rounded mt-1 d-inline-block"></span>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label">CVV <i class="fas fa-question-circle small ms-1" title="Arkadaki son 3 hane"></i></label>
+                                    <input type="text" asp-for="Cvv" id="cvv" class="form-control" placeholder="000" maxlength="3" required>
+                                    <span asp-validation-for="Cvv" class="text-danger small bg-white px-1 rounded mt-1 d-inline-block"></span>
+                                </div>
+                            </div>
                         </div>
-                        <span asp-validation-for="CardNumber" class="text-danger small"></span>
-                    </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Ay</label>
-                        <input type="text" asp-for="ExpirationMonth" id="expMonth" class="form-control text-center" placeholder="AA" maxlength="2" required>
-                        <span asp-validation-for="ExpirationMonth" class="text-danger small"></span>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Yıl</label>
-                        <input type="text" asp-for="ExpirationYear" id="expYear" class="form-control text-center" placeholder="YYYY" maxlength="4" required>
-                        <span asp-validation-for="ExpirationYear" class="text-danger small"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">CVV Güvenlik Kodu</label>
-                        <div class="input-group">
-                            <input type="text" asp-for="Cvv" id="cvv" class="form-control text-center" placeholder="000" maxlength="3" required>
-                            <span class="input-group-text bg-white" data-bs-toggle="tooltip" title="Kartın arkasındaki son 3 rakam"><i class="fas fa-question-circle text-muted"></i></span>
+                        <div class="mt-3 text-center text-muted small">
+                            <i class="fas fa-lock me-1"></i> Ödemeniz 256-bit SSL sertifikası ile korunmaktadır.
                         </div>
-                        <span asp-validation-for="Cvv" class="text-danger small"></span>
                     </div>
                 </div>
 
-                <hr class="my-4">
+            </div>
 
-                <button class="w-100 btn btn-success btn-lg py-3 shadow-sm fw-bold" type="submit">
-                    <i class="fas fa-lock me-2"></i> @Model.GrandTotal.ToString("C2") Ödemeyi Tamamla
-                </button>
-            </form>
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h5 class="mb-0 fw-bold">Sipariş Özeti</h5>
+                    </div>
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Ürünler (@Model.CartItems.Sum(x => x.Quantity) Adet)</span>
+                            <span class="fw-bold">@Model.SubTotal.ToString("C2")</span>
+                        </div>
+
+                        @if (Model.ShippingTotal == 0)
+                        {
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Kargo</span>
+                                <span class="text-success fw-bold">Bedava</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Kargo</span>
+                                <span>@Model.ShippingTotal.ToString("C2")</span>
+                            </div>
+                        }
+
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-3 text-success">
+                                <span><i class="fas fa-ticket-alt me-1"></i>Kupon İndirimi</span>
+                                <span>-@Model.DiscountAmount.ToString("C2")</span>
+                            </div>
+                        }
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fs-5 fw-bold text-dark">Toplam</span>
+                            <span class="fs-4 fw-bold text-primary">@Model.GrandTotal.ToString("C2")</span>
+                        </div>
+
+                        <div class="accordion mb-4" id="cartAccordion">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light rounded shadow-none py-2" type="button" data-bs-toggle="collapse" data-bs-target="#cartItemsCollapse">
+                                        <small>Sepetteki Ürünleri Göster</small>
+                                    </button>
+                                </h2>
+                                <div id="cartItemsCollapse" class="accordion-collapse collapse" data-bs-parent="#cartAccordion">
+                                    <div class="accordion-body px-0">
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var item in Model.CartItems)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge bg-secondary me-2 rounded-pill">@item.Quantity</span>
+                                                        <span class="text-truncate" style="max-width: 150px;" title="@item.Product.Name">@item.Product.Name</span>
+                                                    </div>
+                                                    <span class="small text-muted">@((item.Quantity * item.SalePrice).ToString("C2"))</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 btn-lg py-3 shadow fw-bold transition-btn">
+                            <i class="fas fa-check-circle me-2"></i> @Model.GrandTotal.ToString("C2") Ödemeyi Tamamla
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // İL-İLÇE DATASI
+        // 81 İL VE İLÇELERİ
         const turkeyData = {
-            "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"],
-            "Ankara": ["Akyurt", "Altındağ", "Ayaş", "Bala", "Beypazarı", "Çamlıdere", "Çankaya", "Çubuk", "Elmadağ", "Etimesgut", "Evren", "Gölbaşı", "Güdül", "Haymana", "Kalecik", "Kazancık", "Keçiören", "Kızılcahamam", "Mamak", "Nallıhan", "Polatlı", "Pursaklar", "Sincan", "Şereflikoçhisar", "Yenimahalle"],
-            "İzmir": ["Aliağa", "Balçova", "Bayındır", "Bayraklı", "Bergama", "Beydağ", "Bornova", "Buca", "Çeşme", "Çiğli", "Dikili", "Foça", "Gaziemir", "Güzelbahçe", "Karabağlar", "Karaburun", "Karşıyaka", "Kemalpaşa", "Kınık", "Kiraz", "Konak", "Menderes", "Menemen", "Narlıdere", "Ödemiş", "Seferihisar", "Selçuk", "Tire", "Torbalı", "Urla"]
+            "Adana": ["Aladağ", "Ceyhan", "Çukurova", "Feke", "İmamoğlu", "Karaisalı", "Karataş", "Kozan", "Pozantı", "Saimbeyli", "Sarıçam", "Seyhan", "Tufanbeyli", "Yumurtalık", "Yüreğir"],
+            "Adıyaman": ["Besni", "Çelikhan", "Gerger", "Gölbaşı", "Kahta", "Merkez", "Samsat", "Sincik", "Tut"],
+            "Afyonkarahisar": ["Başmakçı", "Bayat", "Bolvadin", "Çay", "Çobanlar", "Dazkırı", "Dinar", "Emirdağ", "Evciler", "Hocalar", "İhsaniye", "İscehisar", "Kızılören", "Merkez", "Sandıklı", "Sinanpaşa", "Sultandağı", "Şuhut"],
+            "Ağrı": ["Diyadin", "Doğubayazıt", "Eleşkirt", "Hamur", "Merkez", "Patnos", "Taşlıçay", "Tutak"],
+            "Aksaray": ["Ağaçören", "Eskil", "Gülağaç", "Güzelyurt", "Merkez", "Ortaköy", "Sarıyahşi", "Sultanhanı"],
+            "Amasya": ["Göynücek", "Gümüşhacıköy", "Hamamözü", "Merkez", "Merzifon", "Suluova", "Taşova"],
+            "Ankara": ["Akyurt", "Altındağ", "Ayaş", "Bala", "Beypazarı", "Çamlıdere", "Çankaya", "Çubuk", "Elmadağ", "Etimesgut", "Evren", "Gölbaşı", "Güdül", "Haymana", "Kahramankazan", "Kalecik", "Keçiören", "Kızılcahamam", "Mamak", "Nallıhan", "Polatlı", "Pursaklar", "Sincan", "Şereflikoçhisar", "Yenimahalle"],
+            "Antalya": ["Akseki", "Aksu", "Alanya", "Demre", "Döşemealtı", "Elmalı", "Finike", "Gazipaşa", "Gündoğmuş", "İbradı", "Kaş", "Kemer", "Kepez", "Konyaaltı", "Korkuteli", "Kumluca", "Manavgat", "Muratpaşa", "Serik"],
+            "Ardahan": ["Çıldır", "Damal", "Göle", "Hanak", "Merkez", "Posof"],
+            "Artvin": ["Ardanuç", "Arhavi", "Borçka", "Hopa", "Kemalpaşa", "Merkez", "Murgul", "Şavşat", "Yusufeli"],
+            "Aydın": ["Bozdoğan", "Buharkent", "Çine", "Didim", "Efeler", "Germencik", "İncirliova", "Karacasu", "Karpuzlu", "Koçarlı", "Köşk", "Kuşadası", "Kuyucak", "Nazilli", "Söke", "Sultanhisar", "Yenipazar"],
+            "Balıkesir": ["Altıeylül", "Ayvalık", "Balya", "Bandırma", "Bigadiç", "Burhaniye", "Dursunbey", "Edremit", "Erdek", "Gömeç", "Gönen", "Havran", "İvrindi", "Karesi", "Kepsut", "Manyas", "Marmara", "Savaştepe", "Sındırgı", "Susurluk"],
+            "Bartın": ["Amasra", "Kurucaşile", "Merkez", "Ulus"],
+            "Batman": ["Beşiri", "Gercüş", "Hasankeyf", "Kozluk", "Merkez", "Sason"],
+            "Bayburt": ["Aydıntepe", "Demirözü", "Merkez"],
+            "Bilecik": ["Bozüyük", "Gölpazarı", "İnhisar", "Merkez", "Osmaneli", "Pazaryeri", "Söğüt", "Yenipazar"],
+            "Bingöl": ["Adaklı", "Genç", "Karlıova", "Kiğı", "Merkez", "Solhan", "Yayladere", "Yedisu"],
+            "Bitlis": ["Adilcevaz", "Ahlat", "Güroymak", "Hizan", "Merkez", "Mutki", "Tatvan"],
+            "Bolu": ["Dörtdivan", "Gerede", "Göynük", "Kıbrıscık", "Mengen", "Merkez", "Mudurnu", "Seben", "Yeniçağa"],
+            "Burdur": ["Ağlasun", "Altınyayla", "Bucak", "Çavdır", "Çeltikçi", "Gölhisar", "Karamanlı", "Kemer", "Merkez", "Tefenni", "Yeşilova"],
+            "Bursa": ["Büyükorhan", "Gemlik", "Gürsu", "Harmancık", "İnegöl", "İznik", "Karacabey", "Keles", "Kestel", "Mudanya", "Mustafakemalpaşa", "Nilüfer", "Orhaneli", "Orhangazi", "Osmangazi", "Yenişehir", "Yıldırım"],
+            "Çanakkale": ["Ayvacık", "Bayramiç", "Biga", "Bozcaada", "Çan", "Eceabat", "Ezine", "Gelibolu", "Gökçeada", "Lapseki", "Merkez", "Yenice"],
+            "Çankırı": ["Atkaracalar", "Bayramören", "Çerkeş", "Eldivan", "Ilgaz", "Kızılırmak", "Korgun", "Kurşunlu", "Merkez", "Orta", "Şabanözü", "Yapraklı"],
+            "Çorum": ["Alaca", "Bayat", "Boğazkale", "Dodurga", "İskilip", "Kargı", "Laçin", "Mecitözü", "Merkez", "Oğuzlar", "Ortaköy", "Osmancık", "Sungurlu", "Uğurludağ"],
+            "Denizli": ["Acıpayam", "Babadağ", "Baklan", "Bekilli", "Beyağaç", "Bozkurt", "Buldan", "Çal", "Çameli", "Çardak", "Çivril", "Güney", "Honaz", "Kale", "Merkezefendi", "Pamukkale", "Sarayköy", "Serinhisar", "Tavas"],
+            "Diyarbakır": ["Bağlar", "Bismil", "Çermik", "Çınar", "Çüngüş", "Dicle", "Eğil", "Ergani", "Hani", "Hazro", "Kayapınar", "Kocaköy", "Kulp", "Lice", "Silvan", "Sur", "Yenişehir"],
+            "Düzce": ["Akçakoca", "Cumayeri", "Çilimli", "Gölyaka", "Gümüşova", "Kaynaşlı", "Merkez", "Yığılca"],
+            "Edirne": ["Enez", "Havsa", "İpsala", "Keşan", "Lalapaşa", "Meriç", "Merkez", "Süloğlu", "Uzunköprü"],
+            "Elazığ": ["Ağın", "Alacakaya", "Arıcak", "Baskil", "Karakoçan", "Keban", "Kovancılar", "Maden", "Merkez", "Palu", "Sivrice"],
+            "Erzincan": ["Çayırlı", "İliç", "Kemah", "Kemaliye", "Merkez", "Otlukbeli", "Refahiye", "Tercan", "Üzümlü"],
+            "Erzurum": ["Aşkale", "Aziziye", "Çat", "Hınıs", "Horasan", "İspir", "Karaçoban", "Karayazı", "Köprüköy", "Narman", "Oltu", "Olur", "Palandöken", "Pasinler", "Pazaryolu", "Şenkaya", "Tekman", "Tortum", "Uzundere", "Yakutiye"],
+            "Eskişehir": ["Alpu", "Beylikova", "Çifteler", "Günyüzü", "Han", "İnönü", "Mahmudiye", "Mihalgazi", "Mihalıççık", "Odunpazarı", "Sarıcakaya", "Seyitgazi", "Sivrihisar", "Tepebaşı"],
+            "Gaziantep": ["Araban", "İslahiye", "Karkamış", "Nizip", "Nurdağı", "Oğuzeli", "Şahinbey", "Şehitkamil", "Yavuzeli"],
+            "Giresun": ["Alucra", "Bulancak", "Çamoluk", "Çanakçı", "Dereli", "Doğankent", "Espiye", "Eynesil", "Görele", "Güce", "Keşap", "Merkez", "Piraziz", "Şebinkarahisar", "Tirebolu", "Yağlıdere"],
+            "Gümüşhane": ["Kelkit", "Köse", "Kürtün", "Merkez", "Şiran", "Torul"],
+            "Hakkari": ["Çukurca", "Derecik", "Merkez", "Şemdinli", "Yüksekova"],
+            "Hatay": ["Altınözü", "Antakya", "Arsuz", "Belen", "Defne", "Dörtyol", "Erzin", "Hassa", "İskenderun", "Kırıkhan", "Kumlu", "Payas", "Reyhanlı", "Samandağ", "Yayladağı"],
+            "Iğdır": ["Aralık", "Karakoyunlu", "Merkez", "Tuzluca"],
+            "Isparta": ["Aksu", "Atabey", "Eğirdir", "Gelendost", "Gönen", "Keçiborlu", "Merkez", "Senirkent", "Sütçüler", "Şarkikaraağaç", "Uluborlu", "Yalvaç", "Yenişarbademli"],
+            "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Avcılar", "Bağcılar", "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"],
+            "İzmir": ["Aliağa", "Balçova", "Bayındır", "Bayraklı", "Bergama", "Beydağ", "Bornova", "Buca", "Çeşme", "Çiğli", "Dikili", "Foça", "Gaziemir", "Güzelbahçe", "Karabağlar", "Karaburun", "Karşıyaka", "Kemalpaşa", "Kınık", "Kiraz", "Konak", "Menderes", "Menemen", "Narlıdere", "Ödemiş", "Seferihisar", "Selçuk", "Tire", "Torbalı", "Urla"],
+            "Kahramanmaraş": ["Afşin", "Andırın", "Çağlayancerit", "Dulkadiroğlu", "Ekinözü", "Elbistan", "Göksun", "Nurhak", "Onikişubat", "Pazarcık", "Türkoğlu"],
+            "Karabük": ["Eflani", "Eskipazar", "Merkez", "Ovacık", "Safranbolu", "Yenice"],
+            "Karaman": ["Ayrancı", "Başyayla", "Ermenek", "Kazımkarabekir", "Merkez", "Sarıveliler"],
+            "Kars": ["Akyaka", "Arpaçay", "Digor", "Kağızman", "Merkez", "Sarıkamış", "Selim", "Susuz"],
+            "Kastamonu": ["Abana", "Ağlı", "Araç", "Azdavay", "Bozkurt", "Cide", "Çatalzeytin", "Daday", "Devrekani", "Doğanyurt", "Hanönü", "İhsangazi", "İnebolu", "Küre", "Merkez", "Pınarbaşı", "Seydiler", "Şenpazar", "Taşköprü", "Tosya"],
+            "Kayseri": ["Akkışla", "Bünyan", "Develi", "Felahiye", "Hacılar", "İncesu", "Kocasinan", "Melikgazi", "Özvatan", "Pınarbaşı", "Sarıoğlan", "Sarız", "Talas", "Tomarza", "Yahyalı", "Yeşilhisar"],
+            "Kırıkkale": ["Bahşılı", "Balışeyh", "Çelebi", "Delice", "Karakeçili", "Keskin", "Merkez", "Sulakyurt", "Yahşihan"],
+            "Kırklareli": ["Babaeski", "Demirköy", "Kofçaz", "Lüleburgaz", "Merkez", "Pehlivanköy", "Pınarhisar", "Vize"],
+            "Kırşehir": ["Akçakent", "Akpınar", "Boztepe", "Çiçekdağı", "Kaman", "Merkez", "Mucur"],
+            "Kilis": ["Elbeyli", "Merkez", "Musabeyli", "Polateli"],
+            "Kocaeli": ["Başiskele", "Çayırova", "Darıca", "Derince", "Dilovası", "Gebze", "Gölcük", "İzmit", "Kandıra", "Karamürsel", "Kartepe", "Körfez"],
+            "Konya": ["Ahırlı", "Akören", "Akşehir", "Altınekin", "Beyşehir", "Bozkır", "Cihanbeyli", "Çeltik", "Çumra", "Derbent", "Derebucak", "Doğanhisar", "Emirgazi", "Ereğli", "Güneysınır", "Hadim", "Halkapınar", "Hüyük", "Ilgın", "Kadınhanı", "Karapınar", "Karatay", "Kulu", "Meram", "Sarayönü", "Selçuklu", "Seydişehir", "Taşkent", "Tuzlukçu", "Yalıhüyük", "Yunak"],
+            "Kütahya": ["Altıntaş", "Aslanapa", "Çavdarhisar", "Domaniç", "Dumlupınar", "Emet", "Gediz", "Hisarcık", "Merkez", "Pazarlar", "Simav", "Şaphane", "Tavşanlı"],
+            "Malatya": ["Akçadağ", "Arapgir", "Arguvan", "Battalgazi", "Darende", "Doğanşehir", "Doğanyol", "Hekimhan", "Kale", "Kuluncak", "Pütürge", "Yazıhan", "Yeşilyurt"],
+            "Manisa": ["Ahmetli", "Akhisar", "Alaşehir", "Demirci", "Gölmarmara", "Gördes", "Kırkağaç", "Köprübaşı", "Kula", "Salihli", "Sarıgöl", "Saruhanlı", "Selendi", "Soma", "Şehzadeler", "Turgutlu", "Yunusemre"],
+            "Mardin": ["Artuklu", "Dargeçit", "Derik", "Kızıltepe", "Mazıdağı", "Midyat", "Nusaybin", "Ömerli", "Savur", "Yeşilli"],
+            "Mersin": ["Akdeniz", "Anamur", "Aydıncık", "Bozyazı", "Çamlıyayla", "Erdemli", "Gülnar", "Mezitli", "Mut", "Silifke", "Tarsus", "Toroslar", "Yenişehir"],
+            "Muğla": ["Bodrum", "Dalaman", "Datça", "Fethiye", "Kavaklıdere", "Köyceğiz", "Marmaris", "Menteşe", "Milas", "Ortaca", "Seydikemer", "Ula", "Yatağan"],
+            "Muş": ["Bulanık", "Hasköy", "Korkut", "Malazgirt", "Merkez", "Varto"],
+            "Nevşehir": ["Acıgöl", "Avanos", "Derinkuyu", "Gülşehir", "Hacıbektaş", "Kozaklı", "Merkez", "Ürgüp"],
+            "Niğde": ["Altunhisar", "Bor", "Çamardı", "Çiftlik", "Merkez", "Ulukışla"],
+            "Ordu": ["Akkuş", "Altınordu", "Aybastı", "Çamaş", "Çatalpınar", "Çaybaşı", "Fatsa", "Gölköy", "Gülyalı", "Gürgentepe", "İkizce", "Kabadüz", "Kabataş", "Korgan", "Kumru", "Mesudiye", "Perşembe", "Ulubey", "Ünye"],
+            "Osmaniye": ["Bahçe", "Düziçi", "Hasanbeyli", "Kadirli", "Merkez", "Sumbas", "Toprakkale"],
+            "Rize": ["Ardeşen", "Çamlıhemşin", "Çayeli", "Derepazarı", "Fındıklı", "Güneysu", "Hemşin", "İkizdere", "İyidere", "Kalkandere", "Merkez", "Pazar"],
+            "Sakarya": ["Adapazarı", "Akyazı", "Arifiye", "Erenler", "Ferizli", "Geyve", "Hendek", "Karapürçek", "Karasu", "Kaynarca", "Kocaali", "Pamukova", "Sapanca", "Serdivan", "Söğütlü", "Taraklı"],
+            "Samsun": ["19 Mayıs", "Alaçam", "Asarcık", "Atakum", "Ayvacık", "Bafra", "Canik", "Çarşamba", "Havza", "İlkadım", "Kavak", "Ladik", "Salıpazarı", "Tekkeköy", "Terme", "Vezirköprü", "Yakakent"],
+            "Siirt": ["Baykan", "Eruh", "Kurtalan", "Merkez", "Pervari", "Şirvan", "Tillo"],
+            "Sinop": ["Ayancık", "Boyabat", "Dikmen", "Durağan", "Erfelek", "Gerze", "Merkez", "Saraydüzü", "Türkeli"],
+            "Sivas": ["Akıncılar", "Altınyayla", "Divriği", "Doğanşar", "Gemerek", "Gölova", "Gürün", "Hafik", "İmranlı", "Kangal", "Koyulhisar", "Merkez", "Suşehri", "Şarkışla", "Ulaş", "Yıldızeli", "Zara"],
+            "Şanlıurfa": ["Akçakale", "Birecik", "Bozova", "Ceylanpınar", "Eyyübiye", "Halfeti", "Haliliye", "Harran", "Hilvan", "Karaköprü", "Siverek", "Suruç", "Viranşehir"],
+            "Şırnak": ["Beytüşşebap", "Cizre", "Güçlükonak", "İdil", "Merkez", "Silopi", "Uludere"],
+            "Tekirdağ": ["Çerkezköy", "Çorlu", "Ergene", "Hayrabolu", "Kapaklı", "Malkara", "Marmaraereğlisi", "Muratlı", "Saray", "Süleymanpaşa", "Şarköy"],
+            "Tokat": ["Almus", "Artova", "Başçiftlik", "Erbaa", "Merkez", "Niksar", "Pazar", "Reşadiye", "Sulusaray", "Turhal", "Yeşilyurt", "Zile"],
+            "Trabzon": ["Akçaabat", "Araklı", "Arsin", "Beşikdüzü", "Çarşıbaşı", "Çaykara", "Dernekpazarı", "Düzköy", "Hayrat", "Köprübaşı", "Maçka", "Of", "Ortahisar", "Sürmene", "Şalpazarı", "Tonya", "Vakfıkebir", "Yomra"],
+            "Tunceli": ["Çemişgezek", "Hozat", "Mazgirt", "Merkez", "Nazımiye", "Ovacık", "Pertek", "Pülümür"],
+            "Uşak": ["Banaz", "Eşme", "Karahallı", "Merkez", "Sivaslı", "Ulubey"],
+            "Van": ["Bahçesaray", "Başkale", "Çaldıran", "Çatak", "Edremit", "Erciş", "Gevaş", "Gürpınar", "İpekyolu", "Muradiye", "Özalp", "Saray", "Tuşba"],
+            "Yalova": ["Altınova", "Armutlu", "Çınarcık", "Çiftlikköy", "Merkez", "Termal"],
+            "Yozgat": ["Akdağmadeni", "Aydıncık", "Boğazlıyan", "Çandır", "Çayıralan", "Çekerek", "Kadışehri", "Merkez", "Saraykent", "Sarıkaya", "Sorgun", "Şefaatli", "Yenifakılı", "Yerköy"],
+            "Zonguldak": ["Alaplı", "Çaycuma", "Devrek", "Ereğli", "Gökçebey", "Kilimli", "kozlu", "Merkez"]
         };
 
         $(document).ready(function () {
@@ -231,14 +401,19 @@
                 if (city && turkeyData[city]) {
                     districtSelect.prop('disabled', false);
                     $.each(turkeyData[city], function(i, district) {
-                        districtSelect.append($('<option>', { value: district, text: district }));
+                        var option = $('<option>', { value: district, text: district });
+                        // Eğer modelden gelen ilçe varsa onu seçili yap
+                        if(selectedDistrict && selectedDistrict === district) {
+                            option.prop('selected', true);
+                        }
+                        districtSelect.append(option);
                     });
                 } else {
                     districtSelect.prop('disabled', true);
                 }
             }
 
-            // --- 2. FORMATLAMA VE YEŞİL ÇERÇEVE (VALIDATION) ---
+            // --- 2. FORMATLAMA VE VALIDATION ---
 
             function validateInput(element, isValid) {
                 if (isValid) {
@@ -256,7 +431,7 @@
                 validateInput(this, val.length === 16);
             });
 
-            // Telefon
+            // Telefon (Maskeleme)
             $('#phoneInput').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 10);
                 var formatted = val;
@@ -289,14 +464,9 @@
                 validateInput(this, val.length === 3);
             });
 
-            // FORM GÖNDERİLİRKEN TEMİZLİK
+            // Form Gönderilirken
             $('#checkoutForm').on('submit', function() {
-                var phoneInput = $('#phoneInput');
-                // Boşlukları silerek gönder (Backend'de temiz almak için)
-                // phoneInput.val(phoneInput.val().replace(/\s/g, ''));
-                // Not: Eğer maskeli kaydetmek istiyorsan yukarıyı yorum satırı yap
-
-                districtSelect.prop('disabled', false);
+                districtSelect.prop('disabled', false); // Disabled alanlar post edilmez, açıyoruz.
                 return true;
             });
         });

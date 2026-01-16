@@ -94,14 +94,14 @@
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Siparişler</h6>
-                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.OrderCount</h2>
-                        <small class="text-warning fw-bold">@ViewBag.PendingOrders Bekleyen</small>
+                        <h2 class="mt-2 fw-bold mb-0">@ViewBag.PendingOrdersCount</h2>
+                        <small class="text-warning fw-bold">@ViewBag.PendingOrdersCount Bekleyen</small>
                     </div>
                     <div class="bg-white bg-opacity-10 rounded-circle p-3">
                         <i class="fas fa-shopping-cart fa-2x text-white"></i>
                     </div>
                 </div>
-                <a href="/Admin/Order" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
+                <a href="/Admin/Order?status=Pending" class="card-footer d-flex align-items-center justify-content-between border-0 bg-black bg-opacity-10 text-white text-decoration-none small">
                     <span>Siparişleri Yönet</span>
                     <i class="fas fa-angle-right"></i>
                 </a>
@@ -131,9 +131,9 @@
             <div class="card bg-dark text-white h-100 shadow-sm border-0">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Toplam Ciro</h6>
+                        <h6 class="card-title mb-1 text-white-50 text-uppercase small fw-bold">Net Ciro</h6>
                         <h2 class="mt-2 fw-bold mb-0">@ViewBag.TotalTurnover.ToString("C2")</h2>
-                        <small class="text-white-50">Tüm Zamanlar</small>
+                        <small class="text-white-50">İade/İptal Düşüldü</small>
                     </div>
                     <div class="bg-white bg-opacity-10 rounded-circle p-3">
                         <i class="fas fa-wallet fa-2x text-white"></i>
@@ -221,7 +221,6 @@
     </div>
 
     <div class="row g-4 pb-5">
-
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">

@@ -19,21 +19,25 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _orderService = orderService;
         }
 
+        // ============================================================
+        // SİPARİŞ LİSTESİ (FİLTRELEME İLE)
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> Index(string search, string status, DateTime? startDate, DateTime? endDate)
         {
-            // 1. Tüm Siparişleri Çek
-            // Not: İdealde filtreleme Repository katmanında IQueryable ile yapılmalıdır.
             var orders = await _orderService.GetAllAsync();
 
-            // 2. Arama Filtresi (Sipariş No)
+            // 1. Arama Filtresi (Sipariş No veya Müşteri Adı)
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                orders = orders.Where(x => x.OrderNumber.ToLower().Contains(search)).ToList();
+                orders = orders.Where(x =>
+                    x.OrderNumber.ToLower().Contains(search) ||
+                    (x.FullName != null && x.FullName.ToLower().Contains(search))
+                ).ToList();
             }
 
-            // 3. Durum Filtresi
+            // 2. Durum Filtresi
             if (!string.IsNullOrEmpty(status))
             {
                 if (Enum.TryParse(typeof(OrderStatus), status, out var statusEnum))
@@ -42,7 +46,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 }
             }
 
-            // 4. Tarih Aralığı Filtresi
+            // 3. Tarih Aralığı Filtresi
             if (startDate.HasValue)
             {
                 orders = orders.Where(x => x.OrderDate >= startDate.Value).ToList();
@@ -50,18 +54,24 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
 
             if (endDate.HasValue)
             {
-                orders = orders.Where(x => x.OrderDate <= endDate.Value).ToList();
+                // Bitiş tarihinin gün sonunu kapsamasını sağla (23:59:59)
+                var end = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                orders = orders.Where(x => x.OrderDate <= end).ToList();
             }
 
-            // 5. Filtreleri View'da tekrar göstermek için ViewBag'e taşı
+            // Filtreleri View'da korumak için ViewBag
             ViewBag.CurrentSearch = search;
             ViewBag.CurrentStatus = status;
-            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd HH:mm");
-            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd HH:mm");
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
+            // En yeniden eskiye sırala
             return View(orders.OrderByDescending(x => x.OrderDate).ToList());
         }
 
+        // ============================================================
+        // DURUM GÜNCELLEME (KRİTİK MANTIK BURADA)
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> ChangeStatus(int orderId, OrderStatus orderStatus)
         {
@@ -72,38 +82,55 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // --- KURAL 1: Zaten bitmiş siparişle oynanmaz ---
-            // Eğer sipariş zaten "Teslim Edildi" veya "İptal" ise değiştirilemesin.
-            if (order.OrderStatus == OrderStatus.Delivered || order.OrderStatus == OrderStatus.Canceled)
+            // --- KURAL 1: Teslim Edilen Sipariş Sadece 'İade' (Returned) Olabilir ---
+            // Eğer sipariş zaten teslim edildiyse, onu tekrar "Kargoda" veya "Bekliyor" yapamayız.
+            // Sadece "İade Edildi" (Returned) durumuna geçebilir.
+            if (order.OrderStatus == OrderStatus.Delivered)
+            {
+                if (orderStatus != OrderStatus.Refunded)
+                {
+                    TempData["Icon"] = "error";
+                    TempData["Message"] = "Teslim edilmiş bir sipariş sadece 'İade Edildi' durumuna alınabilir.";
+                    return RedirectToAction("Detail", new { area = "Admin", id = orderId });
+                }
+            }
+
+            // --- KURAL 2: İptal Edilen Sipariş Değiştirilemez ---
+            if (order.OrderStatus == OrderStatus.Canceled)
             {
                 TempData["Icon"] = "error";
-                TempData["Message"] = $"Sipariş zaten '{order.OrderStatus}' durumunda, artık değiştirilemez.";
+                TempData["Message"] = "İptal edilmiş bir siparişin durumu değiştirilemez.";
                 return RedirectToAction("Detail", new { area = "Admin", id = orderId });
             }
 
-            // --- KURAL 2: Geriye doğru güncelleme yapılamaz ---
-            // Mantık: Yeni Durum (int) < Eski Durum (int) ise engelle.
-            // İSTİSNA: Eğer kullanıcı siparişi "İptal" (Canceled) etmek istiyorsa buna izin ver.
-            if ((int)orderStatus < (int)order.OrderStatus && orderStatus != OrderStatus.Canceled)
+            // --- KURAL 3: Teslim Tarihi Kaydı ---
+            // Eğer sipariş durumu "Teslim Edildi" (Delivered) olarak değiştiriliyorsa, şu anki zamanı kaydet.
+            // Bu, kullanıcının 3 gün iade hakkını hesaplamak için gereklidir.
+            if (orderStatus == OrderStatus.Delivered && order.OrderStatus != OrderStatus.Delivered)
             {
-                TempData["Icon"] = "error";
-                TempData["Message"] = "Sipariş durumu geriye alınamaz! (Örn: Kargodaki ürün Beklemede yapılamaz)";
-                return RedirectToAction("Detail", new { area = "Admin", id = orderId });
+                order.DeliveryDate = DateTime.Now;
+                // Not: Entity'de 'DeliveryDate' alanı yoksa eklemelisiniz.
+                // Eğer yoksa şimdilik bu satırı yorum satırı yapın veya Entity'yi güncelleyin.
             }
 
-            // Her şey yolundaysa güncelle
+            // Durumu güncelle
             order.OrderStatus = orderStatus;
             await _orderService.UpdateAsync(order);
 
             TempData["Icon"] = "success";
-            TempData["Message"] = "Sipariş durumu başarıyla güncellendi.";
+            TempData["Message"] = $"Sipariş durumu '{orderStatus}' olarak güncellendi.";
 
             return RedirectToAction("Detail", new { area = "Admin", id = orderId });
         }
 
+        // ============================================================
+        // DETAY GÖSTERİMİ
+        // ============================================================
         public async Task<IActionResult> Detail(int id)
         {
+            // Servis katmanında "Include" ile OrderDetails ve Product getirilmeli
             var order = _orderService.GetOrderWithDetails(id);
+
             if (order == null)
             {
                 return NotFound();

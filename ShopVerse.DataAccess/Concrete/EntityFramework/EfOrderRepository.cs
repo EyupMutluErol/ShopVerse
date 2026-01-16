@@ -47,10 +47,12 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
     {
         var startDate = DateTime.Now.AddMonths(-lastMonths);
 
-        // 1. Veritabanından ham veriyi çek (Ay ve Yıla göre gruplu)
+        // 1. Veritabanından Net Ciro mantığına uygun veriyi çek
         var query = _context.Orders
             .Where(x => x.OrderDate >= startDate &&
-                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Canceled)
+                        !x.IsDeleted && // Silinmiş kayıtları hariç tut
+                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Canceled && // İptalleri dahil etme
+                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Refunded)  // İadeleri dahil etme
             .GroupBy(x => new { x.OrderDate.Year, x.OrderDate.Month })
             .Select(g => new
             {
@@ -61,10 +63,9 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
             .OrderBy(x => x.Year).ThenBy(x => x.Month)
             .ToList();
 
-        // 2. DTO'ya çevir (Ay ismini string olarak yazdırmak için C# tarafında işliyoruz)
+        // 2. DTO'ya çevir
         var result = query.Select(x => new SalesChartDto
         {
-            // Ay ismini Türkçe almak için (Örn: "Ocak 2026")
             Date = new DateTime(x.Year, x.Month, 1).ToString("MMMM yyyy", new CultureInfo("tr-TR")),
             TotalSales = x.TotalAmount
         }).ToList();
