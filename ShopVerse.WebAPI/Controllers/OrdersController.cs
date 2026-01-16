@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
+using ShopVerse.Entities.Concrete;
 
 namespace ShopVerse.WebAPI.Controllers
 {
@@ -15,18 +16,41 @@ namespace ShopVerse.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetList()
         {
-            var orders = await _orderService.GetAllAsync();
-            return Ok(orders);
+            var values = await _orderService.GetAllAsync();
+            return Ok(values);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetDetails(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var order = _orderService.GetOrderWithDetails(id);
-            if (order == null) return NotFound();
-            return Ok(order);
+            var value = await _orderService.GetByIdAsync(id);
+            if (value == null) return NotFound();
+            return Ok(value);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(Order order)
+        {
+            await _orderService.AddAsync(order);
+            return Ok("Sipariş oluşturuldu");
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(Order order)
+        {
+            await _orderService.UpdateAsync(order);
+            return Ok("Sipariş güncellendi");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var value = await _orderService.GetByIdAsync(id);
+            if (value == null) return NotFound();
+            await _orderService.DeleteAsync(value);
+            return Ok("Sipariş silindi");
         }
     }
 }

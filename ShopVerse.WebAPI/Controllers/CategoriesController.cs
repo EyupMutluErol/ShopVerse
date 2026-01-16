@@ -18,39 +18,39 @@ namespace ShopVerse.WebAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetList()
         {
-            var categories = await _categoryService.GetAllAsync();
-            return Ok(categories);
+            var values = await _categoryService.GetAllAsync();
+            return Ok(values);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category == null) return NotFound("Kategori bulunamadı.");
-            return Ok(category);
+            var value = await _categoryService.GetByIdAsync(id);
+            if (value == null) return NotFound();
+            return Ok(value);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(Category category)
         {
             await _categoryService.AddAsync(category);
-            return Ok(category);
+            return Ok("Kategori başarıyla eklendi");
         }
 
         [HttpPut]
         public async Task<IActionResult> Update(Category category)
         {
             await _categoryService.UpdateAsync(category);
-            return Ok("Kategori güncellendi.");
+            return Ok("Kategori güncellendi");
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category == null) return NotFound();
-            await _categoryService.DeleteAsync(category);
-            return Ok("Kategori silindi.");
+            var value = await _categoryService.GetByIdAsync(id);
+            if (value == null) return NotFound();
+            await _categoryService.DeleteAsync(value);
+            return Ok("Kategori silindi");
         }
     }
 }
