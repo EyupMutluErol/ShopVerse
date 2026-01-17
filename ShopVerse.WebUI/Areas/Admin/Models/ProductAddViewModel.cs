@@ -26,7 +26,7 @@ public class ProductAddViewModel
 
     [Required(ErrorMessage = "Kategori seçimi zorunludur.")]
     [Display(Name = "Kategori")]
-    public int? CategoryId { get; set; } // Dropdown'dan seçilen ID buraya gelecek
+    public int? CategoryId { get; set; } 
 
     [Display(Name = "Ürün Görseli")]
     public IFormFile? ImageFile { get; set; }

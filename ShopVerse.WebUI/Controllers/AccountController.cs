@@ -25,7 +25,6 @@ namespace ShopVerse.WebUI.Controllers
             return View();
         }
 
-        // --- KAYIT İŞLEMLERİ ---
 
         [HttpGet]
         public IActionResult Register()
@@ -51,21 +50,17 @@ namespace ShopVerse.WebUI.Controllers
 
                 if (result.Succeeded)
                 {
-                    // 1. Rol Kontrolü ve Atama
                     if (!await _roleManager.RoleExistsAsync("Member"))
                     {
                         await _roleManager.CreateAsync(new AppRole { Name = "Member" });
                     }
                     await _userManager.AddToRoleAsync(user, "Member");
 
-                    // 2. Email Doğrulama Tokeni Oluştur
                     var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-                    // 3. Doğrulama Linki Oluştur
                     var confirmationLink = Url.Action("ConfirmEmail", "Account",
                         new { userId = user.Id, token = token }, Request.Scheme);
 
-                    // 4. Mail Gönder
                     var emailHelper = new EmailHelper();
                     string subject = "ShopVerse Hesap Onayı";
                     string body = $"<h3>Aramıza Hoş Geldin {user.Name}!</h3>" +
@@ -74,7 +69,6 @@ namespace ShopVerse.WebUI.Controllers
 
                     emailHelper.SendEmail(user.Email, subject, body);
 
-                    // 5. Bilgilendirme Sayfasına Yönlendir (Otomatik giriş YOK)
                     return View("RegisterConfirmation");
                 }
 
@@ -86,7 +80,6 @@ namespace ShopVerse.WebUI.Controllers
             return View(model);
         }
 
-        // --- EMAIL ONALAMA (YENİ) ---
         [HttpGet]
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
@@ -112,8 +105,6 @@ namespace ShopVerse.WebUI.Controllers
             return View("Error");
         }
 
-        // --- GİRİŞ İŞLEMLERİ ---
-
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
@@ -130,27 +121,21 @@ namespace ShopVerse.WebUI.Controllers
 
                 if (user != null)
                 {
-                    // --- 1. ADMIN KONTROLÜ (YENİ) ---
-                    // Kullanıcı Admin ise, email onayı olmasa bile giriş yapabilsin diye kontrol ediyoruz.
+                 
                     bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
-                    // Eğer Admin ise doğrudan şifre kontrolü yapıp giriş yaptır (lockoutOnFailure: false)
                     if (isAdmin)
                     {
-                        // CheckPasswordSignInAsync: Sadece şifreye bakar, email onayına bakmaz!
                         var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
                         if (passwordCheck.Succeeded)
                         {
-                            // Şifre doğruysa oturumu aç
                             await _signInManager.SignInAsync(user, model.RememberMe);
                             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                         }
                     }
-                    // --- 2. NORMAL KULLANICI KONTROLÜ (ESKİ SİSTEM) ---
                     else
                     {
-                        // Normal kullanıcılar için standart kontrol (Email onayı şart)
                         var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: false);
 
                         if (result.Succeeded)
@@ -180,7 +165,6 @@ namespace ShopVerse.WebUI.Controllers
             return View();
         }
 
-        // --- ŞİFREMI UNUTTUM ---
 
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -200,15 +184,12 @@ namespace ShopVerse.WebUI.Controllers
 
             if (user == null)
             {
-                // Güvenlik gereği "Böyle bir kullanıcı yok" demeyiz
                 return View("ForgotPasswordConfirmation");
             }
 
-            // Token ve Link
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account", new { token = token, email = user.Email }, protocol: Request.Scheme);
 
-            // Mail Gönder
             var emailHelper = new EmailHelper();
             string subject = "Şifre Sıfırlama Talebi";
             string body = $"<h3>Merhaba {user.Name},</h3>" +
@@ -269,14 +250,11 @@ namespace ShopVerse.WebUI.Controllers
         }
 
 
-        // Bu metodu AccountController'ın içine, en alta bir yere yapıştır.
         [HttpGet]
         public async Task<IActionResult> FixAdmin()
         {
-            // 1. Admin kullanıcısını bulmaya çalış
             var adminUser = await _userManager.FindByEmailAsync("admin@shopverse.com");
 
-            // 2. Eğer yoksa sıfırdan oluştur
             if (adminUser == null)
             {
                 adminUser = new AppUser
@@ -286,7 +264,7 @@ namespace ShopVerse.WebUI.Controllers
                     Name = "ShopVerse",
                     Surname = "Admin",
                     City = "İstanbul",
-                    EmailConfirmed = true // Mail onayı yapılmış olsun
+                    EmailConfirmed = true 
                 };
 
                 var createResult = await _userManager.CreateAsync(adminUser, "Admin123.");
@@ -297,22 +275,18 @@ namespace ShopVerse.WebUI.Controllers
             }
             else
             {
-                // 3. Varsa şifresini '123456' olarak resetle
                 var token = await _userManager.GeneratePasswordResetTokenAsync(adminUser);
                 await _userManager.ResetPasswordAsync(adminUser, token, "Admin123.");
 
-                // Mail onayını kesinleştir
                 adminUser.EmailConfirmed = true;
                 await _userManager.UpdateAsync(adminUser);
             }
 
-            // 4. Rol Kontrolü: Admin rolü yoksa oluştur
             if (!await _roleManager.RoleExistsAsync("Admin"))
             {
                 await _roleManager.CreateAsync(new AppRole { Name = "Admin" });
             }
 
-            // 5. Kullanıcıya Admin rolünü ver (Zaten varsa bir şey yapmaz)
             if (!await _userManager.IsInRoleAsync(adminUser, "Admin"))
             {
                 await _userManager.AddToRoleAsync(adminUser, "Admin");

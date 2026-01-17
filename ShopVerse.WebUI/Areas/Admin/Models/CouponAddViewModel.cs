@@ -25,15 +25,13 @@ public class CouponAddViewModel
     [Required(ErrorMessage = "Son kullanma tarihi seçilmelidir.")]
     public DateTime? ExpirationDate { get; set; }
 
-    // --- EKLENEN EKSİK ALANLAR ---
 
     [Display(Name = "Kategori")]
-    public int? CategoryId { get; set; } // Boş olabilir (Genel kupon)
+    public int? CategoryId { get; set; } 
 
     [Display(Name = "Kullanıcı")]
-    public string? UserId { get; set; } // Boş olabilir (Herkese açık)
+    public string? UserId { get; set; } 
 
-    // -----------------------------
 
     [Display(Name = "Aktiflik Durumu")]
     public bool IsActive { get; set; } = true;

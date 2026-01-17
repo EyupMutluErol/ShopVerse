@@ -9,8 +9,7 @@ using System.Diagnostics;
 
 namespace ShopVerse.WebUI.Controllers
 {
-    // [Authorize] kaldýrýldý, çünkü ana sayfayý herkes görebilmeli.
-    // Sadece favori iþlemleri giriþ gerektiriyor.
+    
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -20,7 +19,6 @@ namespace ShopVerse.WebUI.Controllers
         private readonly ICouponService _couponService;
         private readonly UserManager<AppUser> _userManager;
 
-        // YENÝ EKLENEN SERVÝS
         private readonly IFavoriteService _favoriteService;
 
         public HomeController(
@@ -30,7 +28,7 @@ namespace ShopVerse.WebUI.Controllers
             ICampaignService campaignService,
             ICouponService couponService,
             UserManager<AppUser> userManager,
-            IFavoriteService favoriteService) // Constructor Injection
+            IFavoriteService favoriteService) 
         {
             _logger = logger;
             _productService = productService;
@@ -38,15 +36,13 @@ namespace ShopVerse.WebUI.Controllers
             _campaignService = campaignService;
             _couponService = couponService;
             _userManager = userManager;
-            _favoriteService = favoriteService; // Atama
+            _favoriteService = favoriteService; 
         }
 
         public async Task<IActionResult> Index(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice, string search, string sortOrder)
         {
-            // 1. Kategorileri Getir
             var categories = await _categoryService.GetAllAsync();
 
-            // 2. Filtreleme Ayarlarý
             var filterDto = new ProductFilterDto
             {
                 CategoryIds = categoryIds,
@@ -56,18 +52,13 @@ namespace ShopVerse.WebUI.Controllers
                 SortOrder = sortOrder
             };
 
-            // 3. Filtrelenmiþ Ürünleri Getir
             var products = await _productService.GetFilteredProductsAsync(filterDto);
 
-            // ============================================================
-            // BUTONLARI ÝÞLEVSEL HALE GETÝREN KISIM (GÜNCELLENDÝ)
-            // ============================================================
+            
 
-            // A. Güvenlik: Sadece 'Satýþta (IsActive)' olan ürünler her zaman gösterilmeli.
             products = products.Where(x => x.IsActive).ToList();
 
-            // B. Mantýk: Kullanýcý filtreleme YAPMIYORSA sadece 'Anasayfada Göster (IsHome)' olanlarý getir.
-            // Eðer filtreleme yapýyorsa (arama, kategori seçimi vb.), tüm aktif ürünleri listele.
+            
             bool isUserFiltering = (categoryIds != null && categoryIds.Any()) ||
                                    minPrice.HasValue ||
                                    maxPrice.HasValue ||
@@ -77,16 +68,13 @@ namespace ShopVerse.WebUI.Controllers
             {
                 products = products.Where(x => x.IsHome).ToList();
             }
-            // ============================================================
 
-            // 4. Aktif Kampanyalarý Getir
             var activeCampaigns = await _campaignService.GetAllAsync(x =>
                   x.IsActive &&
                   x.StartDate <= DateTime.Now &&
                   x.EndDate >= DateTime.Now
             );
 
-            // 5. KÝÞÝYE ÖZEL KUPONLARI GETÝR
             var user = await _userManager.GetUserAsync(User);
             string? currentUserId = user?.Id;
 
@@ -98,7 +86,6 @@ namespace ShopVerse.WebUI.Controllers
 
             ViewBag.ActiveCoupons = activeCoupons;
 
-            // 6. FAVORÝLERÝ GETÝR
             if (user != null)
             {
                 var userFavorites = await _favoriteService.GetFavoritesWithProductsAsync(user.Id);
@@ -109,7 +96,6 @@ namespace ShopVerse.WebUI.Controllers
                 ViewBag.FavoriteProductIds = new List<int>();
             }
 
-            // 7. ViewModel Oluþturma
             var model = new HomeViewModel
             {
                 FeaturedProducts = products,
@@ -117,7 +103,6 @@ namespace ShopVerse.WebUI.Controllers
                 ActiveCampaigns = activeCampaigns.ToList()
             };
 
-            // 8. Filtrelerin View'da korunmasý için ViewData atamalarý
             ViewData["CurrentSearch"] = search;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;

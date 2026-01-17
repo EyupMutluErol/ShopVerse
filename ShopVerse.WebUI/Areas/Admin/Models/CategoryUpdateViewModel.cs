@@ -14,5 +14,5 @@ public class CategoryUpdateViewModel
     [Required(ErrorMessage = "Açıklama alanı zorunludur.")]
     public string Description { get; set; }
     public IFormFile? ImageFile { get; set; }
-    public string? ExistingImageUrl { get; set; } // Yüklenmezse eskisini tutacağız
+    public string? ExistingImageUrl { get; set; }
 }

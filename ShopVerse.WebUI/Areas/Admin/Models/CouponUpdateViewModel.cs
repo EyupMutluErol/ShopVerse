@@ -9,15 +9,14 @@ namespace ShopVerse.WebUI.Areas.Admin.Models
         [Required(ErrorMessage = "Kupon kodu zorunludur.")]
         public string Code { get; set; }
 
-        public decimal? DiscountAmount { get; set; } // İndirim Miktarı
-        public bool IsPercentage { get; set; }     // Yüzde mi?
-        public decimal? MinCartAmount { get; set; } // Minimum Sepet Tutarı
+        public decimal? DiscountAmount { get; set; } 
+        public bool IsPercentage { get; set; }     
+        public decimal? MinCartAmount { get; set; } 
 
-        public DateTime? ExpirationDate { get; set; } // Son Kullanma Tarihi
+        public DateTime? ExpirationDate { get; set; } 
 
         public bool IsActive { get; set; }
 
-        // Hedefleme ve Kısıtlamalar
         public int? CategoryId { get; set; }
         public string? UserId { get; set; }
 

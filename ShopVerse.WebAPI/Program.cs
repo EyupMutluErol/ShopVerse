@@ -5,19 +5,16 @@ using ShopVerse.DataAccess.Abstract;
 using ShopVerse.DataAccess.Concrete.Context;
 using ShopVerse.DataAccess.Concrete.EntityFramework;
 using ShopVerse.Entities.Concrete;
-using Microsoft.OpenApi.Models; // <-- BU SATIR OpenApiInfo HATASINI ÇÖZER
+using Microsoft.OpenApi.Models; 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Veritabaný Baðlantýsý
 builder.Services.AddDbContext<ShopVerseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Identity Kurulumu
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ShopVerseContext>();
 
-// 3. Dependency Injection (Tüm Servisler)
 builder.Services.AddScoped<IProductService, ProductManager>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 
@@ -33,7 +30,6 @@ builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
 builder.Services.AddScoped<ICouponService, CouponManager>();
 builder.Services.AddScoped<ICouponRepository, EfCouponRepository>();
 
-// 4. API Ayarlarý
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 builder.Services.AddEndpointsApiExplorer();
@@ -44,22 +40,20 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 5. Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShopVerse API V1");
-        c.RoutePrefix = string.Empty; // Ana sayfada Swagger açýlsýn
+        c.RoutePrefix = string.Empty; 
     });
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication(); // Identity için gerekli
+app.UseAuthentication(); 
 app.UseAuthorization();
 
-// Try-Catch bloðunu kaldýrdýk, .csproj düzenlemesi sorunu kökten çözdüðü için gerek kalmadý.
 app.MapControllers();
 
 app.Run();

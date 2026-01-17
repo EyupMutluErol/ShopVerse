@@ -9,7 +9,6 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
 <style>
-    /* Sayı inputundaki okları gizle */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -20,10 +19,9 @@
         -moz-appearance: textfield;
     }
 
-    /* TARİH SEÇİCİ İÇİN ÖZEL STİL */
     .date-picker {
-        cursor: pointer !important; /* Üzerine gelince el işareti çıksın */
-        background-color: #fff !important; /* Readonly olsa bile beyaz kalsın */
+        cursor: pointer !important; 
+        background-color: #fff !important; 
     }
 </style>
 
@@ -162,7 +160,6 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // 1. Tarih Seçici Ayarları
         flatpickr(".date-picker", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
@@ -173,7 +170,6 @@
             disableMobile: "true"
         });
 
-        // 2. İndirim Butonları
         function updateDiscount(amount) {
             var input = document.getElementById("discountInput");
             var currentVal = parseInt(input.value) || 0;

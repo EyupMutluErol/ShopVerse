@@ -5,7 +5,7 @@ namespace ShopVerse.WebUI.Models;
 public class ResetPasswordViewModel
 {
     [Required]
-    public string Token { get; set; } // URL'den gelen gizli anahtar
+    public string Token { get; set; }
 
     [Required]
     [EmailAddress]

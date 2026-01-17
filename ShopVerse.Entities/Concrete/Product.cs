@@ -15,7 +15,7 @@ public class Product:BaseEntity
     [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
     [Range(0, 100, ErrorMessage = "İndirim oranı 0 ile 100 arasında olmalıdır.")]
-    public int DiscountRate { get; set; } = 0; // Varsayılan 0 (İndirim yok)
+    public int DiscountRate { get; set; } = 0; 
     [Column(TypeName = "decimal(18,2)")]
     public decimal PriceWithDiscount { get; set; }
     [Required(ErrorMessage = "Lütfen stok adedini giriniz.")]
@@ -25,11 +25,9 @@ public class Product:BaseEntity
     [StringLength(250)]
     public string ImageUrl { get; set; }
 
-    // Durumlar
-    public bool IsHome { get; set; } // Anasayfada göster
-    public bool IsActive { get; set; } // Satışta mı?
+    public bool IsHome { get; set; } 
+    public bool IsActive { get; set; } 
 
-    // İlişkiler
     [Required(ErrorMessage = "Lütfen bir kategori seçiniz.")]
     public int CategoryId { get; set; }
     public Category Category { get; set; }

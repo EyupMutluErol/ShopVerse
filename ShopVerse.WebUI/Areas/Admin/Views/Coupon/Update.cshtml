@@ -10,7 +10,6 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_orange.css">
 
 <style>
-    /* Sayı inputlarındaki okları gizle */
     .no-spinners::-webkit-outer-spin-button,
     .no-spinners::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -187,7 +186,6 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // 1. Tarih Seçici
         flatpickr(".date-picker", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
@@ -198,7 +196,6 @@
             disableMobile: "true"
         });
 
-        // 2. İndirim Tipi Mantığı
         var switchBtn = document.getElementById("isPercentageSwitch");
         var label = document.getElementById("discountLabel");
         var symbol = document.getElementById("currencySymbol");
@@ -219,7 +216,7 @@
         }
 
         switchBtn.addEventListener("change", toggleType);
-        toggleType(); // Sayfa yüklendiğinde çalıştır (Mevcut duruma göre ayarlar)
+        toggleType(); 
 
         function updateDiscountValue(change) {
             var currentVal = parseFloat(input.value) || 0;

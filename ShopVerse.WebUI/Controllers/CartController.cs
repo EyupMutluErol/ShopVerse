@@ -35,7 +35,6 @@ namespace ShopVerse.WebUI.Controllers
             var cart = GetCartFromSession();
             var appliedCouponCode = HttpContext.Session.GetString("AppliedCoupon");
 
-            // --- 1. KUPON VARSA: KAMPANYALARI İPTAL ET (NORMAL FİYATA DÖN) ---
             if (!string.IsNullOrEmpty(appliedCouponCode))
             {
                 foreach (var item in cart)
@@ -45,35 +44,28 @@ namespace ShopVerse.WebUI.Controllers
             }
             else
             {
-                // --- 2. KUPON YOKSA: KAMPANYALARI UYGULA ---
-                // Aktif ve süresi dolmamış kampanyaları çek
+                
                 var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
 
                 foreach (var item in cart)
                 {
-                    // ========================================================================
-                    // SORUNU ÇÖZEN KISIM (GÜNCELLENDİ)
-                    // Sadece kategoriye değil, FİYAT ARALIĞINA da bakıyoruz.
-                    // ========================================================================
+                    
                     var campaign = activeCampaigns.FirstOrDefault(c =>
-                        (c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
-                        (c.MinProductPrice == null || item.Product.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
-                        (c.MaxProductPrice == null || item.Product.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                        (c.TargetCategoryId == item.Product.CategoryId || c.TargetCategoryId == null) && 
+                        (c.MinProductPrice == null || item.Product.Price >= c.MinProductPrice) &&        
+                        (c.MaxProductPrice == null || item.Product.Price <= c.MaxProductPrice)          
                     );
 
                     decimal itemPrice = item.Product.Price;
 
-                    // Kampanya İndirimi
                     if (campaign != null)
                     {
                         decimal campaignPrice = item.Product.Price - (item.Product.Price * campaign.DiscountPercentage / 100);
                         itemPrice = campaignPrice;
                     }
 
-                    // Ürün Özel İndirimi (Varsa karşılaştırıp en düşüğünü al)
                     if (item.Product.DiscountRate > 0)
                     {
-                        // Eğer hem kampanya hem ürün indirimi varsa, müşteri için en ucuzunu seç
                         if (campaign != null)
                         {
                             itemPrice = Math.Min(itemPrice, item.Product.PriceWithDiscount);
@@ -88,17 +80,14 @@ namespace ShopVerse.WebUI.Controllers
                 }
             }
 
-            // --- 3. TOPLAMLARI HESAPLA ---
             decimal totalPrice = cart.Sum(x => x.Quantity * x.SalePrice);
             decimal discountAmount = 0;
             decimal finalPrice = totalPrice;
 
-            // --- 4. KUPON İNDİRİMİNİ UYGULA ---
             if (!string.IsNullOrEmpty(appliedCouponCode))
             {
                 var coupon = _couponService.GetByCode(appliedCouponCode);
 
-                // Sepetin ham tutarı (indirimsiz) limit kontrolü için
                 decimal rawTotal = cart.Sum(x => x.Quantity * x.Product.Price);
 
                 if (coupon != null && coupon.IsActive && coupon.ExpirationDate >= DateTime.Now && rawTotal >= coupon.MinCartAmount)
@@ -120,7 +109,6 @@ namespace ShopVerse.WebUI.Controllers
                 }
                 else
                 {
-                    // Şartlar sağlanmıyorsa (örn: ürün silince limit altına düşüldüyse) kuponu düşür
                     HttpContext.Session.Remove("AppliedCoupon");
                 }
             }
@@ -128,9 +116,7 @@ namespace ShopVerse.WebUI.Controllers
             ViewBag.TotalPrice = totalPrice;
             ViewBag.FinalPrice = finalPrice;
 
-            // ============================================================
-            // 5. FAVORİ KONTROLÜ
-            // ============================================================
+            
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -145,7 +131,6 @@ namespace ShopVerse.WebUI.Controllers
                 ViewBag.FavoriteProductIds = new List<int>();
             }
 
-            // Değişen fiyatları Session'a geri kaydet (Önemli: Fiyat güncellemeleri kalıcı olsun)
             SaveCartToSession(cart);
 
             return View(new CartViewModel { CartItems = cart });
@@ -163,7 +148,6 @@ namespace ShopVerse.WebUI.Controllers
             var coupon = _couponService.GetByCode(code.ToUpper());
             var cart = GetCartFromSession();
 
-            // Kupon limiti kontrolü için HAM FİYAT (Normal Fiyat) toplamına bakmalıyız.
             decimal rawTotalPrice = cart.Sum(x => x.Quantity * x.Product.Price);
 
             if (coupon == null || !coupon.IsActive || coupon.ExpirationDate < DateTime.Now)
@@ -190,8 +174,7 @@ namespace ShopVerse.WebUI.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Kategori veya Fiyat Aralığı kısıtlaması varsa (Kupon için)
-            // Bu gelişmiş bir özellik, şimdilik sadece sepet tutarına bakıyoruz.
+            
 
             HttpContext.Session.SetString("AppliedCoupon", coupon.Code);
             TempData["CouponSuccess"] = "Kupon başarıyla uygulandı! (Diğer kampanyalar devre dışı bırakıldı)";
@@ -215,13 +198,12 @@ namespace ShopVerse.WebUI.Controllers
                 return Json(new { success = false, message = "Ürün bulunamadı." });
             }
 
-            // --- SEPETE EKLERKEN DE FİYAT KONTROLÜ (GÜNCELLENDİ) ---
             var activeCampaigns = await _campaignService.GetAllAsync(x => x.IsActive && x.StartDate <= DateTime.Now && x.EndDate >= DateTime.Now);
 
             var campaign = activeCampaigns.FirstOrDefault(c =>
                 (c.TargetCategoryId == product.CategoryId || c.TargetCategoryId == null) &&
-                (c.MinProductPrice == null || product.Price >= c.MinProductPrice) &&  // EKLENDİ
-                (c.MaxProductPrice == null || product.Price <= c.MaxProductPrice)     // EKLENDİ
+                (c.MinProductPrice == null || product.Price >= c.MinProductPrice) &&  
+                (c.MaxProductPrice == null || product.Price <= c.MaxProductPrice)     
             );
 
             decimal campaignPrice = product.Price;
@@ -234,7 +216,6 @@ namespace ShopVerse.WebUI.Controllers
 
             decimal finalPrice = product.Price;
 
-            // En düşük fiyatı belirle
             if (campaign != null && product.DiscountRate > 0)
                 finalPrice = Math.Min(campaignPrice, productDiscountPrice);
             else if (campaign != null)
@@ -248,7 +229,7 @@ namespace ShopVerse.WebUI.Controllers
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
-                existingItem.SalePrice = finalPrice; // Güncel fiyatı bas
+                existingItem.SalePrice = finalPrice; 
             }
             else
             {
@@ -276,9 +257,7 @@ namespace ShopVerse.WebUI.Controllers
                 cart.Remove(itemToRemove);
                 SaveCartToSession(cart);
 
-                // AJAX ile çağrılmıyorsa TempData kullan (Index'e yönlenince mesaj çıksın)
-                // Ancak AJAX kullanıyorsanız Index view'ında TempData kontrolü yapmanız gerek.
-                // TempData["UserMessage"] = "Ürün silindi."; 
+                
             }
             return RedirectToAction("Index");
         }

@@ -7,17 +7,17 @@ namespace ShopVerse.Entities.Concrete;
 public class Order : BaseEntity
 {
     [StringLength(50)]
-    public string OrderNumber { get; set; } // Sipariş No
+    public string OrderNumber { get; set; } 
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalPrice { get; set; }
 
     public DateTime OrderDate { get; set; } = DateTime.Now;
 
-    // TEK VE GERÇEK DURUM DEĞİŞKENİ BU OLACAK
+    
     public OrderStatus OrderStatus { get; set; }
 
-    // --- Kargo Bilgileri ---
+   
     [Required(ErrorMessage = "Lütfen ad-soyad giriniz.")]
     [StringLength(100)]
     public string FullName { get; set; }
@@ -38,11 +38,9 @@ public class Order : BaseEntity
     [StringLength(20)]
     public string PhoneNumber { get; set; }
 
-    // İlişkiler
     public string? AppUserId { get; set; }
     public AppUser? AppUser { get; set; }
     public List<OrderDetail> OrderDetails { get; set; }
 
-    // İade süresi kontrolü için gerekli
     public DateTime? DeliveryDate { get; set; }
 }

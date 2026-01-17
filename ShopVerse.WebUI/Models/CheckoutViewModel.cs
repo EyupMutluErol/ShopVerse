@@ -8,7 +8,6 @@ namespace ShopVerse.WebUI.Models
 {
     public class CheckoutViewModel
     {
-        // --- GİRİŞ ALANLARI (Input) ---
 
         [Required(ErrorMessage = "Ad Soyad zorunludur")]
         public string FullName { get; set; }
@@ -40,7 +39,6 @@ namespace ShopVerse.WebUI.Models
         [Required(ErrorMessage = "CVV zorunludur")]
         public string Cvv { get; set; }
 
-        // --- GÖSTERİM ALANLARI (Output) ---
 
         public List<CartItemModel> CartItems { get; set; } = new List<CartItemModel>();
         [ValidateNever]

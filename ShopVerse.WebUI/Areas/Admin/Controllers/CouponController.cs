@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; // SelectList için GEREKLİ
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
@@ -30,18 +30,14 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
-        // ============================================================
-        // LİSTELEME (INDEX)
-        // ============================================================
+        
         public async Task<IActionResult> Index()
         {
             var values = await _couponService.GetAllAsync();
             return View(values);
         }
 
-        // ============================================================
-        // EKLEME (CREATE)
-        // ============================================================
+        
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -62,7 +58,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     MinCartAmount = model.MinCartAmount ?? 0,
                     ExpirationDate = model.ExpirationDate ?? DateTime.Now.AddDays(7),
 
-                    // Yeni Alanlar
                     MinProductPrice = model.MinProductPrice,
                     MaxProductPrice = model.MaxProductPrice,
                     CategoryId = model.CategoryId,
@@ -72,9 +67,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     CreatedDate = DateTime.Now
                 };
 
-                // Kod kontrolü (Opsiyonel: Aynı kod var mı?)
-                // var existing = _couponService.GetByCode(coupon.Code);
-                // if(existing != null) { ... }
+                
 
                 await _couponService.AddAsync(coupon);
                 TempData["AdminSuccess"] = "Kupon başarıyla oluşturuldu.";
@@ -85,9 +78,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        // ============================================================
-        // GÜNCELLEME (UPDATE) - YENİ EKLENEN KISIM
-        // ============================================================
+      
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
@@ -97,7 +88,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Entity -> ViewModel Dönüşümü
             var model = new CouponUpdateViewModel
             {
                 Id = coupon.Id,
@@ -108,14 +98,13 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 ExpirationDate = coupon.ExpirationDate,
                 IsActive = coupon.IsActive,
 
-                // İlişkiler ve Kısıtlamalar
                 CategoryId = coupon.CategoryId,
                 UserId = coupon.UserId,
                 MinProductPrice = coupon.MinProductPrice,
                 MaxProductPrice = coupon.MaxProductPrice
             };
 
-            await PopulateDropdowns(); // Dropdown verilerini hazırla
+            await PopulateDropdowns(); 
             return View(model);
         }
 
@@ -130,7 +119,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                // Verileri Güncelle
                 coupon.Code = model.Code.ToUpper();
                 coupon.DiscountAmount = model.DiscountAmount ?? 0;
                 coupon.IsPercentage = model.IsPercentage;
@@ -143,8 +131,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 coupon.MinProductPrice = model.MinProductPrice;
                 coupon.MaxProductPrice = model.MaxProductPrice;
 
-                // Güncelleme Tarihi (Entity'de varsa)
-                // coupon.UpdatedDate = DateTime.Now; 
+                
 
                 await _couponService.UpdateAsync(coupon);
                 TempData["AdminSuccess"] = "Kupon başarıyla güncellendi.";
@@ -155,9 +142,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        // ============================================================
-        // SİLME (DELETE)
-        // ============================================================
+      
         public async Task<IActionResult> Delete(int id)
         {
             var value = await _couponService.GetByIdAsync(id);
@@ -173,16 +158,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // ================================================================
-        // YARDIMCI METOT (DROPDOWN)
-        // ================================================================
+        
         private async Task PopulateDropdowns()
         {
-            // 1. Kategoriler (SelectList Olarak)
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name");
 
-            // 2. Üyeler (Liste Olarak - View'da foreach ile dönülüyor)
             var users = _userManager.Users.ToList();
             ViewBag.Users = users;
         }

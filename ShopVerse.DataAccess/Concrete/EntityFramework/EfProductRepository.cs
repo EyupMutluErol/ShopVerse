@@ -33,7 +33,6 @@ public class EfProductRepository : EfGenericRepository<Product>, IProductReposit
                     join o in _context.Orders on od.OrderId equals o.Id
                     join p in _context.Products on od.ProductId equals p.Id
 
-                    // Onaylanmış, Kargoda veya Teslim Edilmiş olmalı.
                     where o.OrderDate >= startDate &&
                           (o.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Approved ||
                            o.OrderStatus == ShopVerse.Entities.Enums.OrderStatus.Shipped ||

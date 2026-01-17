@@ -7,10 +7,8 @@ public class EmailHelper
 {
     public void SendEmail(string toEmail, string subject, string body)
     {
-        // GÖNDERİCİ AYARLARI
         var fromAddress = new MailAddress("eyupmutluerol@gmail.com", "ShopVerse");
 
-        // Google'dan aldığın 16 haneli Uygulama Şifresi (Boşluksuz yazabilirsin)
         const string fromPassword = "nwpw xzdc hkbp nysh";
 
         var smtp = new SmtpClient

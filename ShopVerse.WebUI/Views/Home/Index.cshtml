@@ -4,10 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var selectedCats = ViewData["SelectedCategories"] as List<int>;
 
-    // Controller'dan gelen Aktif (Kişiye Özel veya Genel) Kuponlar
     var activeCoupons = ViewBag.ActiveCoupons as List<ShopVerse.Entities.Concrete.Coupon>;
 
-    // Controller'dan gelen Favori Ürün ID Listesi
     var favList = ViewBag.FavoriteProductIds as List<int>;
 }
 
@@ -506,19 +504,16 @@
             <div class="row g-4">
                 @foreach (var item in Model.FeaturedProducts)
                 {
-                    // -----------------------------------------------------------
-                    // EN İYİ FİYAT MANTIĞI (GÜNCELLENMİŞ KISIM)
-                    // -----------------------------------------------------------
+                    
                     ShopVerse.Entities.Concrete.Campaign? campaign = null;
                     decimal campaignPrice = item.Price;
 
                     if (Model.ActiveCampaigns != null)
                     {
-                        // SORUNU ÇÖZEN KRİTİK DEĞİŞİKLİK BURADA:
                         campaign = Model.ActiveCampaigns.FirstOrDefault(c =>
-                        (c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null) && // Kategori Tutuyor mu?
-                        (c.MinProductPrice == null || item.Price >= c.MinProductPrice) &&        // Min Fiyat Tutuyor mu?
-                        (c.MaxProductPrice == null || item.Price <= c.MaxProductPrice)           // Max Fiyat Tutuyor mu?
+                        (c.TargetCategoryId == item.CategoryId || c.TargetCategoryId == null) && 
+                        (c.MinProductPrice == null || item.Price >= c.MinProductPrice) &&        
+                        (c.MaxProductPrice == null || item.Price <= c.MaxProductPrice)           
                         );
 
                         if (campaign != null)
@@ -537,7 +532,6 @@
                     bool showCampaignLabel = false;
                     bool showProductDiscountLabel = false;
 
-                    // Kampanya ve Ürün İndirimi Karşılaştırması
                     if (campaign != null && item.DiscountRate > 0)
                     {
                         if (campaignPrice < productDiscountPrice)
@@ -562,10 +556,8 @@
                         showProductDiscountLabel = true;
                     }
 
-                    // FAVORİ KONTROLÜ
                     bool isFav = favList != null && favList.Contains(item.Id);
 
-                    // -----------------------------------------------------------
 
                     <div class="col-lg-3 col-md-6 col-sm-12">
                         <div class="card product-card h-100 position-relative">

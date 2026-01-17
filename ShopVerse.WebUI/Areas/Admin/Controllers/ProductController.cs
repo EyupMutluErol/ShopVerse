@@ -23,15 +23,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _imageHelper = imageHelper;
         }
 
-        // ============================================================
-        // LISTELEME (INDEX)
-        // ============================================================
+    
         public async Task<IActionResult> Index(string search, int? categoryId, string status)
         {
             var products = await _productService.GetAllAsync();
             var categories = await _categoryService.GetAllAsync();
 
-            // --- FİLTRELEME MANTIĞI ---
             if (!string.IsNullOrEmpty(search))
             {
                 products = products.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
@@ -50,13 +47,11 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     products = products.Where(x => x.IsActive == false).ToList();
             }
 
-            // --- VIEW BAG ---
             ViewBag.Search = search;
             ViewBag.CategoryId = categoryId;
             ViewBag.Status = status;
             ViewBag.CategoryList = new SelectList(categories, "Id", "Name");
 
-            // --- MAPPING ---
             var model = products.Select(p => new ProductListViewModel
             {
                 Id = p.Id,
@@ -72,9 +67,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        // ============================================================
-        // EKLEME (ADD)
-        // ============================================================
+       
         [HttpGet]
         public async Task<IActionResult> Add()
         {
@@ -87,24 +80,21 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Mapping: ViewModel (Nullable) -> Entity (Not Null)
-                // Not: ModelState.IsValid olduğu için .Value kullanmak güvenlidir.
+  
                 var product = new Product
                 {
                     Name = model.Name,
                     Description = model.Description,
-                    Price = model.Price.Value, // decimal? -> decimal
-                    DiscountRate = model.DiscountRate ?? 0, // int? -> int (Boşsa 0)
-                    // Fiyat Hesaplama
+                    Price = model.Price.Value, 
+                    DiscountRate = model.DiscountRate ?? 0, 
                     PriceWithDiscount = model.Price.Value - (model.Price.Value * (model.DiscountRate ?? 0) / 100),
-                    Stock = model.Stock.Value, // int? -> int
-                    CategoryId = model.CategoryId.Value, // int? -> int
+                    Stock = model.Stock.Value, 
+                    CategoryId = model.CategoryId.Value,
                     IsHome = model.IsHome,
                     IsActive = model.IsActive,
                     CreatedDate = DateTime.Now,
                 };
 
-                // Resim Yükleme
                 if (model.ImageFile != null)
                 {
                     product.ImageUrl = await _imageHelper.UploadFile(model.ImageFile, "products");
@@ -123,9 +113,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        // ============================================================
-        // GÜNCELLEME (UPDATE) - DÜZELTİLEN KISIM
-        // ============================================================
+        
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
@@ -135,7 +123,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Entity -> ViewModel Mapping
             var model = new ProductUpdateViewModel
             {
                 Id = id,
@@ -145,7 +132,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 DiscountRate = product.DiscountRate,
                 Stock = product.Stock,
                 CategoryId = product.CategoryId,
-                ExistingImageUrl = product.ImageUrl, // Resmi göstermek için
+                ExistingImageUrl = product.ImageUrl, 
                 IsHome = product.IsHome,
                 IsActive = product.IsActive,
             };
@@ -165,30 +152,24 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                // 1. Manuel Mapping ve Null Dönüşümleri (.Value veya ?? kullanımı)
                 product.Name = model.Name;
                 product.Description = model.Description;
 
-                // HATA ÇÖZÜMÜ: Nullable tipleri normal tiplere çeviriyoruz.
                 product.Price = model.Price.Value;
                 product.Stock = model.Stock.Value;
                 product.CategoryId = model.CategoryId.Value;
                 product.DiscountRate = model.DiscountRate ?? 0;
 
-                // Fiyat tekrar hesaplanmalı
                 product.PriceWithDiscount = product.Price - (product.Price * product.DiscountRate / 100);
 
                 product.IsHome = model.IsHome;
                 product.IsActive = model.IsActive;
                 product.UpdatedDate = DateTime.Now;
 
-                // 2. Resim Güncelleme Kontrolü
                 if (model.ImageFile != null)
                 {
-                    // Yeni resim yükle
                     product.ImageUrl = await _imageHelper.UploadFile(model.ImageFile, "products");
                 }
-                // Else: Resim seçilmediyse product.ImageUrl veritabanındaki haliyle kalır.
 
                 await _productService.UpdateAsync(product);
 
@@ -196,22 +177,17 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Validasyon Hatası Varsa (Örn: Stok boşsa)
             ViewBag.Categories = new SelectList(await _categoryService.GetAllAsync(), "Id", "Name", model.CategoryId);
 
-            // Modeli View'a geri gönder ki hataları göstersin
             return View(model);
         }
 
-        // ============================================================
-        // SİLME (DELETE)
-        // ============================================================
+        
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _productService.GetByIdAsync(id);
             if (product != null)
             {
-                // Resim temizliği (Opsiyonel)
                 if (!string.IsNullOrEmpty(product.ImageUrl) && !product.ImageUrl.Contains("no-image"))
                 {
                     var relativePath = product.ImageUrl.TrimStart('/');

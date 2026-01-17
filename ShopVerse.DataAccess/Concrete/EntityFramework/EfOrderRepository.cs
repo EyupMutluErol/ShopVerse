@@ -47,12 +47,11 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
     {
         var startDate = DateTime.Now.AddMonths(-lastMonths);
 
-        // 1. Veritabanından Net Ciro mantığına uygun veriyi çek
         var query = _context.Orders
             .Where(x => x.OrderDate >= startDate &&
-                        !x.IsDeleted && // Silinmiş kayıtları hariç tut
-                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Canceled && // İptalleri dahil etme
-                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Refunded)  // İadeleri dahil etme
+                        !x.IsDeleted && 
+                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Canceled && 
+                        x.OrderStatus != ShopVerse.Entities.Enums.OrderStatus.Refunded)  
             .GroupBy(x => new { x.OrderDate.Year, x.OrderDate.Month })
             .Select(g => new
             {
@@ -63,7 +62,6 @@ public class EfOrderRepository : EfGenericRepository<Order>, IOrderRepository
             .OrderBy(x => x.Year).ThenBy(x => x.Month)
             .ToList();
 
-        // 2. DTO'ya çevir
         var result = query.Select(x => new SalesChartDto
         {
             Date = new DateTime(x.Year, x.Month, 1).ToString("MMMM yyyy", new CultureInfo("tr-TR")),

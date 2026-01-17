@@ -4,7 +4,6 @@
     ViewData["Title"] = Model.Name;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Favori Kontrolü: Bu ürün kullanıcının favorilerinde mi?
     var favList = ViewBag.FavoriteProductIds as List<int>;
     bool isFav = favList != null && favList.Contains(Model.Id);
 }
@@ -157,7 +156,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // ADET GÜNCELLEME FONKSİYONU
         function updateQuantity(change) {
             var input = document.getElementById("quantityInput");
             var maxStock = parseInt(document.getElementById("maxStock").value);
@@ -170,7 +168,6 @@
             }
         }
 
-        // SEPETE EKLEME FONKSİYONU (AJAX + SWEETALERT)
         function addToCartDetail(productId) {
             var quantity = document.getElementById("quantityInput").value;
 
@@ -181,7 +178,6 @@
                 success: function (res) {
                     if (res.success) {
 
-                        // TOAST BİLDİRİMİ
                         Swal.fire({
                             position: 'top-end',
                             icon: 'success',
@@ -195,7 +191,6 @@
                             timerProgressBar: true
                         });
 
-                        // Sepet Badge Güncelleme
                         var badge = $("#cart-badge-count");
                         if (badge.length) {
                             badge.text(res.cartCount);
@@ -203,7 +198,6 @@
                         }
 
                     } else {
-                        // Hata durumunda
                         Swal.fire({
                             position: 'top-end',
                             icon: 'error',

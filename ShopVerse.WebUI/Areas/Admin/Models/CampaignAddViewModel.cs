@@ -12,8 +12,7 @@ public class CampaignAddViewModel
     [Required(ErrorMessage = "Kampanya açıklaması zorunludur.")]
     public string Description { get; set; }
 
-    // ÖNEMLİ: DateTime? (Nullable) yaptık ki boş gelirse hata versin.
-    // Yapmazsak 01.01.0001 tarihini atar ve geçerli sayar.
+    
     [Display(Name = "Başlangıç Tarihi")]
     [Required(ErrorMessage = "Başlangıç tarihi seçilmelidir.")]
     public DateTime? StartDate { get; set; }
@@ -28,7 +27,7 @@ public class CampaignAddViewModel
     public int? DiscountPercentage { get; set; }
 
     [Display(Name = "Hedef Kategori")]
-    public int? TargetCategoryId { get; set; } // Boş olabilir (Genel kampanya ise)
+    public int? TargetCategoryId { get; set; } 
 
     [Display(Name = "Kampanya Görseli")]
     [Required(ErrorMessage = "Lütfen bir banner görseli seçiniz.")]

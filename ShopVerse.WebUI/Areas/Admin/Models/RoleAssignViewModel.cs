@@ -11,5 +11,5 @@ public class RoleAssignItem
 {
     public string RoleId { get; set; }
     public string RoleName { get; set; }
-    public bool Exists { get; set; } // Kullanıcı bu role sahip mi ?
+    public bool Exists { get; set; } 
 }

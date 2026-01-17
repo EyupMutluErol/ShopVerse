@@ -31,7 +31,6 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <style>
-        /* --- CSS DEĞİŞKENLERİ --- */
         :root {
             --navbar-bg: #ffffff;
             --body-bg: #ffffff;
@@ -40,7 +39,6 @@
             --border-color: #f0f0f0;
         }
 
-        /* KOYU MOD DEĞİŞKENLERİ */
         [data-bs-theme="dark"] {
             --navbar-bg: #1c1c1e;
             --body-bg: #121212;
@@ -59,7 +57,6 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* --- NAVBAR --- */
         .navbar-custom {
             background: var(--navbar-bg) !important;
             border-bottom: 1px solid var(--border-color);
@@ -88,7 +85,6 @@
                 background: rgba(0, 114, 255, 0.1);
             }
 
-        /* --- İKON BUTONLARI --- */
         .nav-icon-btn {
             display: flex;
             align-items: center;
@@ -111,7 +107,6 @@
                 transform: translateY(-2px);
             }
 
-        /* --- DROPDOWN & KARTLAR --- */
         .dropdown-menu {
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
@@ -147,7 +142,6 @@
             color: #fff;
         }
 
-        /* Footer Link Hover */
         .hover-link {
             transition: color 0.3s ease, padding-left 0.3s ease;
         }
@@ -345,26 +339,21 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // --- TEMA VE IKON YÖNETİMİ (JavaScript) ---
         document.addEventListener("DOMContentLoaded", function () {
             const toggleBtn = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
 
-            // 1. Mevcut temayı kontrol et ve İKONU güncelle
             const currentTheme = localStorage.getItem('theme') || 'light';
             updateIcon(currentTheme);
 
-            // 2. Butona tıklayınca
             toggleBtn.addEventListener('click', function () {
                 const htmlElement = document.documentElement;
                 let current = htmlElement.getAttribute('data-bs-theme');
                 let newTheme = current === 'dark' ? 'light' : 'dark';
 
-                // Temayı uygula
                 htmlElement.setAttribute('data-bs-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
 
-                // İkonu güncelle
                 updateIcon(newTheme);
             });
 
@@ -372,16 +361,15 @@
                 if (theme === 'dark') {
                     themeIcon.classList.remove('fa-moon');
                     themeIcon.classList.add('fa-sun');
-                    themeIcon.style.color = "#f9ca24"; // Güneş
+                    themeIcon.style.color = "#f9ca24"; 
                 } else {
                     themeIcon.classList.remove('fa-sun');
                     themeIcon.classList.add('fa-moon');
-                    themeIcon.style.color = "#333"; // Ay
+                    themeIcon.style.color = "#333"; 
                 }
             }
         });
 
-        // --- SEPET VE FAVORİ İŞLEMLERİ ---
         function addToCart(productId, quantity = 1) {
             $.ajax({
                 url: '/Cart/AddToCart',

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShopVerse.DataAccess.Concrete.Context; // Context'in doğru namespace'i
+using ShopVerse.DataAccess.Concrete.Context;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Areas.Admin.Models;
 using System.Collections.Generic;
@@ -26,7 +26,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             _context = context;
         }
 
-        // --- LİSTELEME METOTLARI ---
 
         public async Task<IActionResult> Index()
         {
@@ -87,7 +86,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(userList);
         }
 
-        // --- ROL ATAMA METOTLARI ---
 
         public async Task<IActionResult> AssignRole(string id)
         {
@@ -134,14 +132,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return isAdmin ? RedirectToAction("Admins") : RedirectToAction("Members");
         }
 
-        // --- SİLME İŞLEMİ (GÜNCELLENMİŞ HALİ: SET NULL) ---
 
         public async Task<IActionResult> Delete(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return RedirectToAction("Members");
 
-            // 1. Kendi kendini silmeyi engelle
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser.Id == user.Id)
             {
@@ -149,34 +145,25 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return RedirectToAction("Admins");
             }
 
-            // Silinecek kişinin admin olup olmadığını önceden alalım (Yönlendirme için)
             bool wasAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
-            // ====================================================================
-            // GÜNCELLEME: Siparişleri SİLME, Kullanıcı İlişkisini BOŞA ÇIKAR (NULL YAP)
-            // ====================================================================
+            
 
-            // 1. Bu kullanıcının siparişlerini bul
             var userOrders = _context.Orders.Where(x => x.AppUserId == user.Id).ToList();
 
-            // 2. Siparişleri döngüye al ve UserId'yi NULL yap
             if (userOrders.Any())
             {
                 foreach (var order in userOrders)
                 {
-                    order.AppUserId = null; // Siparişi sahipsiz bırak ama silme
+                    order.AppUserId = null; 
                 }
 
-                // Değişiklikleri kaydet (Update işlemi yapar)
                 await _context.SaveChangesAsync();
             }
 
-            // ====================================================================
 
-            // 3. Artık kullanıcıyı silebiliriz (İlişki koparıldığı için hata vermez)
             var result = await _userManager.DeleteAsync(user);
 
-            // 4. Doğru Sayfaya Yönlendir
             if (result.Succeeded)
             {
                 TempData["AdminSuccess"] = "Kullanıcı başarıyla silindi. Sipariş geçmişi korundu.";

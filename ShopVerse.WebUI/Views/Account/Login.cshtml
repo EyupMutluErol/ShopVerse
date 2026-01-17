@@ -5,16 +5,14 @@
 }
 
 <style>
-    /* --- SARI TEMA RENK PALETİ --- */
     :root {
-        --gold-primary: #ffc107; /* Ana Sarı */
-        --gold-dark: #ff9800; /* Koyu Sarı/Turuncu (Gradient için) */
-        --gold-light: #fff8e1; /* Çok açık sarı zemin */
-        --text-dark: #212529; /* Koyu metin rengi (Sarı üzerinde okunabilirlik için) */
+        --gold-primary: #ffc107; 
+        --gold-dark: #ff9800; 
+        --gold-light: #fff8e1; 
+        --text-dark: #212529;
     }
 
     body {
-        /* Arka Plan: Sıcak Sarı/Krem Degrade */
         background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
         min-height: 100vh;
     }
@@ -22,12 +20,11 @@
     .login-card {
         border: none;
         border-radius: 20px;
-        box-shadow: 0 20px 50px rgba(184, 134, 11, 0.15); /* Gölgeyi de sarımtırak yaptık */
+        box-shadow: 0 20px 50px rgba(184, 134, 11, 0.15); 
         overflow: hidden;
     }
 
     .login-image-side {
-        /* Görseli değiştirdik: Daha sıcak tonlu bir alışveriş görseli */
         background: url('https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=2070&auto=format&fit=crop') center center no-repeat;
         background-size: cover;
         position: relative;
@@ -43,26 +40,25 @@
         left: 0;
         width: 100%;
         height: 100%;
-        /* Resim üzerindeki kaplama: Sıcak Altın/Turuncu */
         background: linear-gradient(to bottom, rgba(255, 193, 7, 0.7), rgba(255, 152, 0, 0.7));
     }
 
     .image-content {
         position: relative;
         z-index: 2;
-        color: var(--text-dark); /* Metin rengi koyu yapıldı */
+        color: var(--text-dark); 
         text-align: center;
         padding: 40px;
     }
 
         .image-content h2, .image-content p {
-            text-shadow: 0 1px 3px rgba(255,255,255,0.3); /* Hafif beyaz gölge ile okunabilirlik */
-            color: #4e342e; /* Koyu kahve tonu */
+            text-shadow: 0 1px 3px rgba(255,255,255,0.3); 
+            color: #4e342e; 
         }
 
     .login-form-side {
         padding: 50px 40px;
-        background: #fffdf8; /* Çok hafif krem rengi zemin */
+        background: #fffdf8;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -78,7 +74,7 @@
         padding-left: 20px;
         padding-right: 55px;
         border-radius: 12px;
-        border: 1px solid #ede0c9; /* Hafif sarımsı sınır */
+        border: 1px solid #ede0c9;
         background: #ffffff;
         font-size: 1rem;
         color: #333;
@@ -89,25 +85,22 @@
         .form-control-custom:focus {
             background: #ffffff;
             border-color: var(--gold-primary);
-            /* Focus olunca SARI ışıldama */
             box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
             transform: translateY(-2px);
         }
 
-    /* --- İKON ORTALAMA DÜZELTMESİ --- */
     .input-icon {
         position: absolute;
         right: 20px;
-        /* Dikey Ortalama İçin Kesin Çözüm: */
         top: 50%;
         transform: translateY(-50%);
-        color: var(--gold-dark); /* İkon rengi koyu sarı/turuncu */
+        color: var(--gold-dark); 
         font-size: 1.2rem;
         opacity: 0.8;
         transition: all 0.3s;
         z-index: 5;
-        line-height: 1; /* Satır yüksekliği sıfırlandı */
-        margin: 0; /* Dış boşluk sıfırlandı */
+        line-height: 1; 
+        margin: 0; 
     }
 
     .form-control-custom:focus + .input-icon,
@@ -119,14 +112,13 @@
 
     .btn-login {
         height: 60px;
-        /* Buton: Sarıdan Turuncuya Gradient */
         background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
         border: none;
         border-radius: 12px;
         font-weight: 700;
         font-size: 1.1rem;
         letter-spacing: 0.5px;
-        color: var(--text-dark); /* Sarı buton üstüne koyu yazı daha iyi okunur */
+        color: var(--text-dark); 
         box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
         transition: all 0.3s;
     }
@@ -138,7 +130,7 @@
         }
 
     .auth-link, .forgot-link {
-        color: var(--gold-dark); /* Linkler koyu sarı */
+        color: var(--gold-dark); 
         text-decoration: none;
         font-weight: 600;
         transition: color 0.2s;
@@ -155,7 +147,6 @@
         margin: 0;
     }
 
-    /* Eğer validation-summary-errors sınıfı yoksa text-danger içindeki ul'yi hedefler */
     .text-danger ul {
         list-style-type: none;
         padding-left: 0;

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ShopVerse.Business.Abstract;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Areas.Admin.Models;
-using ShopVerse.WebUI.Utils; // ImageHelper namespace
+using ShopVerse.WebUI.Utils; 
 
 namespace ShopVerse.WebUI.Areas.Admin.Controllers
 {
@@ -14,12 +14,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
     {
         private readonly ICampaignService _campaignService;
         private readonly ICategoryService _categoryService;
-        private readonly ImageHelper _imageHelper; // Helper
+        private readonly ImageHelper _imageHelper; 
 
         public CampaignController(
             ICampaignService campaignService,
             ICategoryService categoryService,
-            ImageHelper imageHelper) // Constructor Injection
+            ImageHelper imageHelper) 
         {
             _campaignService = campaignService;
             _categoryService = categoryService;
@@ -45,15 +45,13 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. RESİM YÜKLEME
-                string imagePath = "/img/no-image.png"; // Varsayılan
+                string imagePath = "/img/no-image.png"; 
 
                 if (model.ImageFile != null)
                 {
                     imagePath = await _imageHelper.UploadFile(model.ImageFile, "campaigns");
                 }
 
-                // 2. MAPPING (ViewModel -> Entity)
                 var campaign = new Campaign
                 {
                     Title = model.Title,
@@ -69,7 +67,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     MaxProductPrice = model.MaxProductPrice
                 };
 
-                // 3. KAYIT
                 await _campaignService.AddAsync(campaign);
 
                 TempData["AdminSuccess"] = "Kampanya başarıyla oluşturuldu.";
@@ -81,9 +78,7 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
             return View(model);
         }
 
-        // ==================================================================
-        // EDIT İŞLEMLERİ (GÜNCELLENMİŞ KISIM)
-        // ==================================================================
+        
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -94,7 +89,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Entity -> UpdateViewModel Dönüşümü (Manuel Mapping)
             var model = new CampaignUpdateViewModel
             {
                 Id = campaign.Id,
@@ -121,7 +115,6 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. Veritabanındaki orijinal kaydı çek
                 var existingCampaign = await _campaignService.GetByIdAsync(model.Id);
 
                 if (existingCampaign == null)
@@ -129,17 +122,12 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                     return NotFound();
                 }
 
-                // 2. YENİ RESİM VARSA YÜKLE
                 if (model.ImageFile != null)
                 {
-                    // Eski resmi silme kodu (Opsiyonel) buraya eklenebilir.
-
-                    // Yeni resmi yükle ve ImageUrl'i güncelle
+                    
                     existingCampaign.ImageUrl = await _imageHelper.UploadFile(model.ImageFile, "campaigns");
                 }
-                // Else: Resim seçilmediyse existingCampaign.ImageUrl değişmez, eskisi kalır.
 
-                // 3. Diğer bilgileri Entity'ye aktar (Mapping)
                 existingCampaign.Title = model.Title;
                 existingCampaign.Description = model.Description;
                 existingCampaign.StartDate = model.StartDate.Value;
@@ -150,28 +138,24 @@ namespace ShopVerse.WebUI.Areas.Admin.Controllers
                 existingCampaign.MinProductPrice = model.MinProductPrice;
                 existingCampaign.MaxProductPrice = model.MaxProductPrice;
 
-                // 4. Güncelle
                 await _campaignService.UpdateAsync(existingCampaign);
 
                 TempData["AdminSuccess"] = "Kampanya başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
 
-            // Validasyon hatası varsa kategorileri tekrar doldur ve view'a dön
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name", model.TargetCategoryId);
 
             return View(model);
         }
 
-        // ==================================================================
 
         public async Task<IActionResult> Delete(int id)
         {
             var campaign = await _campaignService.GetByIdAsync(id);
             if (campaign != null)
             {
-                // RESİM SİLME İŞLEMİ
                 if (!string.IsNullOrEmpty(campaign.ImageUrl) && !campaign.ImageUrl.Contains("no-image"))
                 {
                     var relativePath = campaign.ImageUrl.TrimStart('/');

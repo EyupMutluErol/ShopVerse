@@ -4,7 +4,6 @@ namespace ShopVerse.WebUI.Utils;
 
 public class TrIdentityErrorDescriber:IdentityErrorDescriber
 {
-    // 1. Şifre Uzunluğu Hatası
     public override IdentityError PasswordTooShort(int length)
     {
         return new IdentityError
@@ -14,7 +13,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 2. Özel Karakter Eksik Hatası (NonAlphanumeric)
     public override IdentityError PasswordRequiresNonAlphanumeric()
     {
         return new IdentityError
@@ -24,7 +22,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 3. Küçük Harf Eksik Hatası
     public override IdentityError PasswordRequiresLower()
     {
         return new IdentityError
@@ -34,7 +31,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 4. Büyük Harf Eksik Hatası
     public override IdentityError PasswordRequiresUpper()
     {
         return new IdentityError
@@ -44,7 +40,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 5. Rakam Eksik Hatası
     public override IdentityError PasswordRequiresDigit()
     {
         return new IdentityError
@@ -54,7 +49,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 6. Email Zaten Kayıtlı Hatası (DuplicateEmail)
     public override IdentityError DuplicateEmail(string email)
     {
         return new IdentityError
@@ -64,7 +58,6 @@ public class TrIdentityErrorDescriber:IdentityErrorDescriber
         };
     }
 
-    // 7. Kullanıcı Adı Zaten Kayıtlı (DuplicateUserName)
     public override IdentityError DuplicateUserName(string userName)
     {
         return new IdentityError

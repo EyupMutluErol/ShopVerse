@@ -5,32 +5,28 @@ namespace ShopVerse.Entities.Concrete;
 
 public class Coupon : BaseEntity
 {
-    public string Code { get; set; } // Kupon Kodu (Örn: YAZ2026)
+    public string Code { get; set; } 
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal DiscountAmount { get; set; } // İndirim Miktarı (Örn: 50 veya 10)
+    public decimal DiscountAmount { get; set; } 
 
-    public bool IsPercentage { get; set; } // Yüzde mi? (True ise %10, False ise 50 TL)
+    public bool IsPercentage { get; set; } 
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal MinCartAmount { get; set; } // Minimum Sepet Tutarı (Örn: Sepet 500 TL altıysa kupon çalışmaz)
+    public decimal MinCartAmount { get; set; } 
 
-    public DateTime ExpirationDate { get; set; } // Son Kullanma Tarihi
+    public DateTime ExpirationDate { get; set; } 
     public bool IsActive { get; set; }
 
-    // ========================================================================
-    // YENİ EKLENEN ALANLAR (ÜRÜN BAZLI FİYAT ARALIĞI)
-    // ========================================================================
+   
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? MinProductPrice { get; set; } // Sadece fiyatı X TL'den yüksek ürünlere uygula (Opsiyonel)
+    public decimal? MinProductPrice { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? MaxProductPrice { get; set; } // Sadece fiyatı Y TL'den düşük ürünlere uygula (Opsiyonel)
-    // ========================================================================
+    public decimal? MaxProductPrice { get; set; } 
 
-    // İlişkiler
     public int? CategoryId { get; set; }
-    public Category? Category { get; set; } // Nullable olması daha güvenli
+    public Category? Category { get; set; } 
 
     public string? UserId { get; set; }
     public AppUser? AppUser { get; set; }

@@ -4,7 +4,6 @@
     ViewData["Title"] = "Sepetim";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Controller'dan gelen Favori Ürün ID Listesi
     var favList = ViewBag.FavoriteProductIds as List<int>;
 }
 
@@ -31,7 +30,6 @@
                                 <tbody>
                                     @foreach (var item in Model.CartItems)
                                     {
-                                        // FAVORİ KONTROLÜ
                                         bool isFav = favList != null && favList.Contains(item.Product.Id);
 
                                         <tr id="row-@item.Product.Id">
@@ -265,7 +263,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // GÜNCELLENMİŞ SİLME FONKSİYONU (AJAX - HIZLI YANIT)
         function deleteFromCart(id) {
             Swal.fire({
                 title: 'Emin misiniz?',
@@ -278,13 +275,11 @@
                 cancelButtonText: 'Vazgeç'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Sayfa yönlendirmesi yerine AJAX isteği yapıyoruz
                     $.ajax({
                         url: '/Cart/RemoveFromCart',
-                        type: 'GET', // Controller GET ile çalışıyor
+                        type: 'GET', 
                         data: { productId: id },
                         success: function () {
-                            // 1. ANINDA GÖRSEL GERİ BİLDİRİM (TOAST)
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Silindi',
@@ -296,11 +291,9 @@
                                 background: '#fff',
                                 timerProgressBar: true
                             }).then(() => {
-                                // 2. Bildirim bittikten sonra sayfayı yenile (Fiyatları güncellemek için)
                                 location.reload();
                             });
 
-                            // Opsiyonel: Satırı hemen silikleştir (Görsel hız için)
                             $("#row-" + id).css("opacity", "0.3");
                         },
                         error: function() {
@@ -313,16 +306,13 @@
 
         function checkDecrease(id, quantity) {
             if (quantity > 1) {
-                // Adet düşürme işlemi hala yönlendirme ile çalışabilir (veya AJAX yapılabilir)
                 window.location.href = "/Cart/Decrease?productId=" + id;
             } else {
-                // Adet 1 ise silme fonksiyonunu çağır (Artık AJAX çalışacak)
                 deleteFromCart(id);
             }
         }
     </script>
 
-    @* Sadece Genel Mesajlar İçin (Silme dışındaki durumlar) *@
     @if (TempData["UserMessage"] != null)
     {
         <script>

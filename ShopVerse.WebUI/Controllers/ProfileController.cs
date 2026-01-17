@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Business.Abstract;
-using ShopVerse.DataAccess.Concrete.Context; // Hesap silerken Context kullanımı devam ediyor (Hızlı çözüm)
+using ShopVerse.DataAccess.Concrete.Context; 
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Models;
 
@@ -33,10 +33,8 @@ namespace ShopVerse.WebUI.Controllers
         {
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-            // Kullanıcının siparişlerini getir
             var orders = _orderService.GetOrdersByUserId(user.Id);
 
-            // Siparişleri tarihe göre yeniden eskiye (son sipariş en üstte) sıralayalım
             orders = orders.OrderByDescending(x => x.CreatedDate).ToList();
 
             var model = new UserProfileViewModel
@@ -76,7 +74,7 @@ namespace ShopVerse.WebUI.Controllers
 
             user.Name = AppUser.Name;
             user.Surname = AppUser.Surname;
-            user.PhoneNumber = AppUser.PhoneNumber; // Telefon da güncellensin
+            user.PhoneNumber = AppUser.PhoneNumber; 
 
             var result = await _userManager.UpdateAsync(user);
 
@@ -92,24 +90,20 @@ namespace ShopVerse.WebUI.Controllers
             }
         }
 
-        // ============================================================
-        // SİPARİŞ İPTAL VE İADE AKSİYONLARI (MANAGER KONTROLLÜ)
-        // ============================================================
+        
 
         [HttpPost]
         public async Task<IActionResult> CancelOrder(int id)
         {
             try
             {
-                // Business katmanındaki metodu çağırıyoruz.
-                // Eğer sipariş Admin tarafından onaylanmışsa, Manager hata fırlatacak.
+                
                 await _orderService.CancelOrderAsync(id);
                 TempData["UserSuccess"] = "Siparişiniz başarıyla iptal edildi.";
             }
             catch (Exception ex)
             {
-                // Manager'dan gelen hatayı (Örn: "Sipariş onaylandığı için iptal edilemez")
-                // kullanıcıya gösteriyoruz.
+               
                 TempData["UserError"] = ex.Message;
             }
             return RedirectToAction("Index");
@@ -120,21 +114,18 @@ namespace ShopVerse.WebUI.Controllers
         {
             try
             {
-                // Business katmanındaki metodu çağırıyoruz.
-                // 3 gün kuralı ve teslimat kontrolü burada yapılıyor.
+               
                 await _orderService.ReturnOrderAsync(id);
                 TempData["UserSuccess"] = "İade talebiniz alındı. Süreç başlatıldı.";
             }
             catch (Exception ex)
             {
-                TempData["UserError"] = ex.Message; // Örn: "İade süresi dolmuştur."
+                TempData["UserError"] = ex.Message;
             }
             return RedirectToAction("Index");
         }
 
-        // ============================================================
-        // HESAP SİLME
-        // ============================================================
+      
 
         [HttpGet]
         public async Task<IActionResult> DeleteAccount()
@@ -142,7 +133,6 @@ namespace ShopVerse.WebUI.Controllers
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
             if (user == null) return RedirectToAction("Login", "Account");
 
-            // 1. Siparişlerle olan ilişkiyi kopar (Sipariş geçmişi silinmez, anonim olur)
             var userOrders = _context.Orders.Where(x => x.AppUserId == user.Id).ToList();
             if (userOrders.Any())
             {
@@ -153,10 +143,8 @@ namespace ShopVerse.WebUI.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // 2. Oturumu Kapat
             await _signInManager.SignOutAsync();
 
-            // 3. Kullanıcıyı Sil
             var result = await _userManager.DeleteAsync(user);
 
             if (result.Succeeded)

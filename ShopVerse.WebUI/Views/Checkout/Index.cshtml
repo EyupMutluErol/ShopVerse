@@ -11,7 +11,6 @@
         background-color: #f8f9fa;
     }
 
-    /* Kredi Kartı Kutusu */
     .credit-card-box {
         background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
         border-radius: 15px;
@@ -48,7 +47,6 @@
                 color: rgba(255, 255, 255, 0.3);
             }
 
-    /* Sağ Taraf - Sipariş Özeti (Sticky) */
     .summary-card {
         border: none;
         border-radius: 12px;
@@ -65,20 +63,17 @@
         border-radius: 12px 12px 0 0;
     }
 
-    /* --- VALIDATION IKON AYARLARI (DÜZELTİLDİ) --- */
     .form-control.is-valid {
         border-color: #198754;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
-        /* İkonu en sağa yasla */
         background-position: right 5px center !important;
         background-size: calc(.75em + .375rem) calc(.75em + .375rem);
     }
 
-    /* Kart içindeki inputlarda yeşil tik çakışmasını önle */
     .credit-card-box .form-control.is-valid {
-        padding-right: 30px !important; /* İkon için yer aç */
-        text-align: left !important; /* Yazıyı sola yasla */
+        padding-right: 30px !important; 
+        text-align: left !important; 
         padding-left: 10px !important;
     }
 </style>
@@ -289,7 +284,6 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // 81 İL VE İLÇELERİ
         const turkeyData = {
             "Adana": ["Aladağ", "Ceyhan", "Çukurova", "Feke", "İmamoğlu", "Karaisalı", "Karataş", "Kozan", "Pozantı", "Saimbeyli", "Sarıçam", "Seyhan", "Tufanbeyli", "Yumurtalık", "Yüreğir"],
             "Adıyaman": ["Besni", "Çelikhan", "Gerger", "Gölbaşı", "Kahta", "Merkez", "Samsat", "Sincik", "Tut"],
@@ -375,18 +369,15 @@
         };
 
         $(document).ready(function () {
-            // --- 1. İL ve İLÇE MANTIĞI ---
             var citySelect = $('#citySelect');
             var districtSelect = $('#districtSelect');
-            var selectedCity = '@(Model.User?.City ?? "")'; // Model'den gelen şehir
+            var selectedCity = '@(Model.User?.City ?? "")'; 
             var selectedDistrict = '@(Model.District ?? "")';
 
-            // İlleri doldur
             $.each(turkeyData, function(city, districts) {
                 citySelect.append($('<option>', { value: city, text: city }));
             });
 
-            // Eğer kullanıcıda kayıtlı şehir varsa seç
             if(selectedCity && turkeyData[selectedCity]) {
                  citySelect.val(selectedCity);
                  populateDistricts(selectedCity);
@@ -402,7 +393,6 @@
                     districtSelect.prop('disabled', false);
                     $.each(turkeyData[city], function(i, district) {
                         var option = $('<option>', { value: district, text: district });
-                        // Eğer modelden gelen ilçe varsa onu seçili yap
                         if(selectedDistrict && selectedDistrict === district) {
                             option.prop('selected', true);
                         }
@@ -413,7 +403,6 @@
                 }
             }
 
-            // --- 2. FORMATLAMA VE VALIDATION ---
 
             function validateInput(element, isValid) {
                 if (isValid) {
@@ -423,7 +412,6 @@
                 }
             }
 
-            // Kart Numarası
             $('#cardNumber').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 16);
                 var formatted = val.match(/.{1,4}/g)?.join(' ') || val;
@@ -431,7 +419,6 @@
                 validateInput(this, val.length === 16);
             });
 
-            // Telefon (Maskeleme)
             $('#phoneInput').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 10);
                 var formatted = val;
@@ -442,14 +429,12 @@
                 validateInput(this, val.length === 10);
             });
 
-            // Ay
             $('#expMonth').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 2);
                 $(this).val(val);
                 validateInput(this, val.length === 2 && parseInt(val) <= 12 && parseInt(val) > 0);
             });
 
-            // Yıl
             $('#expYear').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 4);
                 $(this).val(val);
@@ -457,16 +442,14 @@
                 validateInput(this, val.length === 4 && parseInt(val) >= currentYear);
             });
 
-            // CVV
             $('#cvv').on('input', function() {
                 var val = $(this).val().replace(/\D/g, '').substring(0, 3);
                 $(this).val(val);
                 validateInput(this, val.length === 3);
             });
 
-            // Form Gönderilirken
             $('#checkoutForm').on('submit', function() {
-                districtSelect.prop('disabled', false); // Disabled alanlar post edilmez, açıyoruz.
+                districtSelect.prop('disabled', false); 
                 return true;
             });
         });

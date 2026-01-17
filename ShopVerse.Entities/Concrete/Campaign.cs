@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Column attribute için gerekli
+using System.ComponentModel.DataAnnotations.Schema; 
 
 namespace ShopVerse.Entities.Concrete;
 
@@ -24,19 +24,15 @@ public class Campaign : BaseEntity
 
     public bool IsActive { get; set; } = true;
 
-    // ========================================================================
-    // YENİ EKLENEN ALANLAR (ÜRÜN BAZLI FİYAT ARALIĞI)
-    // ========================================================================
+  
     [Display(Name = "Min. Ürün Fiyatı")]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? MinProductPrice { get; set; } // Bu fiyattan ucuz ürünleri kapsama
+    public decimal? MinProductPrice { get; set; } 
 
     [Display(Name = "Max. Ürün Fiyatı")]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? MaxProductPrice { get; set; } // Bu fiyattan pahalı ürünleri kapsama
-    // ========================================================================
+    public decimal? MaxProductPrice { get; set; } 
 
-    // İlişkiler
     public int? TargetCategoryId { get; set; }
     public Category? TargetCategory { get; set; }
 }

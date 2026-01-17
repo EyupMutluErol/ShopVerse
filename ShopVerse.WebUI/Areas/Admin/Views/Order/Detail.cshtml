@@ -164,7 +164,6 @@
                                     
                                     @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
                                     {
-                                        // 1. ADIM: İsimleri Türkçeleştir
                                         string statusTr = status switch
                                         {
                                             OrderStatus.Pending => "Beklemede",
@@ -176,16 +175,12 @@
                                             _ => status.ToString()
                                         };
 
-                                        // 2. ADIM: Geriye dönük durumları tespit et
                                         bool isBackwards = (int)status < (int)Model.OrderStatus;
                                         
-                                        // "İptal" hariç geriye dönükleri engelle
                                         bool shouldDisable = isBackwards && status != OrderStatus.Canceled;
                                         
-                                        // Şu anki durum seçili gelsin
                                         bool isSelected = status == Model.OrderStatus;
 
-                                        // Engelli stil
                                         string style = shouldDisable ? "color: #aaa; background-color: #f9f9f9;" : "font-weight: 500;";
 
                                         <option value="@status" selected="@isSelected" disabled="@shouldDisable" style="@style">

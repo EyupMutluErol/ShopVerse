@@ -14,13 +14,11 @@ namespace ShopVerse.WebUI.ViewComponents.AdminLayoutViewComponents
             _orderService = orderService;
         }
 
-        // _AdminNotification.cs içindeki InvokeAsync metodu:
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var allData = await _orderService.GetAllAsync();
 
-            // BURADA DA !IsDeleted FİLTRESİ EKLE
             var pendingCount = allData.Count(x => x.OrderStatus == OrderStatus.Pending && x.IsDeleted == false);
 
             ViewBag.NotificationCount = pendingCount;
