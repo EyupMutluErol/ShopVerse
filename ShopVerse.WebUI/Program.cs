@@ -65,6 +65,7 @@ builder.Services.AddScoped<ICouponRepository, EfCouponRepository>();
 builder.Services.AddScoped<ICouponService, CouponManager>();
 
 builder.Services.AddScoped<ImageHelper>();
+builder.Services.AddScoped<EmailHelper>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {

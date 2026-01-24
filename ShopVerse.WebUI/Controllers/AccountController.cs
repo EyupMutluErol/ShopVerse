@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ShopVerse.Entities.Concrete;
 using ShopVerse.WebUI.Models;
-using ShopVerse.WebUI.Utils;
-
+using ShopVerse.WebUI.Utils; 
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace ShopVerse.WebUI.Controllers
 {
@@ -13,11 +14,18 @@ namespace ShopVerse.WebUI.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly RoleManager<AppRole> _roleManager;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRole> roleManager)
+        private readonly EmailHelper _emailHelper;
+
+        public AccountController(
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            RoleManager<AppRole> roleManager,
+            EmailHelper emailHelper) 
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _emailHelper = emailHelper; 
         }
 
         public IActionResult Index()
@@ -61,13 +69,19 @@ namespace ShopVerse.WebUI.Controllers
                     var confirmationLink = Url.Action("ConfirmEmail", "Account",
                         new { userId = user.Id, token = token }, Request.Scheme);
 
-                    var emailHelper = new EmailHelper();
+                    
                     string subject = "ShopVerse Hesap Onayı";
                     string body = $"<h3>Aramıza Hoş Geldin {user.Name}!</h3>" +
                                   $"<p>Kaydını tamamlamak ve giriş yapabilmek için lütfen aşağıdaki linke tıkla:</p>" +
                                   $"<a href='{confirmationLink}' style='background-color:#fd7e14; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Hesabımı Doğrula</a>";
 
-                    emailHelper.SendEmail(user.Email, subject, body);
+                    try
+                    {
+                        await _emailHelper.SendEmailAsync(user.Email, subject, body);
+                    }
+                    catch
+                    {
+                    }
 
                     return View("RegisterConfirmation");
                 }
@@ -105,6 +119,7 @@ namespace ShopVerse.WebUI.Controllers
             return View("Error");
         }
 
+
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
@@ -121,7 +136,6 @@ namespace ShopVerse.WebUI.Controllers
 
                 if (user != null)
                 {
-                 
                     bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
                     if (isAdmin)
@@ -175,10 +189,7 @@ namespace ShopVerse.WebUI.Controllers
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (string.IsNullOrEmpty(model.Email))
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
 
@@ -190,13 +201,21 @@ namespace ShopVerse.WebUI.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account", new { token = token, email = user.Email }, protocol: Request.Scheme);
 
-            var emailHelper = new EmailHelper();
             string subject = "Şifre Sıfırlama Talebi";
             string body = $"<h3>Merhaba {user.Name},</h3>" +
                           $"<p>Şifrenizi sıfırlamak için lütfen aşağıdaki linke tıklayın:</p>" +
-                          $"<a href='{callbackUrl}'>Şifremi Sıfırla</a>";
+                          $"<a href='{callbackUrl}' style='background-color:#007bff; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Şifremi Sıfırla</a>" +
+                          $"<p>Bu işlemi siz yapmadıysanız dikkate almayınız.</p>";
 
-            emailHelper.SendEmail(user.Email, subject, body);
+            try
+            {
+                await _emailHelper.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Mail gönderiminde hata oluştu: " + ex.Message);
+                return View(model);
+            }
 
             return View("ForgotPasswordConfirmation");
         }
@@ -222,10 +241,7 @@ namespace ShopVerse.WebUI.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
@@ -249,7 +265,6 @@ namespace ShopVerse.WebUI.Controllers
             return View(model);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> FixAdmin()
         {
@@ -264,7 +279,7 @@ namespace ShopVerse.WebUI.Controllers
                     Name = "ShopVerse",
                     Surname = "Admin",
                     City = "İstanbul",
-                    EmailConfirmed = true 
+                    EmailConfirmed = true
                 };
 
                 var createResult = await _userManager.CreateAsync(adminUser, "Admin123.");
@@ -277,7 +292,6 @@ namespace ShopVerse.WebUI.Controllers
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(adminUser);
                 await _userManager.ResetPasswordAsync(adminUser, token, "Admin123.");
-
                 adminUser.EmailConfirmed = true;
                 await _userManager.UpdateAsync(adminUser);
             }
@@ -292,7 +306,7 @@ namespace ShopVerse.WebUI.Controllers
                 await _userManager.AddToRoleAsync(adminUser, "Admin");
             }
 
-            return Content("Admin kullanıcısı başarıyla onarıldı! \nEmail: admin@shopverse.com \nŞifre: Admin123. \nRol: Admin \n\nArtık giriş yapabilirsiniz.");
+            return Content("Admin hesabı başarıyla onarıldı/oluşturuldu! \nEmail: admin@shopverse.com \nŞifre: Admin123.");
         }
     }
 }
